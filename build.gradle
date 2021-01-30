@@ -7,8 +7,8 @@ buildscript {
 plugins {
     id 'java'
     id 'idea'
-    id 'org.springframework.boot' version "2.2.7.RELEASE"
-    id 'io.spring.dependency-management' version "1.0.9.RELEASE"
+    id 'org.springframework.boot' version "2.4.2"
+    id 'io.spring.dependency-management' version "1.0.10.RELEASE"
     id 'net.ltgt.apt' version '0.21'
 }
 
@@ -33,15 +33,17 @@ dependencies {
     implementation 'org.springframework.security:spring-security-web'
     implementation 'org.springframework.security:spring-security-config'
     implementation 'org.springframework.security:spring-security-data'
-    implementation'org.bouncycastle:bcprov-jdk15on:1.65'
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.0'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.11.0'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.0'    // Use MySQL Connector-J
-    implementation 'mysql:mysql-connector-java'
-    implementation 'io.minio:minio:7.0.2'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'    // Use MySQL Connector-J
+    implementation 'mysql:mysql-connector-java'
+    implementation 'io.minio:minio:7.1.4'
+
+    compileOnly 'org.projectlombok:lombok:1.18.18'
+    annotationProcessor 'org.projectlombok:lombok:1.18.18'
 
     testCompile("org.springframework.boot:spring-boot-starter-test")
 }
