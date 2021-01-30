@@ -22,7 +22,7 @@ public class Global {
 
     private MinioClient minioClient;
 
-    private Logger logger = LoggerFactory.getLogger(Global.class);
+    private final Logger logger = LoggerFactory.getLogger(Global.class);
 
     @Autowired
     private UserService userService;
@@ -72,12 +72,15 @@ public class Global {
 
         logger.info(String.format("Starting Minio connection to URL: %s", minioURL));
         try {
-            minioClient = new MinioClient(minioURL, minioAccessKey, minioSecretKey);
+            minioClient = MinioClient.builder()
+                                     .endpoint(minioURL)
+                                     .credentials(minioAccessKey, minioSecretKey)
+                                     .build();
         } catch (Exception e) {
             logger.warn("Cannot initialize minio service with url:" + minioURL + ", access-key:" + minioAccessKey + ", secret-key:" + minioSecretKey);
         }
 
-        if (minioBucket == "") {
+        if (minioBucket.equals("")) {
             logger.warn("Cannot initialize minio bucket: " + minioBucket);
             minioClient = null;
         }
