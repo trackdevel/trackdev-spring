@@ -9,7 +9,7 @@ import java.util.Set;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "groups")
+@Table(name = "`groups`")
 public class Group extends BaseEntityLong {
 
     public Group() {}
