@@ -4,9 +4,9 @@ import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class IdObject {
+public class IdObjectLong {
 
     @NonNull
-    private String id;
+    private Long id;
 
 }

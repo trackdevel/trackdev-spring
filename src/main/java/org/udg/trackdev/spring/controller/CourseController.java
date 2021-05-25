@@ -2,8 +2,10 @@ package org.udg.trackdev.spring.controller;
 
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Course;
+import org.udg.trackdev.spring.entity.IdObjectLong;
 import org.udg.trackdev.spring.service.CourseService;
 
+import javax.validation.constraints.NotNull;
 import java.security.Principal;
 import java.util.List;
 
@@ -18,4 +20,22 @@ public class CourseController extends CrudController<Course, CourseService> {
         return super.search(refinedSearch);
     }
 
+    @GetMapping(path = "/{id}")
+    public Course getCourse(@PathVariable("id") Long id) {
+        Course course = service.getCourse(id);
+        return course;
+    }
+
+    @PostMapping
+    public IdObjectLong createCourse(Principal principal, @RequestBody NewCourse courseRequest) {
+        String userId = principal.getName();
+        Course createdCourse = service.createCourse(courseRequest.name, userId);
+
+        return new IdObjectLong(createdCourse.getId());
+    }
+
+    static class NewCourse {
+        @NotNull
+        public String name;
+    }
 }
