@@ -1,7 +1,6 @@
 package org.udg.trackdev.spring.query;
 
 
-import lombok.Data;
 import javax.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 

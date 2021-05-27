@@ -1,15 +1,15 @@
 package org.udg.trackdev.spring.entity;
 
-import lombok.NonNull;
-
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.validation.constraints.NotNull;
+
 @Entity
-@Table(name = "groups")
+@Table(name = "`groups`")
 public class Group extends BaseEntityLong {
 
     public Group() {}
@@ -18,7 +18,7 @@ public class Group extends BaseEntityLong {
         this.name = name;
     }
 
-    @NonNull
+    @NotNull
     private String name;
 
     @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "groups")
