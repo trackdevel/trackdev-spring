@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class IdObject {
+public class IdObjectUUID {
 
     @NonNull
     private String id;
