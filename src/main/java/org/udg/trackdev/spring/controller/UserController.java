@@ -1,24 +1,16 @@
 package org.udg.trackdev.spring.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
-import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.entity.Views;
 import org.udg.trackdev.spring.service.UserService;
 
-import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
-// This class is used to process all the authentication related URLs
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import java.security.Principal;
+
+// This class is used to manage users and sign up
 @RequestMapping(path = "/users")
 @RestController
 public class UserController extends BaseController {
@@ -49,13 +41,12 @@ public class UserController extends BaseController {
 //    return BaseController.OK_MESSAGE;
 //  }
 
-//    @PostMapping(path = "/register")
-//    public String register(HttpSession session, @Valid @RequestBody RegisterT ru) {
-//
-//        checkNotLoggedIn(session);
-//        userService.register(ru.username, ru.email, ru.password);
-//        return BaseController.OK_MESSAGE;
-//    }
+    @PostMapping(path = "/register")
+    public String register(Principal principal, @Valid @RequestBody RegisterT ru) {
+        checkNotLoggedIn(principal);
+        userService.register(ru.username, ru.email, ru.password);
+        return BaseController.OK_MESSAGE;
+    }
 
 //    @GetMapping(path = "/check")
 //    public String checkLoggedIn(HttpSession session) {
@@ -66,16 +57,15 @@ public class UserController extends BaseController {
 //    }
 
     static class RegisterT {
-        @NotNull
+        @NotBlank
         public String username;
-        @NotNull
+
+        @NotBlank
+        @Email
         public String email;
-        @NotNull
+
+        @NotBlank
         public String password;
-        @NotNull
-        public String name;
-        @NotNull
-        public String address;
     }
 
     static class UpdateT {

@@ -10,6 +10,8 @@ import javax.validation.constraints.NotNull;
 @Table(name = "invites")
 public class Invite extends BaseEntityLong {
 
+    public Invite() {}
+
     public Invite(UserType TType) {
         this.TType = TType;
     }
