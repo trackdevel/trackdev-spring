@@ -26,16 +26,6 @@ public class UserController extends BaseController {
     @Autowired
     UserService userService;
 
-//    @PostMapping(path = "/logout")
-//    @JsonView(Views.Private.class)
-//    public String logout(HttpSession session) {
-//
-//        Long TID = getLoggedUser(session);
-//
-//        session.removeAttribute("simpleapp_auth_id");
-//        return BaseController.OK_MESSAGE;
-//    }
-
 //    @GetMapping(path = "/{id}")
 //    @JsonView(Views.Public.class)
 //    public User getPublicT(HttpSession session, @PathVariable("id") Long TId) {
@@ -59,22 +49,12 @@ public class UserController extends BaseController {
 //    return BaseController.OK_MESSAGE;
 //  }
 
-
 //    @PostMapping(path = "/register")
 //    public String register(HttpSession session, @Valid @RequestBody RegisterT ru) {
 //
 //        checkNotLoggedIn(session);
 //        userService.register(ru.username, ru.email, ru.password);
 //        return BaseController.OK_MESSAGE;
-//    }
-
-//    @GetMapping(path = "/me")
-//    @JsonView(Views.Complete.class)
-//    public User getTProfile(HttpSession session) {
-//
-//        Long loggedTId = getLoggedUser(session);
-//
-//        return userService.getUser(loggedTId);
 //    }
 
 //    @GetMapping(path = "/check")
@@ -84,13 +64,6 @@ public class UserController extends BaseController {
 //
 //        return BaseController.OK_MESSAGE;
 //    }
-
-    static class LoginT {
-        @NotNull
-        public String username;
-        @NotNull
-        public String password;
-    }
 
     static class RegisterT {
         @NotNull
