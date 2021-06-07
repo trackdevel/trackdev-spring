@@ -11,6 +11,7 @@ import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.InviteRepository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -20,17 +21,23 @@ public class InviteService {
     InviteRepository inviteRepository;
 
     @Autowired
+    RoleService roleService;
+
+    @Autowired
     UserService userService;
 
     @Transactional
-    public Invite createInvite(String email, UserType role, String ownerId) {
+    public Invite createInvite(String email, Collection<UserType> userTypes, String ownerId) {
         User owner = userService.get(ownerId);
-        checkIfCanInviteRole(owner.getRoles(), role);
+        checkIfCanInviteUserTypes(owner.getRoles(), userTypes);
         userService.checkIfEmailExists(email);
         checkIfExists(email, ownerId);
 
-        Invite invite = new Invite(role);
-        invite.setEmail(email);
+        Invite invite = new Invite(email);
+        for (UserType type : userTypes) {
+            Role role = roleService.get(type);
+            invite.addRole(role);
+        }
         owner.addInvite(invite);
         invite.setOwner(owner);
         return invite;
@@ -45,10 +52,11 @@ public class InviteService {
         }
     }
 
-    private void checkIfCanInviteRole(Set<Role> ownerRoles, UserType invitationRole) {
+    private void checkIfCanInviteUserTypes(Set<Role> ownerRoles, Collection<UserType> invitationUserTypes) {
         boolean canInvite = false;
         for (Role ownerRole : ownerRoles) {
-            canInvite = canInviteRole(ownerRole.getUserType(), invitationRole);
+            canInvite = invitationUserTypes.stream()
+                    .allMatch(iUT -> canInviteRole(ownerRole.getUserType(), iUT));
             if(canInvite) {
                 break;
             }

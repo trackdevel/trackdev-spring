@@ -1,10 +1,13 @@
 package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.configuration.UserType;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "invites")
@@ -12,15 +15,15 @@ public class Invite extends BaseEntityLong {
 
     public Invite() {}
 
-    public Invite(UserType TType) {
-        this.TType = TType;
+    public Invite(String email) {
+        this.email = email;
     }
 
     @NotNull
     private String email;
 
-    @NotNull
-    private UserType TType;
+    @ManyToMany()
+    private Set<Role> roles = new HashSet<>();
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,19 +34,16 @@ public class Invite extends BaseEntityLong {
     private String ownerId;
 
     @JsonView(Views.Public.class)
-    public UserType getUserType() {
-      return TType;
-    }
+    @JsonSerialize(using= JsonRolesSerializer.class)
+    public Set<Role> getRoles() { return roles; }
 
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public void setOwner(User owner) { this.owner = owner; }
 
     public String getOwnerId() { return ownerId; }
+
+    public void addRole(Role role) { this.roles.add(role); }
 }

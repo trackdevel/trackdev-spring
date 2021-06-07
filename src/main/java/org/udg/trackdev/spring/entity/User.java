@@ -44,7 +44,7 @@ public class User extends BaseEntityUUID {
   @ManyToMany
   private Collection<Group> groups = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL)
+  @ManyToMany()
   private Set<Role> roles = new HashSet<>();
 
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "owner")
