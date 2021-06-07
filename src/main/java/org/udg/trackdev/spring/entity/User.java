@@ -16,6 +16,9 @@ import java.util.*;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = User.class)
 public class User extends BaseEntityUUID {
 
+  public static final int USERNAME_LENGTH = 12;
+  public static final int EMAIL_LENGTH = 128;
+
   public User() {
   }
 
@@ -26,11 +29,11 @@ public class User extends BaseEntityUUID {
   }
 
   @NotNull
-  @Column(unique=true, length=12)
+  @Column(unique=true, length=USERNAME_LENGTH)
   private String username;
 
   @NotNull
-  @Column(unique=true, length=128)
+  @Column(unique=true, length=EMAIL_LENGTH)
   private String email;
 
   @NotNull

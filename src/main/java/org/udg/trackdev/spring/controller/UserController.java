@@ -2,12 +2,14 @@ package org.udg.trackdev.spring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.service.UserService;
 
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 
 // This class is used to manage users and sign up
@@ -58,10 +60,12 @@ public class UserController extends BaseController {
 
     static class RegisterT {
         @NotBlank
+        @Size(max = User.USERNAME_LENGTH)
         public String username;
 
         @NotBlank
         @Email
+        @Size(max = User.EMAIL_LENGTH)
         public String email;
 
         @NotBlank

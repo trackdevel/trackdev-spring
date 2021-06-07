@@ -20,6 +20,7 @@ public class Invite extends BaseEntityLong {
     }
 
     @NotNull
+    @Column(length=User.EMAIL_LENGTH)
     private String email;
 
     @ManyToMany()
@@ -30,7 +31,7 @@ public class Invite extends BaseEntityLong {
     @JoinColumn(name = "ownerId")
     private User owner;
 
-    @Column(name = "ownerId", insertable = false, updatable = false)
+    @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
     @JsonView(Views.Public.class)

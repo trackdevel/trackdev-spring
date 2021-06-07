@@ -5,12 +5,14 @@ import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.IdObjectLong;
 import org.udg.trackdev.spring.entity.Invite;
+import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.service.InviteService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
 
@@ -31,6 +33,7 @@ public class InviteController {
     static class NewInvite {
         @NotNull
         @Email
+        @Size(max = User.EMAIL_LENGTH)
         public String email;
 
         @NotEmpty
