@@ -47,6 +47,9 @@ public class User extends BaseEntityUUID {
   @OneToMany(cascade = CascadeType.ALL)
   private Set<Role> roles = new HashSet<>();
 
+  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "owner")
+  private Collection<Invite> invites = new ArrayList<>();
+
   @JsonView(Views.Private.class)
   public String getId() {
     return super.getId();
@@ -88,4 +91,6 @@ public class User extends BaseEntityUUID {
   public void addToGroup(Group group) {
     this.groups.add(group);
   }
+
+  public void addInvite(Invite invite) { this.invites.add(invite); }
 }

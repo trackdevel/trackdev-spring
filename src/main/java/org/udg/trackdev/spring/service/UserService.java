@@ -34,6 +34,11 @@ public class UserService {
         return userRepository;
     }
 
+    public void checkIfEmailExists(String email) {
+        if (userRepository.existsByEmail(email))
+            throw new ServiceException("User with this email already exist");
+    }
+
     public User matchPassword(String username, String password) {
 
         User user = userRepository.findByUsername(username);
@@ -87,8 +92,7 @@ public class UserService {
     }
 
     private void checkIfExists(String username, String email) {
-        if (userRepository.existsByEmail(email))
-            throw new ServiceException("Email already exist");
+        checkIfEmailExists(email);
 
         if (userRepository.existsByUsername(username))
             throw new ServiceException("Tname already exists");

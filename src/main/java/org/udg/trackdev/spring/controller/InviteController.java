@@ -10,6 +10,7 @@ import org.udg.trackdev.spring.service.InviteService;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
+import java.security.Principal;
 
 @RestController
 @RequestMapping(path = "/invites")
@@ -19,8 +20,9 @@ public class InviteController {
     InviteService service;
 
     @PostMapping()
-    public IdObjectLong createInvite(@Valid @RequestBody NewInvite inviteRequest) {
-        Invite createdInvite = service.createInvite(inviteRequest.email, inviteRequest.role);
+    public IdObjectLong createInvite(Principal principal, @Valid @RequestBody NewInvite inviteRequest) {
+        String userId = principal.getName();
+        Invite createdInvite = service.createInvite(inviteRequest.email, inviteRequest.role, userId);
         return new IdObjectLong(createdInvite.getId());
     }
 

@@ -22,6 +22,14 @@ public class Invite extends BaseEntityLong {
     @NotNull
     private UserType TType;
 
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ownerId")
+    private User owner;
+
+    @Column(name = "ownerId", insertable = false, updatable = false)
+    private String ownerId;
+
     @JsonView(Views.Public.class)
     public UserType getUserType() {
       return TType;
@@ -34,4 +42,8 @@ public class Invite extends BaseEntityLong {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public void setOwner(User owner) { this.owner = owner; }
+
+    public String getOwnerId() { return ownerId; }
 }
