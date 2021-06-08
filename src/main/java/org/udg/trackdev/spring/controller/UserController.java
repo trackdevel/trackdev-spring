@@ -1,40 +1,24 @@
 package org.udg.trackdev.spring.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.entity.Views;
 import org.udg.trackdev.spring.service.UserService;
 
-import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
-// This class is used to process all the authentication related URLs
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import java.security.Principal;
+
+// This class is used to manage users and sign up
 @RequestMapping(path = "/users")
 @RestController
 public class UserController extends BaseController {
 
     @Autowired
     UserService userService;
-
-//    @PostMapping(path = "/logout")
-//    @JsonView(Views.Private.class)
-//    public String logout(HttpSession session) {
-//
-//        Long TID = getLoggedUser(session);
-//
-//        session.removeAttribute("simpleapp_auth_id");
-//        return BaseController.OK_MESSAGE;
-//    }
 
 //    @GetMapping(path = "/{id}")
 //    @JsonView(Views.Public.class)
@@ -59,23 +43,12 @@ public class UserController extends BaseController {
 //    return BaseController.OK_MESSAGE;
 //  }
 
-
-//    @PostMapping(path = "/register")
-//    public String register(HttpSession session, @Valid @RequestBody RegisterT ru) {
-//
-//        checkNotLoggedIn(session);
-//        userService.register(ru.username, ru.email, ru.password);
-//        return BaseController.OK_MESSAGE;
-//    }
-
-//    @GetMapping(path = "/me")
-//    @JsonView(Views.Complete.class)
-//    public User getTProfile(HttpSession session) {
-//
-//        Long loggedTId = getLoggedUser(session);
-//
-//        return userService.getUser(loggedTId);
-//    }
+    @PostMapping(path = "/register")
+    public String register(Principal principal, @Valid @RequestBody RegisterT ru) {
+        checkNotLoggedIn(principal);
+        userService.register(ru.username, ru.email, ru.password);
+        return BaseController.OK_MESSAGE;
+    }
 
 //    @GetMapping(path = "/check")
 //    public String checkLoggedIn(HttpSession session) {
@@ -85,24 +58,18 @@ public class UserController extends BaseController {
 //        return BaseController.OK_MESSAGE;
 //    }
 
-    static class LoginT {
-        @NotNull
-        public String username;
-        @NotNull
-        public String password;
-    }
-
     static class RegisterT {
-        @NotNull
+        @NotBlank
+        @Size(max = User.USERNAME_LENGTH)
         public String username;
-        @NotNull
+
+        @NotBlank
+        @Email
+        @Size(max = User.EMAIL_LENGTH)
         public String email;
-        @NotNull
+
+        @NotBlank
         public String password;
-        @NotNull
-        public String name;
-        @NotNull
-        public String address;
     }
 
     static class UpdateT {

@@ -24,4 +24,9 @@ public class BaseController {
       throw new ControllerException("No authentication token in request");
     return principal.getName();
   }
+
+  void checkNotLoggedIn(Principal principal) {
+    if(principal != null)
+      throw new ControllerException("User should not be authenticated");
+  }
 }

@@ -18,10 +18,8 @@ public class Role extends BaseEntityLong implements GrantedAuthority {
   }
 
   @NotNull
+  @Column(unique = true)
   private UserType userType;
-
-  @ManyToOne
-  private User User;
 
   @JsonView(Views.Private.class)
   public Long getId() {

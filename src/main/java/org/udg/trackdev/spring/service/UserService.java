@@ -9,7 +9,6 @@ import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.InviteRepository;
-import org.udg.trackdev.spring.repository.RoleRepository;
 import org.udg.trackdev.spring.repository.UserRepository;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Autowired
     private InviteRepository inviteRepository;
@@ -32,6 +31,11 @@ public class UserService {
 
     public UserRepository crud() {
         return userRepository;
+    }
+
+    public void checkIfEmailExists(String email) {
+        if (userRepository.existsByEmail(email))
+            throw new ServiceException("User with this email already exist");
     }
 
     public User matchPassword(String username, String password) {
@@ -56,10 +60,10 @@ public class UserService {
 
         User User = new User(username, email, global.getPasswordEncoder().encode(password));
         for (Invite invite: invites) {
-            Role role = new Role(invite.getUserType());
-            User.addRole(role);
+            for(Role inviteRole : invite.getRoles()) {
+                User.addRole(inviteRole);
+            }
         }
-
         userRepository.save(User);
         return User;
     }
@@ -78,7 +82,7 @@ public class UserService {
 
         User user = new User(username, email, password);
         for (UserType ut: roles) {
-            Role role = new Role(ut);
+            Role role = roleService.get(ut);
             user.addRole(role);
         }
         userRepository.save(user);
@@ -87,8 +91,7 @@ public class UserService {
     }
 
     private void checkIfExists(String username, String email) {
-        if (userRepository.existsByEmail(email))
-            throw new ServiceException("Email already exist");
+        checkIfEmailExists(email);
 
         if (userRepository.existsByUsername(username))
             throw new ServiceException("Tname already exists");
