@@ -14,6 +14,7 @@ import org.udg.trackdev.spring.configuration.UserType;
 
 import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,6 +42,9 @@ public class Global {
 
     @Autowired
     private BacklogService backlogService;
+
+    @Autowired
+    private InviteService inviteService;
 
     @Autowired
     TaskService taskService;
@@ -99,6 +103,8 @@ public class Global {
         logger.info("Starting populating database ...");
         User admin = userService.addUserInternal("neich", "ignacio.martin@udg.edu", getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
         User student = userService.addUserInternal("student1", "s1@hotmail.com", getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
+        Invite inviteStudent = inviteService.createInvite("student2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
+        Invite inviteProfessor = inviteService.createInvite("professor2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Course course = courseService.createCourse("Test course", admin.getId());
         Group group = groupService.createGroup("1A", course.getId());
         groupService.addMember(group.getId(), student.getId());
