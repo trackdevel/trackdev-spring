@@ -32,6 +32,9 @@ public class Global {
     private CourseService courseService;
 
     @Autowired
+    private CourseYearService courseYearService;
+
+    @Autowired
     private GroupService groupService;
 
     @Autowired
@@ -106,9 +109,10 @@ public class Global {
         Invite inviteStudent = inviteService.createInvite("student2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Invite inviteProfessor = inviteService.createInvite("professor2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Course course = courseService.createCourse("Test course", admin.getId());
-        Group group = groupService.createGroup("1A", course.getId());
+        CourseYear courseYear = courseYearService.createCourseYear(course.getId(), 2021,2022, admin.getId());
+        Group group = groupService.createGroup("1A", courseYear.getId());
         groupService.addMember(group.getId(), student.getId());
-        Iteration iteration = iterationService.create("First iteration", course.getId());
+        Iteration iteration = iterationService.create("First iteration", courseYear.getId());
         Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
         Task task = taskService.create("Task 1", backlog.getId());

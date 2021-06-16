@@ -25,14 +25,14 @@ public class Group extends BaseEntityLong {
     private Set<User> members = new HashSet<>();
 
     @ManyToOne
-    private Course course;
+    private CourseYear courseYear;
 
     @OneToMany(mappedBy = "group")
     private Collection<Sprint> sprints = new ArrayList<>();
 
     public void addMember(User member) { this.members.add(member); }
 
-    public void setCourse(Course course) {
-        this.course = course;
+    public void setCourseYear(CourseYear course) {
+        this.courseYear = courseYear;
     }
 }

@@ -3,7 +3,7 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.udg.trackdev.spring.entity.Course;
+import org.udg.trackdev.spring.entity.CourseYear;
 import org.udg.trackdev.spring.entity.Group;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.GroupRepository;
@@ -15,14 +15,14 @@ public class GroupService extends BaseService<Group, GroupRepository> {
     UserService userService;
 
     @Autowired
-    CourseService courseService;
+    CourseYearService courseYearService;
 
     @Transactional
-    public Group createGroup(String name, Long courseId) {
-        Course course = courseService.get(courseId);
+    public Group createGroup(String name, Long courseYearId) {
+        CourseYear course = courseYearService.get(courseYearId);
         Group group = new Group(name);
         course.addGroup(group);
-        group.setCourse(course);
+        group.setCourseYear(course);
         return group;
     }
 

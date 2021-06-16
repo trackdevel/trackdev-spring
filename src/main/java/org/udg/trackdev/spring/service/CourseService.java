@@ -41,7 +41,7 @@ public class CourseService extends BaseService<Course, CourseRepository> {
 
     public Course editCourseDetails(Long id, String name, String loggedInUserId) {
         Course course = getCourse(id);
-        if(!course.getOwnerId().equals(loggedInUserId)) {
+        if(!canManageCourse(course, loggedInUserId)) {
             throw new ServiceException("User does not have rights to edit course");
         }
         course.setName(name);
@@ -51,7 +51,7 @@ public class CourseService extends BaseService<Course, CourseRepository> {
 
     public void deleteCourse(Long id, String loggedInUserId) {
         Course course = getCourse(id);
-        if(!course.getOwnerId().equals(loggedInUserId)) {
+        if(!canManageCourse(course, loggedInUserId)) {
             throw new ServiceException("User does not have rights to delete course");
         }
         // Due to constraints only courses with empty groups (no users, no backlogs) can be removed
@@ -61,6 +61,10 @@ public class CourseService extends BaseService<Course, CourseRepository> {
 
     List<Course> findCoursesOwned(String uuid)  {
         return this.repo.findByOwner(uuid);
+    }
+
+    public Boolean canManageCourse(Course course, String loggedInUserId) {
+        return course.getOwnerId().equals(loggedInUserId);
     }
 
 }
