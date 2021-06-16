@@ -43,6 +43,8 @@ public class Course extends BaseEntityLong {
         return name;
     }
 
+    public void setName(String name) { this.name = name; }
+
     public String getOwnerId() {
         return ownerId;
     }
