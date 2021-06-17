@@ -2,8 +2,6 @@ package org.udg.trackdev.spring.controller;
 
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
-
-import javax.servlet.http.HttpSession;
 import java.security.Principal;
 
 /**
@@ -19,9 +17,9 @@ public class BaseController {
     return result;
   }
 
-  protected String userFromPrincipal(Principal principal) {
+  protected String getUserId(Principal principal) {
     if (principal == null)
-      throw new ControllerException("No authentication token in request");
+      throw new ControllerException("User should be authenticated");
     return principal.getName();
   }
 

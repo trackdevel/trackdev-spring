@@ -25,8 +25,8 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     @GetMapping
     public List<Course> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
-        String username = principal.getName();
-        String refinedSearch = "ownerId:" + username + (search != null ? "," + search : "");
+        String userId = super.getUserId(principal);
+        String refinedSearch = "ownerId:" + userId + (search != null ? "," + search : "");
         return super.search(refinedSearch);
     }
 
@@ -38,7 +38,7 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     @PostMapping
     public IdObjectLong createCourse(Principal principal, @Valid @RequestBody NewCourse courseRequest) {
-        String userId = principal.getName();
+        String userId = super.getUserId(principal);
         Course createdCourse = service.createCourse(courseRequest.name, userId);
 
         return new IdObjectLong(createdCourse.getId());
@@ -48,7 +48,7 @@ public class CourseController extends CrudController<Course, CourseService> {
     public Course editCourse(Principal principal,
                              @PathVariable("id") Long id,
                              @Valid @RequestBody EditCourse courseRequest) {
-        String userId = principal.getName();
+        String userId = super.getUserId(principal);
         Course modifiedCourse = service.editCourseDetails(id, courseRequest.name, userId);
 
         return modifiedCourse;
@@ -56,7 +56,7 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteCourse(Principal principal, @PathVariable("id") Long id) {
-        String userId = principal.getName();
+        String userId = super.getUserId(principal);
         service.deleteCourse(id, userId);
 
         return ResponseEntity.ok().build();
@@ -66,7 +66,7 @@ public class CourseController extends CrudController<Course, CourseService> {
     public IdObjectLong createYear(Principal principal,
                                         @PathVariable("courseId") Long courseId,
                                         @Valid @RequestBody NewCourseYear yearRequest) {
-        String userId = principal.getName();
+        String userId = super.getUserId(principal);
         CourseYear createdYear = courseYearService.createCourseYear(courseId, yearRequest.startYear, userId);
         return new IdObjectLong(createdYear.getId());
     }
@@ -74,7 +74,7 @@ public class CourseController extends CrudController<Course, CourseService> {
     @DeleteMapping(path = "/years/{yearId}")
     public ResponseEntity deleteYear(Principal principal,
                                 @PathVariable("yearId") Long yearId) {
-        String userId = principal.getName();
+        String userId = super.getUserId(principal);
         courseYearService.deleteCourseYear(yearId, userId);
         return ResponseEntity.ok().build();
     }
