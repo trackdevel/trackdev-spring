@@ -43,5 +43,9 @@ public class Course extends BaseEntityLong {
         this.owner = owner;
     }
 
+    public Collection<CourseYear> getCourseYears() {
+        return this.courseYears;
+    }
+
     public void addCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
 }

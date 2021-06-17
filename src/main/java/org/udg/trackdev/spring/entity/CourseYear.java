@@ -1,5 +1,7 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.Collection;
 
@@ -9,18 +11,13 @@ public class CourseYear extends BaseEntityLong {
 
     public CourseYear() {}
 
-    public CourseYear(Integer startYear, Integer endYear) {
+    public CourseYear(Integer startYear) {
         this.startYear = startYear;
-        this.endYear = endYear;
     }
 
     private Integer startYear;
 
-    private Integer endYear;
-
     public Integer getStartYear() { return startYear; }
-
-    public Integer getEndYear() { return endYear; }
 
     @ManyToOne
     private Course course;
@@ -31,6 +28,9 @@ public class CourseYear extends BaseEntityLong {
     @OneToMany(mappedBy = "courseYear")
     private Collection<Iteration> iterations;
 
+    @JsonIgnore
+    public Course getCourse() { return this.course; }
+
     public void setCourse(Course course) { this.course = course; }
 
     public void addGroup(Group group) { this.groups.add(group); }
@@ -38,4 +38,5 @@ public class CourseYear extends BaseEntityLong {
     public void addIteration(Iteration iteration) {
         this.iterations.add(iteration);
     }
+
 }
