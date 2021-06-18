@@ -23,7 +23,7 @@ public class Iteration extends BaseEntityLong {
     private String name;
 
     @ManyToOne
-    private Course course;
+    private CourseYear courseYear;
 
     @JsonSerialize(using = JsonDateSerializer.class)
     private Date startDate;
@@ -34,12 +34,12 @@ public class Iteration extends BaseEntityLong {
     @OneToMany(mappedBy = "iteration")
     private Collection<Sprint> sprints = new ArrayList<>();
 
-    public Course getCourse() {
-        return course;
+    public CourseYear getCourseYear() {
+        return courseYear;
     }
 
-    public void setCourse(Course course) {
-        this.course = course;
+    public void setCourseYear(CourseYear courseYear) {
+        this.courseYear = courseYear;
     }
 
     public Date getStartDate() {

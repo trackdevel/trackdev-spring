@@ -67,12 +67,9 @@ public class AuthController extends BaseController {
     @JsonView(Views.Private.class)
     public User self(Principal principal) {
 
-        String userId = super.userFromPrincipal(principal);
+        String userId = super.getUserId(principal);
         return userService.get(userId);
     }
-
-
-
 
     private String getJWTToken(User user) {
         List<GrantedAuthority> grantedAuthorities = AuthorityUtils

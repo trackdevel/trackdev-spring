@@ -18,14 +18,14 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping(path = "/invites")
-public class InviteController {
+public class InviteController extends BaseController {
 
     @Autowired
     InviteService service;
 
     @PostMapping()
     public IdObjectLong createInvite(Principal principal, @Valid @RequestBody NewInvite inviteRequest) {
-        String userId = principal.getName();
+        String userId = super.getUserId(principal);
         Invite createdInvite = service.createInvite(inviteRequest.email, inviteRequest.roles, userId);
         return new IdObjectLong(createdInvite.getId());
     }

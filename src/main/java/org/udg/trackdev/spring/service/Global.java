@@ -14,6 +14,7 @@ import org.udg.trackdev.spring.configuration.UserType;
 
 import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,6 +32,9 @@ public class Global {
     private CourseService courseService;
 
     @Autowired
+    private CourseYearService courseYearService;
+
+    @Autowired
     private GroupService groupService;
 
     @Autowired
@@ -41,6 +45,9 @@ public class Global {
 
     @Autowired
     private BacklogService backlogService;
+
+    @Autowired
+    private InviteService inviteService;
 
     @Autowired
     TaskService taskService;
@@ -99,10 +106,13 @@ public class Global {
         logger.info("Starting populating database ...");
         User admin = userService.addUserInternal("neich", "ignacio.martin@udg.edu", getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
         User student = userService.addUserInternal("student1", "s1@hotmail.com", getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
+        Invite inviteStudent = inviteService.createInvite("student2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
+        Invite inviteProfessor = inviteService.createInvite("professor2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Course course = courseService.createCourse("Test course", admin.getId());
-        Group group = groupService.createGroup("1A", course.getId());
+        CourseYear courseYear = courseYearService.createCourseYear(course.getId(), 2021, admin.getId());
+        Group group = groupService.createGroup("1A", courseYear.getId());
         groupService.addMember(group.getId(), student.getId());
-        Iteration iteration = iterationService.create("First iteration", course.getId());
+        Iteration iteration = iterationService.create("First iteration", courseYear.getId());
         Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
         Task task = taskService.create("Task 1", backlog.getId());
