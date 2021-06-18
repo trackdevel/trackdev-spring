@@ -1,8 +1,10 @@
 package org.udg.trackdev.spring.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.entity.Views;
 import org.udg.trackdev.spring.service.UserService;
 
 
@@ -20,14 +22,18 @@ public class UserController extends BaseController {
     @Autowired
     UserService userService;
 
-//    @GetMapping(path = "/{id}")
-//    @JsonView(Views.Public.class)
-//    public User getPublicT(HttpSession session, @PathVariable("id") Long TId) {
-//
-//        Long loggedTId = getLoggedUser(session);
-//
-//        return userService.getUser(loggedTId);
-//    }
+    /**
+     *  Returns the public profile of ANY user.
+     * @param principal The current authenticated entity
+     * @param id The id of the user to request.
+     * @return The User identified by id
+     */
+    @GetMapping(path = "/{id}")
+    @JsonView(Views.Public.class)
+    public User getPublic(Principal principal, @PathVariable("id") String id) {
+        super.checkLoggedIn(principal);
+        return userService.get(id);
+    }
 
 //  @DeleteMapping(path="/{id}")
 //  public String deleteT(HttpSession session, @PathVariable("id") Long TId) {
@@ -49,14 +55,6 @@ public class UserController extends BaseController {
         userService.register(ru.username, ru.email, ru.password);
         return BaseController.OK_MESSAGE;
     }
-
-//    @GetMapping(path = "/check")
-//    public String checkLoggedIn(HttpSession session) {
-//
-//        getLoggedUser(session);
-//
-//        return BaseController.OK_MESSAGE;
-//    }
 
     static class RegisterT {
         @NotBlank

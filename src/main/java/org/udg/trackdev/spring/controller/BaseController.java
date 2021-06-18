@@ -18,13 +18,17 @@ public class BaseController {
   }
 
   protected String getUserId(Principal principal) {
-    if (principal == null)
-      throw new ControllerException("User should be authenticated");
+    checkLoggedIn(principal);
     return principal.getName();
   }
 
   void checkNotLoggedIn(Principal principal) {
     if(principal != null)
       throw new ControllerException("User should not be authenticated");
+  }
+
+  void checkLoggedIn(Principal principal) {
+    if(principal == null)
+      throw new ControllerException("User should be authenticated");
   }
 }

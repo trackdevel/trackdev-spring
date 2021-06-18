@@ -71,6 +71,13 @@ public class AuthController extends BaseController {
         return userService.get(userId);
     }
 
+    @GetMapping(path = "/check")
+    public ResponseEntity check(Principal principal) {
+        super.checkLoggedIn(principal);
+
+        return ResponseEntity.ok().build();
+    }
+
     private String getJWTToken(User user) {
         List<GrantedAuthority> grantedAuthorities = AuthorityUtils
                 .commaSeparatedStringToAuthorityList("ROLE_USER");
