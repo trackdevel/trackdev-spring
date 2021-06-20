@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.Invite;
+import org.udg.trackdev.spring.entity.InviteState;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.InviteRepository;
@@ -98,7 +99,22 @@ public class InviteService extends BaseService<Invite, InviteRepository> {
         if(!invite.getOwnerId().equals(userId)) {
             throw new ServiceException("User cannot manage invite");
         }
+        if(invite.getState() != InviteState.PENDING) {
+            throw new ServiceException("Only pending invites can be deleted");
+        }
         repo.delete(invite);
     }
 
+    @Transactional
+    public void acceptInvite(Long inviteId, String userId) {
+        Invite invite = get(inviteId);
+        User user = userService.get(userId);
+        if(!user.getEmail().equals(invite.getEmail())) {
+            throw new ServiceException("User cannot accept an invite that is not for them");
+        }
+        for(Role inviteRole : invite.getRoles()) {
+            user.addRole(inviteRole);
+        }
+        invite.use();
+    }
 }

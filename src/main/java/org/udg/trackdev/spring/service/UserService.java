@@ -58,14 +58,15 @@ public class UserService {
 
         if (invites.size() == 0) throw new ServiceException("This email does not have any invite");
 
-        User User = new User(username, email, global.getPasswordEncoder().encode(password));
+        User user = new User(username, email, global.getPasswordEncoder().encode(password));
         for (Invite invite: invites) {
             for(Role inviteRole : invite.getRoles()) {
-                User.addRole(inviteRole);
+                user.addRole(inviteRole);
             }
+            invite.use();
         }
-        userRepository.save(User);
-        return User;
+        userRepository.save(user);
+        return user;
     }
 
     public User get(String id) {

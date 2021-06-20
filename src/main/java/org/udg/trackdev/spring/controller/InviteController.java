@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.IdObjectLong;
@@ -50,6 +51,13 @@ public class InviteController extends BaseController {
         String userId = super.getUserId(principal);
         List<Invite> invites = service.searchInvited(userId);
         return invites;
+    }
+
+    @PatchMapping(path = "/users/self/invites/{inviteId}")
+    public ResponseEntity acceptInvite(Principal principal, @PathVariable("inviteId") Long inviteId) {
+        String userId = super.getUserId(principal);
+        service.acceptInvite(inviteId, userId);
+        return ResponseEntity.ok().build();
     }
 
     static class NewInvite {
