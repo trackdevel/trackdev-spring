@@ -27,7 +27,7 @@ public class Invite extends BaseEntityLong {
     @Column(length=User.EMAIL_LENGTH)
     private String email;
 
-    @ManyToMany()
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
 
     private InviteState state;
@@ -44,6 +44,13 @@ public class Invite extends BaseEntityLong {
     @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "courseYearId")
+    private CourseYear courseYear;
+
+    @Column(name = "courseYearId", insertable = false, updatable = false)
+    private Long courseYearId;
+
     @JsonView(Views.Public.class)
     @JsonSerialize(using= JsonRolesSerializer.class)
     public Set<Role> getRoles() { return roles; }
@@ -57,6 +64,10 @@ public class Invite extends BaseEntityLong {
     public String getOwnerId() { return ownerId; }
 
     public void addRole(Role role) { this.roles.add(role); }
+
+    public CourseYear getCourseYear() { return courseYear; }
+
+    public void setCourseYear(CourseYear courseYear) { this.courseYear = courseYear; }
 
     public InviteState getState() { return this.state; }
 

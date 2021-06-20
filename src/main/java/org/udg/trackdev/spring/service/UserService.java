@@ -24,7 +24,7 @@ public class UserService {
     private RoleService roleService;
 
     @Autowired
-    private InviteRepository inviteRepository;
+    private InviteService inviteService;
 
     @Autowired
     Global global;
@@ -33,13 +33,7 @@ public class UserService {
         return userRepository;
     }
 
-    public void checkIfEmailExists(String email) {
-        if (userRepository.existsByEmail(email))
-            throw new ServiceException("User with this email already exist");
-    }
-
     public User matchPassword(String username, String password) {
-
         User user = userRepository.findByUsername(username);
 
         if (user == null) throw new ServiceException("User does not exists");
@@ -54,16 +48,12 @@ public class UserService {
     public User register(String username, String email, String password) {
         checkIfExists(username, email);
 
-        List<Invite> invites = inviteRepository.findByEmail(email);
-
+        List<Invite> invites = inviteService.searchByEmail(email);
         if (invites.size() == 0) throw new ServiceException("This email does not have any invite");
 
         User user = new User(username, email, global.getPasswordEncoder().encode(password));
         for (Invite invite: invites) {
-            for(Role inviteRole : invite.getRoles()) {
-                user.addRole(inviteRole);
-            }
-            invite.use();
+            inviteService.useInvite(invite, user);
         }
         userRepository.save(user);
         return user;
@@ -74,7 +64,15 @@ public class UserService {
         if (uo.isPresent())
             return uo.get();
         else
-            throw new ServiceException(String.format("User with id = %s dos not exists", id));
+            throw new ServiceException(String.format("User with id = %s does not exist", id));
+    }
+
+    public User getByEmail(String email) {
+        List<User> list = userRepository.findByEmail(email);
+        if(list.size() > 0)
+            return list.get(0);
+        else
+            return null;
     }
 
     @Transactional
@@ -92,10 +90,10 @@ public class UserService {
     }
 
     private void checkIfExists(String username, String email) {
-        checkIfEmailExists(email);
+        if (userRepository.existsByEmail(email))
+            throw new ServiceException("User with this email already exist");
 
         if (userRepository.existsByUsername(username))
             throw new ServiceException("Tname already exists");
     }
-
 }

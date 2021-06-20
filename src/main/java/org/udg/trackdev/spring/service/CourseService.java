@@ -28,8 +28,7 @@ public class CourseService extends BaseService<Course, CourseRepository> {
     @Transactional
     public Course createCourse(String name, String loggedInUserId) {
         User owner = userService.get(loggedInUserId);
-        boolean isProfessor = owner.getRoles().stream()
-                .anyMatch(r -> r.getUserType() == UserType.PROFESSOR);
+        boolean isProfessor = owner.isUserType(UserType.PROFESSOR);
         if(!isProfessor) {
             throw new ServiceException("User does not have rights to create courses");
         }
