@@ -2,6 +2,7 @@ package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.Views;
@@ -50,10 +51,10 @@ public class UserController extends BaseController {
 //  }
 
     @PostMapping(path = "/register")
-    public String register(Principal principal, @Valid @RequestBody RegisterT ru) {
+    public ResponseEntity register(Principal principal, @Valid @RequestBody RegisterT ru) {
         checkNotLoggedIn(principal);
         userService.register(ru.username, ru.email, ru.password);
-        return BaseController.OK_MESSAGE;
+        return okNoContent();
     }
 
     static class RegisterT {
