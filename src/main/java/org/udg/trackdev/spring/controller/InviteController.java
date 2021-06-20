@@ -38,6 +38,13 @@ public class InviteController extends BaseController {
         return new IdObjectLong(createdInvite.getId());
     }
 
+    @DeleteMapping(path = "/invites/{inviteId}")
+    public ResponseEntity getInvites(Principal principal, @PathVariable("inviteId") Long inviteId) {
+        String userId = super.getUserId(principal);
+        service.deleteInvite(inviteId, userId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping(path = "/users/self/invites")
     public List<Invite> getSelfInvites(Principal principal) {
         String userId = super.getUserId(principal);

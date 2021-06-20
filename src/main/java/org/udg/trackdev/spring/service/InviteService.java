@@ -91,4 +91,14 @@ public class InviteService extends BaseService<Invite, InviteRepository> {
         boolean canInvite = allowedRoles.stream().anyMatch(s -> s == invitationRole);
         return canInvite;
     }
+
+    @Transactional
+    public void deleteInvite(Long inviteId, String userId) {
+        Invite invite = super.get(inviteId);
+        if(!invite.getOwnerId().equals(userId)) {
+            throw new ServiceException("User cannot manage invite");
+        }
+        repo.delete(invite);
+    }
+
 }
