@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.configuration.UserType;
@@ -16,15 +17,22 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class InviteService {
-    @Autowired
-    InviteRepository inviteRepository;
-
+public class InviteService extends BaseService<Invite, InviteRepository> {
     @Autowired
     RoleService roleService;
 
     @Autowired
     UserService userService;
+
+    public List<Invite> searchCreated(String userId) {
+        return super.search(InviteSpecs.isOwnedBy(userId));
+    }
+
+    public List<Invite> searchInvited(String userId) {
+        User user = userService.get(userId);
+        String email = user.getEmail();
+        return super.search(InviteSpecs.isInvited(email));
+    }
 
     @Transactional
     public Invite createInvite(String email, Collection<UserType> userTypes, String ownerId) {
