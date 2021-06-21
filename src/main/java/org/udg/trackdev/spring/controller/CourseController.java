@@ -59,7 +59,7 @@ public class CourseController extends CrudController<Course, CourseService> {
         String userId = super.getUserId(principal);
         service.deleteCourse(id, userId);
 
-        return ResponseEntity.ok().build();
+        return okNoContent();
     }
 
     @PostMapping(path = "/{courseId}/years")
@@ -76,7 +76,7 @@ public class CourseController extends CrudController<Course, CourseService> {
                                 @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         courseYearService.deleteCourseYear(yearId, userId);
-        return ResponseEntity.ok().build();
+        return okNoContent();
     }
 
     static class NewCourse {

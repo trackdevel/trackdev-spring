@@ -60,7 +60,7 @@ public class AuthController extends BaseController {
         cookie.setHttpOnly(true);
         cookie.setMaxAge(0);
         response.addCookie(cookie);
-        return ResponseEntity.ok().build();
+        return okNoContent();
     }
 
     @GetMapping(path="/self")
@@ -69,6 +69,13 @@ public class AuthController extends BaseController {
 
         String userId = super.getUserId(principal);
         return userService.get(userId);
+    }
+
+    @GetMapping(path = "/check")
+    public ResponseEntity check(Principal principal) {
+        super.checkLoggedIn(principal);
+
+        return okNoContent();
     }
 
     private String getJWTToken(User user) {
