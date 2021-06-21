@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
-import org.udg.trackdev.spring.entity.Course;
-import org.udg.trackdev.spring.entity.CourseYear;
+import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.CourseYearRepository;
 
 @Service
@@ -13,6 +12,9 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
 
     @Autowired
     CourseService courseService;
+
+    @Autowired
+    InviteCourseBuilder courseInviteBuilder;
 
     @Transactional
     public CourseYear createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
@@ -32,5 +34,12 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
             throw new ServiceException("User cannot manage this course");
         }
         repo.delete(courseYear);
+    }
+
+    @Transactional
+    public Invite createInvite(String email, Long yearId, String ownerId) {
+        CourseYear courseYear = get(yearId);
+        Invite invite = courseInviteBuilder.Build(email, ownerId, courseYear);
+        return invite;
     }
 }

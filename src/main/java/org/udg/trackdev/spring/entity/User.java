@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
@@ -47,6 +48,9 @@ public class User extends BaseEntityUUID {
   @ManyToMany
   private Collection<Group> groups = new ArrayList<>();
 
+  @ManyToMany
+  private Collection<CourseYear> courseYears = new ArrayList<>();
+
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
 
@@ -81,6 +85,17 @@ public class User extends BaseEntityUUID {
     roles.add(role);
   }
 
+  public boolean isUserType(UserType userType) {
+    boolean inRole = false;
+    for(Role role: roles) {
+      if(role.getUserType() == userType) {
+        inRole = true;
+        break;
+      }
+    }
+    return inRole;
+  }
+
   public Date getLastLogin() {
     return lastLogin;
   }
@@ -95,5 +110,9 @@ public class User extends BaseEntityUUID {
     this.groups.add(group);
   }
 
+  public void enrollToCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
+
   public void addInvite(Invite invite) { this.invites.add(invite); }
+
+  public Collection<CourseYear> getCourseYears() { return this.courseYears; }
 }

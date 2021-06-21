@@ -6,6 +6,7 @@ import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,14 +18,23 @@ public class Invite extends BaseEntityLong {
 
     public Invite(String email) {
         this.email = email;
+        this.state = InviteState.PENDING;
+        this.createdAt = new Date();
+        this.lastModified = new Date();
     }
 
     @NotNull
     @Column(length=User.EMAIL_LENGTH)
     private String email;
 
-    @ManyToMany()
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
+
+    private InviteState state;
+
+    private Date createdAt;
+
+    private Date lastModified;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,6 +43,13 @@ public class Invite extends BaseEntityLong {
 
     @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "courseYearId")
+    private CourseYear courseYear;
+
+    @Column(name = "courseYearId", insertable = false, updatable = false)
+    private Long courseYearId;
 
     @JsonView(Views.Public.class)
     @JsonSerialize(using= JsonRolesSerializer.class)
@@ -47,4 +64,17 @@ public class Invite extends BaseEntityLong {
     public String getOwnerId() { return ownerId; }
 
     public void addRole(Role role) { this.roles.add(role); }
+
+    public CourseYear getCourseYear() { return courseYear; }
+
+    public void setCourseYear(CourseYear courseYear) { this.courseYear = courseYear; }
+
+    public InviteState getState() { return this.state; }
+
+    public void use() {
+        if(this.state == InviteState.PENDING) {
+            this.state = InviteState.USED;
+            this.lastModified = new Date();
+        }
+    }
 }
