@@ -8,7 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.entity.Views;
+import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.configuration.JWTAuthorizationFilter;
 import org.udg.trackdev.spring.service.UserService;
 
@@ -33,7 +33,7 @@ public class AuthController extends BaseController {
     UserService userService;
 
     @PostMapping(path="/login")
-    @JsonView(Views.Private.class)
+    @JsonView(PrivacyLevelViews.Private.class)
     public ResponseEntity<Map<String, Object>> login(HttpServletRequest request,
                                                      HttpServletResponse response,
                                                      @Valid @RequestBody LoginT userBody) {
@@ -50,7 +50,7 @@ public class AuthController extends BaseController {
     }
 
     @PostMapping(path="/logout")
-    @JsonView(Views.Private.class)
+    @JsonView(PrivacyLevelViews.Private.class)
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                                      HttpServletResponse response) {
 
@@ -64,7 +64,7 @@ public class AuthController extends BaseController {
     }
 
     @GetMapping(path="/self")
-    @JsonView(Views.Private.class)
+    @JsonView(PrivacyLevelViews.Private.class)
     public User self(Principal principal) {
 
         String userId = super.getUserId(principal);

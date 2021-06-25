@@ -2,6 +2,7 @@ package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
@@ -51,24 +52,28 @@ public class Invite extends BaseEntityLong {
     @Column(name = "courseYearId", insertable = false, updatable = false)
     private Long courseYearId;
 
-    @JsonView(Views.Public.class)
     @JsonSerialize(using= JsonRolesSerializer.class)
+    @JsonView(EntityLevelViews.Basic.class)
     public Set<Role> getRoles() { return roles; }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public String getEmail() {
         return email;
     }
 
     public void setOwner(User owner) { this.owner = owner; }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public String getOwnerId() { return ownerId; }
 
     public void addRole(Role role) { this.roles.add(role); }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public CourseYear getCourseYear() { return courseYear; }
 
     public void setCourseYear(CourseYear courseYear) { this.courseYear = courseYear; }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public InviteState getState() { return this.state; }
 
     public void use() {

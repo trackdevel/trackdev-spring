@@ -1,6 +1,8 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.lang.NonNull;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -29,12 +31,14 @@ public class Course extends BaseEntityLong {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
     private Collection<CourseYear> courseYears;
 
+    @JsonView(EntityLevelViews.Basic.class)
     public String getName() {
         return name;
     }
 
     public void setName(String name) { this.name = name; }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public String getOwnerId() {
         return ownerId;
     }
@@ -43,6 +47,7 @@ public class Course extends BaseEntityLong {
         this.owner = owner;
     }
 
+    @JsonView(EntityLevelViews.CourseComplete.class)
     public Collection<CourseYear> getCourseYears() {
         return this.courseYears;
     }

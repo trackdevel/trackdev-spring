@@ -1,5 +1,6 @@
 package org.udg.trackdev.spring.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.IdObjectLong;
 import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.InviteService;
 import org.udg.trackdev.spring.service.InviteSpecs;
 
@@ -28,6 +30,7 @@ public class InviteController extends BaseController {
     InviteService service;
 
     @GetMapping(path = "/invites")
+    @JsonView(EntityLevelViews.CourseYearComplete.class)
     public List<Invite> getInvites(Principal principal,
                                @RequestParam(name = "type", required = false) String type,
                                @RequestParam(name = "courseYearId", required = false) Long yearId) {
@@ -52,6 +55,7 @@ public class InviteController extends BaseController {
     }
 
     @GetMapping(path = "/users/self/invites")
+    @JsonView(EntityLevelViews.CourseYearComplete.class)
     public List<Invite> getSelfInvites(Principal principal,
                                @RequestParam(name = "type", required = false) String type,
                                @RequestParam(name = "courseYearId", required = false) Long yearId) {
