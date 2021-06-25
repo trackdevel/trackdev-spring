@@ -48,7 +48,7 @@ public class InviteController extends BaseController {
     public ResponseEntity getInvites(Principal principal, @PathVariable("inviteId") Long inviteId) {
         String userId = super.getUserId(principal);
         service.deleteInvite(inviteId, userId);
-        return ResponseEntity.ok().build();
+        return okNoContent();
     }
 
     @GetMapping(path = "/users/self/invites")
@@ -65,7 +65,7 @@ public class InviteController extends BaseController {
     public ResponseEntity acceptInvite(Principal principal, @PathVariable("inviteId") Long inviteId) {
         String userId = super.getUserId(principal);
         service.acceptInvite(inviteId, userId);
-        return ResponseEntity.ok().build();
+        return okNoContent();
     }
 
     private Specification<Invite> buildSpecification(String type, Long yearId) {
