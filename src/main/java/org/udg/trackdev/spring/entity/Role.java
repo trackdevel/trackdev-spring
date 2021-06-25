@@ -3,6 +3,7 @@ package org.udg.trackdev.spring.entity;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.security.core.GrantedAuthority;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -21,12 +22,12 @@ public class Role extends BaseEntityLong implements GrantedAuthority {
   @Column(unique = true)
   private UserType userType;
 
-  @JsonView(Views.Private.class)
+  @JsonView(PrivacyLevelViews.Private.class)
   public Long getId() {
     return super.getId();
   }
 
-  @JsonView(Views.Public.class)
+  @JsonView(PrivacyLevelViews.Public.class)
   public UserType getUserType() {
     return userType;
   }

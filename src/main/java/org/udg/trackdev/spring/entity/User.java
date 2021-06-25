@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
@@ -57,17 +58,17 @@ public class User extends BaseEntityUUID {
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Invite> invites = new ArrayList<>();
 
-  @JsonView(Views.Private.class)
+  @JsonView(PrivacyLevelViews.Private.class)
   public String getId() {
     return super.getId();
   }
 
-  @JsonView(Views.Private.class)
+  @JsonView(PrivacyLevelViews.Private.class)
   public String getEmail() {
     return email;
   }
 
-  @JsonView(Views.Public.class)
+  @JsonView(PrivacyLevelViews.Public.class)
   public String getUsername() {
     return username;
   }
@@ -77,7 +78,7 @@ public class User extends BaseEntityUUID {
     return password;
   }
 
-  @JsonView(Views.Private.class)
+  @JsonView(PrivacyLevelViews.Private.class)
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
 

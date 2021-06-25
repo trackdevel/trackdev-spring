@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.entity.Views;
+import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.UserService;
 
 
@@ -30,7 +30,7 @@ public class UserController extends BaseController {
      * @return The User identified by id
      */
     @GetMapping(path = "/{id}")
-    @JsonView(Views.Public.class)
+    @JsonView(PrivacyLevelViews.Public.class)
     public User getPublic(Principal principal, @PathVariable("id") String id) {
         super.checkLoggedIn(principal);
         return userService.get(id);
