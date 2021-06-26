@@ -3,6 +3,7 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.Role;
@@ -63,13 +64,13 @@ public class UserService {
         if (uo.isPresent())
             return uo.get();
         else
-            throw new ServiceException(String.format("User with id = %s does not exist", id));
+            throw new EntityNotFound(String.format("User with id = %s does not exist", id));
     }
 
     public User getByUsername(String username) {
         User user = userRepository.findByUsername(username);
         if(user == null) {
-            throw new ServiceException(String.format("User with name = %s does not exist", username));
+            throw new EntityNotFound(String.format("User with name = %s does not exist", username));
         }
         return user;
     }
@@ -77,7 +78,7 @@ public class UserService {
     public User getByEmail(String email) {
         User user = userRepository.findByEmail(email);
         if(user == null) {
-            throw new ServiceException(String.format("User with name = %s does not exist", email));
+            throw new EntityNotFound(String.format("User with name = %s does not exist", email));
         }
         return user;
     }

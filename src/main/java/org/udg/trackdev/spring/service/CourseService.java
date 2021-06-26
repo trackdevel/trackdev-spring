@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.User;
@@ -21,7 +22,7 @@ public class CourseService extends BaseService<Course, CourseRepository> {
     public Course getCourse(Long id) {
         Optional<Course> oc = this.repo.findById(id);
         if (oc.isEmpty())
-            throw new ServiceException("Course does not exists");
+            throw new EntityNotFound("Course does not exists");
         return oc.get();
     }
 
