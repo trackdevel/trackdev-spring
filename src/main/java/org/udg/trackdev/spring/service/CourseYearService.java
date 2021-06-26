@@ -16,6 +16,9 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
     @Autowired
     InviteCourseBuilder courseInviteBuilder;
 
+    @Autowired
+    UserService userService;
+
     @Transactional
     public CourseYear createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
         Course course = courseService.getCourse(courseId);
@@ -41,5 +44,16 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
         CourseYear courseYear = get(yearId);
         Invite invite = courseInviteBuilder.Build(email, ownerId, courseYear);
         return invite;
+    }
+
+    @Transactional
+    public void removeStudent(Long yearId, String studentUserId, String loggedInUserId) {
+        CourseYear courseYear = get(yearId);
+        if(!courseService.canManageCourse(courseYear.getCourse(), loggedInUserId)) {
+            throw new ServiceException("User cannot manage this course");
+        }
+        User user = userService.get(studentUserId);
+        courseYear.removeStudent(user);
+        user.removeFromCourseYear(courseYear);
     }
 }

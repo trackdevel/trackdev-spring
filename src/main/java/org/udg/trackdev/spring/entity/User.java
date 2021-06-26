@@ -113,7 +113,10 @@ public class User extends BaseEntityUUID {
 
   public void enrollToCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
 
+  public void removeFromCourseYear(CourseYear courseYear) { this.courseYears.remove(courseYear); }
+
   public void addInvite(Invite invite) { this.invites.add(invite); }
 
+  @JsonIgnore
   public Collection<CourseYear> getCourseYears() { return this.courseYears; }
 }
