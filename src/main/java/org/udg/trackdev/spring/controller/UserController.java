@@ -24,16 +24,16 @@ public class UserController extends BaseController {
     UserService userService;
 
     /**
-     *  Returns the public profile of ANY user.
+     *  Returns the public profile of any user.
      * @param principal The current authenticated entity
-     * @param id The id of the user to request.
-     * @return The User identified by id
+     * @param username The username of the user to request.
+     * @return The User identified by username
      */
-    @GetMapping(path = "/{id}")
+    @GetMapping(path = "/all/{username}")
     @JsonView(PrivacyLevelViews.Public.class)
-    public User getPublic(Principal principal, @PathVariable("id") String id) {
+    public User getPublic(Principal principal, @PathVariable("username") String username) {
         super.checkLoggedIn(principal);
-        return userService.get(id);
+        return userService.getByUsername(username);
     }
 
 //  @DeleteMapping(path="/{id}")
