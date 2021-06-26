@@ -8,7 +8,6 @@ import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.configuration.UserType;
-import org.udg.trackdev.spring.repository.InviteRepository;
 import org.udg.trackdev.spring.repository.UserRepository;
 
 import java.util.List;
@@ -67,12 +66,24 @@ public class UserService {
             throw new ServiceException(String.format("User with id = %s does not exist", id));
     }
 
+    public User getByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        if(user == null) {
+            throw new ServiceException(String.format("User with name = %s does not exist", username));
+        }
+        return user;
+    }
+
     public User getByEmail(String email) {
-        List<User> list = userRepository.findByEmail(email);
-        if(list.size() > 0)
-            return list.get(0);
-        else
-            return null;
+        User user = userRepository.findByEmail(email);
+        if(user == null) {
+            throw new ServiceException(String.format("User with name = %s does not exist", email));
+        }
+        return user;
+    }
+
+    public Boolean existsEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     @Transactional
@@ -94,6 +105,6 @@ public class UserService {
             throw new ServiceException("User with this email already exist");
 
         if (userRepository.existsByUsername(username))
-            throw new ServiceException("Tname already exists");
+            throw new ServiceException("Username already exists");
     }
 }

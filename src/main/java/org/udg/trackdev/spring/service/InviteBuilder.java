@@ -19,8 +19,8 @@ public abstract class InviteBuilder<R>
     public Invite Build(String email, String ownerId, R resource) {
         User owner = userService.get(ownerId);
         checkIfCanInviteToResource(owner, resource);
-        User invitee = userService.getByEmail(email);
-        if(invitee != null) {
+        if(userService.existsEmail(email)) {
+            User invitee = userService.getByEmail(email);
             checkInviteeAlreadyHasAccess(invitee, resource);
         }
         checkIfExistsSameOpenInvite(email, ownerId, resource);

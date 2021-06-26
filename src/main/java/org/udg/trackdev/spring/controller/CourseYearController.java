@@ -42,12 +42,12 @@ public class CourseYearController extends BaseController {
         return courseYear.getStudents();
     }
 
-    @DeleteMapping(path = "/{yearId}/students/{userId}")
+    @DeleteMapping(path = "/{yearId}/students/{username}")
     public ResponseEntity getStudents(Principal principal,
                                       @PathVariable("yearId") Long yearId,
-                                      @PathVariable("userId") String userId) {
+                                      @PathVariable("username") String username) {
         String principalUserId = super.getUserId(principal);
-        courseYearService.removeStudent(yearId, userId, principalUserId);
+        courseYearService.removeStudent(yearId, username, principalUserId);
         return okNoContent();
     }
 

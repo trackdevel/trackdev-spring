@@ -47,12 +47,12 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
     }
 
     @Transactional
-    public void removeStudent(Long yearId, String studentUserId, String loggedInUserId) {
+    public void removeStudent(Long yearId, String username, String loggedInUserId) {
         CourseYear courseYear = get(yearId);
         if(!courseService.canManageCourse(courseYear.getCourse(), loggedInUserId)) {
             throw new ServiceException("User cannot manage this course");
         }
-        User user = userService.get(studentUserId);
+        User user = userService.getByUsername(username);
         courseYear.removeStudent(user);
         user.removeFromCourseYear(courseYear);
     }
