@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.CourseYearService;
+import org.udg.trackdev.spring.service.GroupService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -20,6 +21,9 @@ public class CourseYearController extends BaseController {
 
     @Autowired
     CourseYearService courseYearService;
+
+    @Autowired
+    GroupService groupService;
 
     @PostMapping(path = "/{yearId}/invites")
     public IdObjectLong createInvite(Principal principal,
@@ -51,10 +55,24 @@ public class CourseYearController extends BaseController {
         return okNoContent();
     }
 
+    @PostMapping(path = "/{yearId}/groups")
+    public IdObjectLong createGroup(Principal principal,
+                                     @PathVariable("yearId") Long yearId,
+                                     @Valid @RequestBody NewGroup groupRequest) {
+        String userId = super.getUserId(principal);
+        Group createdGroup = groupService.createGroup(groupRequest.name, yearId, userId);
+        return new IdObjectLong(createdGroup.getId());
+    }
+
     static class NewCourseInvite {
         @NotNull
         @Email
         @Size(max = User.EMAIL_LENGTH)
         public String email;
+    }
+
+    static class NewGroup {
+        @NotBlank
+        public String name;
     }
 }

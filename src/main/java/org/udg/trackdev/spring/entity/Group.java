@@ -32,7 +32,7 @@ public class Group extends BaseEntityLong {
 
     public void addMember(User member) { this.members.add(member); }
 
-    public void setCourseYear(CourseYear course) {
+    public void setCourseYear(CourseYear courseYear) {
         this.courseYear = courseYear;
     }
 }
