@@ -41,6 +41,16 @@ public class Group extends BaseEntityLong {
 
     public void addMember(User member) { this.members.add(member); }
 
+    public boolean isMember(User user) {
+        return this.members.contains(user);
+    }
+
+    public void removeMember(User user) {
+        if(this.members.contains(user)) {
+            this.members.remove(user);
+        }
+    }
+
     public void setCourseYear(CourseYear courseYear) {
         this.courseYear = courseYear;
     }

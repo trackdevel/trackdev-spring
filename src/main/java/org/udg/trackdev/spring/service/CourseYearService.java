@@ -53,6 +53,12 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
             throw new ServiceException("User cannot manage this course");
         }
         User user = userService.getByUsername(username);
+        for(Group group : courseYear.getGroups()) {
+            if(group.isMember(user)) {
+                group.removeMember(user);
+                user.removeFromGroup(group);
+            }
+        }
         courseYear.removeStudent(user);
         user.removeFromCourseYear(courseYear);
     }

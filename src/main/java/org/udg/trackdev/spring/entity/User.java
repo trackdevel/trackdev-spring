@@ -112,6 +112,12 @@ public class User extends BaseEntityUUID {
     this.groups.add(group);
   }
 
+  public void removeFromGroup(Group group) {
+    if(this.groups.contains(group)) {
+      this.groups.remove(group);
+    }
+  }
+
   public void enrollToCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
 
   public void removeFromCourseYear(CourseYear courseYear) { this.courseYears.remove(courseYear); }
