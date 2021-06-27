@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.*;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.CourseYearService;
 import org.udg.trackdev.spring.service.GroupService;
@@ -55,6 +56,18 @@ public class CourseYearController extends BaseController {
         String principalUserId = super.getUserId(principal);
         courseYearService.removeStudent(yearId, username, principalUserId);
         return okNoContent();
+    }
+
+    @GetMapping(path = "/{yearId}/groups")
+    @JsonView(EntityLevelViews.Basic.class)
+    public Collection<Group> getGroups(Principal principal,
+                                    @PathVariable("yearId") Long yearId) {
+        String userId = super.getUserId(principal);
+        CourseYear courseYear = courseYearService.get(yearId);
+        if(!courseYear.getCourse().getOwnerId().equals(userId)) {
+            throw new ControllerException("You don't have access to this resource");
+        }
+        return courseYear.getGroups();
     }
 
     @PostMapping(path = "/{yearId}/groups")

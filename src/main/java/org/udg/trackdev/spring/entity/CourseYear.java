@@ -42,6 +42,9 @@ public class CourseYear extends BaseEntityLong {
 
     public void setCourse(Course course) { this.course = course; }
 
+    @JsonIgnore
+    public Collection<Group> getGroups() { return this.groups; }
+
     public void addGroup(Group group) { this.groups.add(group); }
 
     public void addIteration(Iteration iteration) {
