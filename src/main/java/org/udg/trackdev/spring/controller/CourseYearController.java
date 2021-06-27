@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
@@ -13,6 +14,7 @@ import org.udg.trackdev.spring.service.GroupService;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.security.Principal;
+import java.util.Collection;
 import java.util.Set;
 
 @RestController
@@ -60,7 +62,7 @@ public class CourseYearController extends BaseController {
                                      @PathVariable("yearId") Long yearId,
                                      @Valid @RequestBody NewGroup groupRequest) {
         String userId = super.getUserId(principal);
-        Group createdGroup = groupService.createGroup(groupRequest.name, yearId, userId);
+        Group createdGroup = groupService.createGroup(groupRequest.name, groupRequest.members, yearId, userId);
         return new IdObjectLong(createdGroup.getId());
     }
 
@@ -74,5 +76,7 @@ public class CourseYearController extends BaseController {
     static class NewGroup {
         @NotBlank
         public String name;
+
+        public Collection<String> members;
     }
 }

@@ -58,4 +58,8 @@ public class CourseYear extends BaseEntityLong {
     public void removeStudent(User user) {
         this.students.remove(user);
     }
+
+    public boolean isEnrolled(User user) {
+        return this.students.contains(user);
+    }
 }

@@ -66,7 +66,7 @@ public class DemoDataSeeder {
         }
         inviteAndEnroll(courseYear, enrolledStudents, admin);
         // one course set up
-        Group group = groupService.createGroup("1A", courseYear.getId(), admin.getId());
+        Group group = groupService.createGroup("1A", null, courseYear.getId(), admin.getId());
         groupService.addMember(group.getId(), student1.getId());
         Iteration iteration = iterationService.create("First iteration", courseYear.getId());
         Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
