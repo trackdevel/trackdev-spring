@@ -9,7 +9,9 @@ import org.udg.trackdev.spring.entity.Group;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.GroupRepository;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 public class GroupService extends BaseService<Group, GroupRepository> {
@@ -49,6 +51,27 @@ public class GroupService extends BaseService<Group, GroupRepository> {
         user.addToGroup(group);
     }
 
+    @Transactional
+    public Group editGroup(Long groupId, String name, Collection<String> usernames,
+                          String loggedInUserId) {
+        Group group = get(groupId);
+        if(!courseService.canManageCourse(group.getCourseYear().getCourse(), loggedInUserId)) {
+            throw new ServiceException("User cannot manage this course");
+        }
+        if(name != null) {
+            group.setName(name);
+        }
+        if(usernames != null) {
+            if(usernames.size() == 0 && group.getMembers().size() != 0) {
+                throw new ServiceException("Cannot remove all members of a group");
+            }
+            editMembers(usernames, group);
+        }
+        repo.save(group);
+        
+        return group;
+    }
+
     private void addMembers(CourseYear course, Group group, Collection<String> usernames) {
         for(String username: usernames) {
             User user = userService.getByUsername(username);
@@ -63,5 +86,24 @@ public class GroupService extends BaseService<Group, GroupRepository> {
         }
         group.addMember(user);
         user.addToGroup(group);
+    }
+
+    private void editMembers(Collection<String> usernames, Group group) {
+        for(String username: usernames) {
+            User user = userService.getByUsername(username);
+            if(!group.isMember(user)) {
+                addMember(group.getCourseYear(), group, user);
+            }
+        }
+        List<User> toRemove = new ArrayList<>();
+        for(User user: group.getMembers()) {
+            if(!usernames.contains(user.getUsername())) {
+                toRemove.add(user);
+            }
+        }
+        for(User user: toRemove) {
+            group.removeMember(user);
+            user.removeFromGroup(group);
+        }
     }
 }

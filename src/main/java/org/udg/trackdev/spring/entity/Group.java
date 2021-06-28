@@ -36,6 +36,8 @@ public class Group extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public String getName() { return this.name; }
 
+    public void setName(String name) { this.name = name; }
+
     @JsonView(EntityLevelViews.Basic.class)
     public Set<User> getMembers() { return this.members; }
 
@@ -49,6 +51,11 @@ public class Group extends BaseEntityLong {
         if(this.members.contains(user)) {
             this.members.remove(user);
         }
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public CourseYear getCourseYear() {
+        return this.courseYear;
     }
 
     public void setCourseYear(CourseYear courseYear) {
