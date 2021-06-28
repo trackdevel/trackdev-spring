@@ -11,10 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.util.WebUtils;
-import org.udg.trackdev.spring.service.Global;
-import org.udg.trackdev.spring.controller.exceptions.ControllerException;
-import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.ErrorEntity;
+import org.udg.trackdev.spring.service.Global;
 
 import java.util.Date;
 
@@ -33,31 +31,23 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
         if (ex instanceof ServiceException) {
             return handleExceptionInternal(ex,
-                    new ErrorEntity(Global.dateFormat.format(new Date()),
-                            HttpStatus.BAD_REQUEST.value(),
-                            "Service error",
-                            ex.getMessage()),
+                    BuildErrorEntity("Service error", HttpStatus.BAD_REQUEST, ex),
                     new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
         } else if (ex instanceof ControllerException) {
             return handleExceptionInternal(ex,
-                    new ErrorEntity(Global.dateFormat.format(new Date()),
-                            HttpStatus.BAD_REQUEST.value(),
-                            "Controller error",
-                            ex.getMessage()),
+                    BuildErrorEntity("Controller error", HttpStatus.BAD_REQUEST, ex),
                     new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
         } else if (ex instanceof java.lang.SecurityException) {
             return handleExceptionInternal(ex,
-                    new ErrorEntity(Global.dateFormat.format(new Date()),
-                            HttpStatus.FORBIDDEN.value(),
-                            "Security error",
-                            ex.getMessage()),
+                    BuildErrorEntity("Security error", HttpStatus.FORBIDDEN, ex),
                     new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+        } else if (ex instanceof EntityNotFound) {
+            return handleExceptionInternal(ex,
+                    BuildErrorEntity("Not found", HttpStatus.NOT_FOUND, ex),
+                    new HttpHeaders(), HttpStatus.NOT_FOUND, request);
         } else
             return handleExceptionInternal(ex,
-                    new ErrorEntity(Global.dateFormat.format(new Date()),
-                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Unknown error",
-                            ex.getMessage()),
+                    BuildErrorEntity("Unknown error", HttpStatus.INTERNAL_SERVER_ERROR, ex),
                     new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
@@ -72,6 +62,13 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             body = new ErrorEntity(Global.dateFormat.format(new Date()), status.value(), "Unknown error", ex.getMessage());
         }
         return new ResponseEntity<>(body, headers, status);
+    }
+
+    private ErrorEntity BuildErrorEntity(String errorName, HttpStatus status, Exception ex) {
+        return new ErrorEntity(Global.dateFormat.format(new Date()),
+                status.value(),
+                errorName,
+                ex.getMessage());
     }
 
 }

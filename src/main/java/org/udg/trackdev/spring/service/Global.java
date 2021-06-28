@@ -9,13 +9,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.udg.trackdev.spring.entity.*;
-import org.udg.trackdev.spring.configuration.UserType;
 
 import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class Global {
@@ -26,31 +22,7 @@ public class Global {
     private final Logger logger = LoggerFactory.getLogger(Global.class);
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private CourseService courseService;
-
-    @Autowired
-    private CourseYearService courseYearService;
-
-    @Autowired
-    private GroupService groupService;
-
-    @Autowired
-    private IterationService iterationService;
-
-    @Autowired
-    private SprintService sprintService;
-
-    @Autowired
-    private BacklogService backlogService;
-
-    @Autowired
-    private InviteService inviteService;
-
-    @Autowired
-    TaskService taskService;
+    DemoDataSeeder demoDataSeeder;
 
     @Value("${todospring.minio.url:}")
     private String minioURL;
@@ -99,32 +71,7 @@ public class Global {
 
         encoderScrypt = new SCryptPasswordEncoder();
 
-        initData();
-    }
-
-    private void initData() {
-        logger.info("Starting populating database ...");
-        // users
-        User admin = userService.addUserInternal("neich", "ignacio.martin@udg.edu", getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
-        User student1 = userService.addUserInternal("student1", "student1@trackdev.com", getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
-        User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", getPasswordEncoder().encode("2222"), List.of(UserType.PROFESSOR));
-        // invites to application
-        Invite inviteStudent = inviteService.createInvite("student2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
-        Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
-        // courses
-        Course course = courseService.createCourse("Test course", admin.getId());
-        CourseYear courseYear = courseYearService.createCourseYear(course.getId(), 2021, admin.getId());
-        Invite inviteCourse = courseYearService.createInvite(student1.getEmail(), courseYear.getId(), admin.getId());
-        for(int i = 2; i <= 10; i++) {
-            inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courseYear.getId(), admin.getId());
-        }
-        // one course set up
-        Group group = groupService.createGroup("1A", courseYear.getId());
-        groupService.addMember(group.getId(), student1.getId());
-        Iteration iteration = iterationService.create("First iteration", courseYear.getId());
-        Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
-        Backlog backlog = backlogService.create(group.getId());
-        Task task = taskService.create("Task 1", backlog.getId());
+        demoDataSeeder.seedDemoData();
     }
 
     public MinioClient getMinioClient() {

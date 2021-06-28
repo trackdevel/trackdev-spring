@@ -17,7 +17,7 @@ public interface UserRepository extends BaseRepositoryUUID<User> {
 
     User findByUsername(@Param("username") String username);
 
-    List<User> findByEmail(@Param("email") String email);
+    User findByEmail(@Param("email") String email);
 
     boolean existsByEmail(@Param("email") String email);
 

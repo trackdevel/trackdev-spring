@@ -25,7 +25,7 @@ public class Course extends BaseEntityLong {
     @JoinColumn(name = "ownerId")
     private User owner;
 
-    @Column(name = "ownerId", insertable = false, updatable = false)
+    @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")

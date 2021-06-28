@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
@@ -68,7 +69,7 @@ public class User extends BaseEntityUUID {
     return email;
   }
 
-  @JsonView(PrivacyLevelViews.Public.class)
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
   public String getUsername() {
     return username;
   }
@@ -111,9 +112,18 @@ public class User extends BaseEntityUUID {
     this.groups.add(group);
   }
 
+  public void removeFromGroup(Group group) {
+    if(this.groups.contains(group)) {
+      this.groups.remove(group);
+    }
+  }
+
   public void enrollToCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
+
+  public void removeFromCourseYear(CourseYear courseYear) { this.courseYears.remove(courseYear); }
 
   public void addInvite(Invite invite) { this.invites.add(invite); }
 
+  @JsonIgnore
   public Collection<CourseYear> getCourseYears() { return this.courseYears; }
 }

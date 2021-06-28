@@ -1,11 +1,13 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -40,10 +42,27 @@ public class CourseYear extends BaseEntityLong {
 
     public void setCourse(Course course) { this.course = course; }
 
+    @JsonIgnore
+    public Collection<Group> getGroups() { return this.groups; }
+
     public void addGroup(Group group) { this.groups.add(group); }
 
     public void addIteration(Iteration iteration) {
         this.iterations.add(iteration);
     }
 
+    @JsonIgnore
+    public Set<User> getStudents() {  return this.students; }
+
+    public void enrollStudent(User user) {
+        this.students.add(user);
+    }
+
+    public void removeStudent(User user) {
+        this.students.remove(user);
+    }
+
+    public boolean isEnrolled(User user) {
+        return this.students.contains(user);
+    }
 }

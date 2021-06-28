@@ -1,5 +1,8 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,9 +33,25 @@ public class Group extends BaseEntityLong {
     @OneToMany(mappedBy = "group")
     private Collection<Sprint> sprints = new ArrayList<>();
 
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getName() { return this.name; }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public Set<User> getMembers() { return this.members; }
+
     public void addMember(User member) { this.members.add(member); }
 
-    public void setCourseYear(CourseYear course) {
+    public boolean isMember(User user) {
+        return this.members.contains(user);
+    }
+
+    public void removeMember(User user) {
+        if(this.members.contains(user)) {
+            this.members.remove(user);
+        }
+    }
+
+    public void setCourseYear(CourseYear courseYear) {
         this.courseYear = courseYear;
     }
 }
