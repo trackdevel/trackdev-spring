@@ -125,5 +125,5 @@ public class User extends BaseEntityUUID {
   public void addInvite(Invite invite) { this.invites.add(invite); }
 
   @JsonIgnore
-  public Collection<CourseYear> getCourseYears() { return this.courseYears; }
+  public Collection<CourseYear> getEnrolledCourseYears() { return this.courseYears; }
 }
