@@ -39,6 +39,13 @@ public class CourseYearController extends BaseController {
         return user.getEnrolledCourseYears();
     }
 
+    @GetMapping(path = "/{yearId}")
+    @JsonView(EntityLevelViews.CourseYearComplete.class)
+    public CourseYear getCourseYear(Principal principal, @PathVariable("yearId") Long yearId) {
+        CourseYear courseYear = courseYearService.get(yearId);
+        return courseYear;
+    }
+
     @PostMapping(path = "/{yearId}/invites")
     public IdObjectLong createInvite(Principal principal,
                                     @PathVariable("yearId") Long yearId,
@@ -54,7 +61,7 @@ public class CourseYearController extends BaseController {
                                  @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
-        if(!courseYear.getCourse().getOwnerId().equals(userId)) {
+        if(!canViewStudents(courseYear, userId)) {
             throw new ControllerException("You don't have access to this resource");
         }
         return courseYear.getStudents();
@@ -75,7 +82,7 @@ public class CourseYearController extends BaseController {
                                     @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
-        if(!courseYear.getCourse().getOwnerId().equals(userId)) {
+        if(!canViewGroups(courseYear, userId)) {
             throw new ControllerException("You don't have access to this resource");
         }
         return courseYear.getGroups();
@@ -88,6 +95,21 @@ public class CourseYearController extends BaseController {
         String userId = super.getUserId(principal);
         Group createdGroup = groupService.createGroup(groupRequest.name, groupRequest.members, yearId, userId);
         return new IdObjectLong(createdGroup.getId());
+    }
+
+    private boolean canViewStudents(CourseYear courseYear, String userId) {
+        return courseYear.getCourse().getOwnerId().equals(userId);
+    }
+
+    private boolean canViewGroups(CourseYear courseYear, String userId) {
+        if(courseYear.getCourse().getOwnerId().equals(userId)) {
+            return true;
+        }
+        User user = userService.get(userId);
+        if(courseYear.isEnrolled(user)) {
+            return true;
+        }
+        return false;
     }
 
     static class NewCourseInvite {

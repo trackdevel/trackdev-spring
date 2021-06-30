@@ -22,9 +22,7 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
     @Transactional
     public CourseYear createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
         Course course = courseService.getCourse(courseId);
-        if(!courseService.canManageCourse(course, loggedInUserId)) {
-            throw new ServiceException("User cannot manage this course");
-        }
+        checkCanManageCourse(course, loggedInUserId);
         CourseYear courseYear = new CourseYear(startYear);
         courseYear.setCourse(course);
         course.addCourseYear(courseYear);
@@ -33,9 +31,7 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
 
     public void deleteCourseYear(Long yearId, String loggedInUserId) {
         CourseYear courseYear = get(yearId);
-        if(!courseService.canManageCourse(courseYear.getCourse(), loggedInUserId)) {
-            throw new ServiceException("User cannot manage this course");
-        }
+        checkCanManageCourseYear(courseYear, loggedInUserId);
         repo.delete(courseYear);
     }
 
@@ -49,9 +45,7 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
     @Transactional
     public void removeStudent(Long yearId, String username, String loggedInUserId) {
         CourseYear courseYear = get(yearId);
-        if(!courseService.canManageCourse(courseYear.getCourse(), loggedInUserId)) {
-            throw new ServiceException("User cannot manage this course");
-        }
+        checkCanManageCourseYear(courseYear, loggedInUserId);
         User user = userService.getByUsername(username);
         for(Group group : courseYear.getGroups()) {
             if(group.isMember(user)) {
@@ -61,5 +55,15 @@ public class CourseYearService extends BaseService<CourseYear, CourseYearReposit
         }
         courseYear.removeStudent(user);
         user.removeFromCourseYear(courseYear);
+    }
+
+    private void checkCanManageCourseYear(CourseYear courseYear, String userId) {
+        checkCanManageCourse(courseYear.getCourse(), userId);
+    }
+
+    private void checkCanManageCourse(Course course, String userId) {
+        if(!courseService.canManageCourse(course, userId)) {
+            throw new ServiceException("User cannot manage this course");
+        }
     }
 }
