@@ -27,7 +27,7 @@ public class Group extends BaseEntityLong {
     @Column(length = NAME_LENGTH)
     private String name;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "groups")
+    @ManyToMany(cascade = CascadeType.PERSIST)
     private Set<User> members = new HashSet<>();
 
     @ManyToOne

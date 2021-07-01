@@ -47,7 +47,7 @@ public class User extends BaseEntityUUID {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Course> coursesOwns = new ArrayList<>();
 
-  @ManyToMany
+  @ManyToMany(mappedBy = "members")
   private Collection<Group> groups = new ArrayList<>();
 
   @ManyToMany
