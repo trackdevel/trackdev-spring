@@ -121,6 +121,7 @@ public class CourseYearController extends BaseController {
 
     static class NewGroup {
         @NotBlank
+        @Size(max = Group.NAME_LENGTH)
         public String name;
 
         public Collection<String> members;

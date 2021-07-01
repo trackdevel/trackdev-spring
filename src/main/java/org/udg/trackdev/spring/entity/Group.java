@@ -15,6 +15,8 @@ import javax.validation.constraints.NotNull;
 @Table(name = "`groups`")
 public class Group extends BaseEntityLong {
 
+    public static final int NAME_LENGTH = 50;
+
     public Group() {}
 
     public Group(String name) {
@@ -22,6 +24,7 @@ public class Group extends BaseEntityLong {
     }
 
     @NotNull
+    @Column(length = NAME_LENGTH)
     private String name;
 
     @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "groups")

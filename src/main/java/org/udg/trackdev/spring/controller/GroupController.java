@@ -4,12 +4,10 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Group;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.GroupService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
@@ -38,7 +36,7 @@ public class GroupController extends BaseController {
     }
 
     static class EditGroup {
-        @Size(min = 1)
+        @Size(min = 1, max = Group.NAME_LENGTH)
         public String name;
 
         public Collection<String> members;

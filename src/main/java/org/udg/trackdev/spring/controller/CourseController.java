@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 
@@ -86,11 +87,13 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     static class NewCourse {
         @NotBlank
+        @Size(max = Course.NAME_LENGTH)
         public String name;
     }
 
     static class EditCourse {
         @NotBlank
+        @Size(max = Course.NAME_LENGTH)
         public String name;
     }
 
