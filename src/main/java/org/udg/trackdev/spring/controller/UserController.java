@@ -12,6 +12,7 @@ import org.udg.trackdev.spring.service.UserService;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 
@@ -59,7 +60,8 @@ public class UserController extends BaseController {
 
     static class RegisterT {
         @NotBlank
-        @Size(max = User.USERNAME_LENGTH)
+        @Size(min = 4, max = User.USERNAME_LENGTH)
+        @Pattern(regexp = "[a-zA-Z0-9]+")
         public String username;
 
         @NotBlank
@@ -68,6 +70,7 @@ public class UserController extends BaseController {
         public String email;
 
         @NotBlank
+        @Size(min = 8, max = 50)
         public String password;
     }
 
