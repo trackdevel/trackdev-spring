@@ -50,7 +50,7 @@ public class User extends BaseEntityUUID {
   @ManyToMany(mappedBy = "members")
   private Collection<Group> groups = new ArrayList<>();
 
-  @ManyToMany
+  @ManyToMany(mappedBy = "students")
   private Collection<CourseYear> courseYears = new ArrayList<>();
 
   @ManyToMany()
