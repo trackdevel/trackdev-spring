@@ -47,10 +47,10 @@ public class User extends BaseEntityUUID {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Course> coursesOwns = new ArrayList<>();
 
-  @ManyToMany
+  @ManyToMany(mappedBy = "members")
   private Collection<Group> groups = new ArrayList<>();
 
-  @ManyToMany
+  @ManyToMany(mappedBy = "students")
   private Collection<CourseYear> courseYears = new ArrayList<>();
 
   @ManyToMany()
@@ -125,5 +125,5 @@ public class User extends BaseEntityUUID {
   public void addInvite(Invite invite) { this.invites.add(invite); }
 
   @JsonIgnore
-  public Collection<CourseYear> getCourseYears() { return this.courseYears; }
+  public Collection<CourseYear> getEnrolledCourseYears() { return this.courseYears; }
 }

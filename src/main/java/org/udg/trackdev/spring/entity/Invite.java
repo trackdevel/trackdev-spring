@@ -46,7 +46,9 @@ public class Invite extends BaseEntityLong {
     private String ownerId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "courseYearId")
+    @JoinColumn(name = "courseYearId", foreignKey =
+        @ForeignKey(name="course_year_foreign_key_cascade",
+                    foreignKeyDefinition = "FOREIGN KEY (`courseYearId`) REFERENCES `course_years` (`id`) ON DELETE CASCADE"))
     private CourseYear courseYear;
 
     @Column(name = "courseYearId", insertable = false, updatable = false)

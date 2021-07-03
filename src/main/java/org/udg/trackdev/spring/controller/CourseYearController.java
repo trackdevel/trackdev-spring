@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.CourseYearService;
 import org.udg.trackdev.spring.service.GroupService;
+import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -28,6 +28,24 @@ public class CourseYearController extends BaseController {
     @Autowired
     GroupService groupService;
 
+    @Autowired
+    UserService userService;
+
+    @GetMapping
+    @JsonView(EntityLevelViews.CourseYearComplete.class)
+    public Collection<CourseYear> getCourseYears(Principal principal) {
+        String userId = super.getUserId(principal);
+        User user = userService.get(userId);
+        return user.getEnrolledCourseYears();
+    }
+
+    @GetMapping(path = "/{yearId}")
+    @JsonView(EntityLevelViews.CourseYearComplete.class)
+    public CourseYear getCourseYear(Principal principal, @PathVariable("yearId") Long yearId) {
+        CourseYear courseYear = courseYearService.get(yearId);
+        return courseYear;
+    }
+
     @PostMapping(path = "/{yearId}/invites")
     public IdObjectLong createInvite(Principal principal,
                                     @PathVariable("yearId") Long yearId,
@@ -43,7 +61,7 @@ public class CourseYearController extends BaseController {
                                  @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
-        if(!courseYear.getCourse().getOwnerId().equals(userId)) {
+        if(!canViewStudents(courseYear, userId)) {
             throw new ControllerException("You don't have access to this resource");
         }
         return courseYear.getStudents();
@@ -64,7 +82,7 @@ public class CourseYearController extends BaseController {
                                     @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
-        if(!courseYear.getCourse().getOwnerId().equals(userId)) {
+        if(!canViewGroups(courseYear, userId)) {
             throw new ControllerException("You don't have access to this resource");
         }
         return courseYear.getGroups();
@@ -79,6 +97,21 @@ public class CourseYearController extends BaseController {
         return new IdObjectLong(createdGroup.getId());
     }
 
+    private boolean canViewStudents(CourseYear courseYear, String userId) {
+        return courseYear.getCourse().getOwnerId().equals(userId);
+    }
+
+    private boolean canViewGroups(CourseYear courseYear, String userId) {
+        if(courseYear.getCourse().getOwnerId().equals(userId)) {
+            return true;
+        }
+        User user = userService.get(userId);
+        if(courseYear.isEnrolled(user)) {
+            return true;
+        }
+        return false;
+    }
+
     static class NewCourseInvite {
         @NotNull
         @Email
@@ -88,6 +121,7 @@ public class CourseYearController extends BaseController {
 
     static class NewGroup {
         @NotBlank
+        @Size(max = Group.NAME_LENGTH)
         public String name;
 
         public Collection<String> members;

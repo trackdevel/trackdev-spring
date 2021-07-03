@@ -12,6 +12,8 @@ import java.util.Collection;
 @Table(name = "tasks")
 public class Task extends BaseEntityLong {
 
+    public Task() {}
+
     public Task(String name) {
         this.name = name;
     }

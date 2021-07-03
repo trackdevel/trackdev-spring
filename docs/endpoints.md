@@ -50,6 +50,8 @@ Comments:
 
 Method|Path|Description|Status
 ------|-----|---------|---
+GET | /courses/years | View enrolled course years as student | ✨ New
+GET | /courses/years/{yearId} | View one course year | ✨ New
 POST | /courses/{courseId}/years | Create new academic year for a course |
 DELETE | /courses/years/{yearId} | Delete an academic year of a course |
 
@@ -62,14 +64,14 @@ POST | /courses/years/{yearId}/invites | Invite user by email to a course year |
 ### Students
 Method|Path|Description|Status
 ------|-----|---------|---
-GET | /courses/years/{yearId}/students | View enrolled students of a course year | ✨ New
-DELETE | /courses/years/{yearId}/students/{username} | Remove a student from a course year | ✨ New
+GET | /courses/years/{yearId}/students | View enrolled students of a course year |
+DELETE | /courses/years/{yearId}/students/{username} | Remove a student from a course year |
 
 ### Groups
 Method|Path|Description|Status
 ------|-----|---------|---
-GET | /courses/years/{yearId}/groups | View groups of a course year | ✨ New
-POST | /courses/years/{yearId}/groups | Create new group inside a course year | ✨ New
-GET | /groups/{groupId} | View a group. | 💡 Upcoming
-PUT | /groups/{groupId} | Modify general data of a group | 💡 Upcoming
-DELETE | /groups/{groupId} | Delete a group | 💡 Upcoming
+GET | /courses/years/{yearId}/groups | View groups of a course year | 
+POST | /courses/years/{yearId}/groups | Create new group inside a course year | 
+GET | /groups/{groupId} | View a group. | ✨ New
+PATCH | /groups/{groupId} | Modify general data of a group | ✨ New
+DELETE | /groups/{groupId} | Delete a group | ✨ New

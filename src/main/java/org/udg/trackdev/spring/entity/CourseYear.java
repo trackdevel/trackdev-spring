@@ -31,7 +31,7 @@ public class CourseYear extends BaseEntityLong {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "courseYear", fetch = FetchType.LAZY)
     private Collection<Iteration> iterations;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "courseYears", fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Set<User> students = new HashSet<>();
 
     @JsonView(EntityLevelViews.Basic.class)

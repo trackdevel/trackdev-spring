@@ -26,7 +26,7 @@ public class InviteCourseBuilder extends InviteBuilder<CourseYear> {
 
     @Override
     protected void checkInviteeAlreadyHasAccess(User invitee, CourseYear courseYear) {
-        for(CourseYear cy: invitee.getCourseYears()) {
+        for(CourseYear cy: invitee.getEnrolledCourseYears()) {
             if(cy.getId().equals(courseYear.getId())) {
                 throw new ServiceException("User is already enrolled in course");
             }

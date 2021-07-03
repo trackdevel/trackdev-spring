@@ -11,6 +11,8 @@ import java.util.Collection;
 @Table(name = "courses")
 public class Course extends BaseEntityLong {
 
+    public static final int NAME_LENGTH = 50;
+
     public Course() {}
 
     public Course(String name) {
@@ -18,6 +20,7 @@ public class Course extends BaseEntityLong {
     }
 
     @NonNull
+    @Column(length = NAME_LENGTH)
     private String name;
 
     @NonNull

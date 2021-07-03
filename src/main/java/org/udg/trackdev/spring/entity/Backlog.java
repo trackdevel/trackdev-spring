@@ -12,7 +12,7 @@ public class Backlog extends BaseEntityLong {
     @ManyToOne
     private Group group;
 
-    @OneToMany(mappedBy = "backlog")
+    @OneToMany(mappedBy = "backlog", cascade = CascadeType.ALL)
     private Collection<Task> tasks = new ArrayList<>();
 
     public void setGroup(Group group) {
