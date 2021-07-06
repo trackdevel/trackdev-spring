@@ -82,7 +82,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     private ErrorEntity buildErrorEntity(String errorName, HttpStatus status, Exception ex) {
         return new ErrorEntity(Global.dateFormat.format(new Date()),
                 status.value(),
-                errorName + "-" + ex.getClass().getName(),
+                errorName,
                 ex.getMessage());
     }
 }

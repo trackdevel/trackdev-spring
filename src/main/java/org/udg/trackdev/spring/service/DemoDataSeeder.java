@@ -52,26 +52,30 @@ public class DemoDataSeeder {
         // users
         User admin = userService.addUserInternal("neich", "ignacio.martin@udg.edu", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
         User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
+        User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
         User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.PROFESSOR));
         List<User> enrolledStudents = createDemoStudents();
         enrolledStudents.add(student1);
+        enrolledStudents.add(student2);
         // invites to application
-        Invite inviteStudent = inviteService.createInvite("student2@trackdev.com", List.of(UserType.STUDENT), admin.getId());
+        Invite inviteStudent = inviteService.createInvite("student3@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
         // courses
         Course course = courseService.createCourse("Test course", admin.getId());
         CourseYear courseYear = courseYearService.createCourseYear(course.getId(), 2021, admin.getId());
-        for(int i = 2; i <= 10; i++) {
+        for(int i = 3; i <= 10; i++) {
             Invite inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courseYear.getId(), admin.getId());
         }
         inviteAndEnroll(courseYear, enrolledStudents, admin);
         // one course set up
-        Group group = groupService.createGroup("Test application", null, courseYear.getId(), admin.getId());
-        groupService.addMember(group.getId(), student1.getId());
+        Group group = groupService.createGroup("Test application", Arrays.asList("student1", "student2"), courseYear.getId(), admin.getId());
         Iteration iteration = iterationService.create("First iteration", courseYear.getId());
         Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
-        Task task = taskService.create("Task 1", backlog.getId());
+        Task task = taskService.createTask(backlog.getId(), "Be able to login", student1.getId());
+        task = taskService.createTask(backlog.getId(), "Register new user", student1.getId());
+        task = taskService.createTask(backlog.getId(), "View all tasks", student2.getId());
+        task = taskService.createTask(backlog.getId(), "Create a new task", student2.getId());
         logger.info("Done populating database");
     }
 

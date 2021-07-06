@@ -42,14 +42,6 @@ public class GroupService extends BaseService<Group, GroupRepository> {
     }
 
     @Transactional
-    public void addMember(Long groupId, String userId) {
-        User user = userService.get(userId);
-        Group group = this.get(groupId);
-        group.addMember(user);
-        user.addToGroup(group);
-    }
-
-    @Transactional
     public Group editGroup(Long groupId, String name, Collection<String> usernames,
                           String loggedInUserId) {
         Group group = get(groupId);
