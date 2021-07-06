@@ -18,4 +18,11 @@ public class TaskController extends CrudController<Task, TaskService> {
         String userId = super.getUserId(principal);
         return super.search(search);
     }
+
+    @GetMapping(path = "/{id}")
+    @JsonView(EntityLevelViews.Basic.class)
+    public Task getTask(@PathVariable("id") Long id) {
+        Task task = service.get(id);
+        return task;
+    }
 }
