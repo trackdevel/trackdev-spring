@@ -71,7 +71,7 @@ public class DemoDataSeeder {
         Iteration iteration = iterationService.create("First iteration", courseYear.getId());
         Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
-        Task task = taskService.create("Task 1", backlog.getId());
+        Task task = taskService.createTask(backlog.getId(), "Task 1", student1.getId());
         logger.info("Done populating database");
     }
 

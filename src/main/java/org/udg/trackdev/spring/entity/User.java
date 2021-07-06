@@ -16,7 +16,6 @@ import java.util.*;
 
 @Entity
 @Table(name = "users")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = User.class)
 public class User extends BaseEntityUUID {
 
   public static final int USERNAME_LENGTH = 12;

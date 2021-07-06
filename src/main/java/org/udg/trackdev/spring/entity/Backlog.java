@@ -1,7 +1,6 @@
 package org.udg.trackdev.spring.entity;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -14,6 +13,10 @@ public class Backlog extends BaseEntityLong {
 
     @OneToMany(mappedBy = "backlog", cascade = CascadeType.ALL)
     private Collection<Task> tasks = new ArrayList<>();
+
+    public Group getGroup() {
+        return this.group;
+    }
 
     public void setGroup(Group group) {
         this.group = group;
