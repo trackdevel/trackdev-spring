@@ -67,4 +67,7 @@ public class Group extends BaseEntityLong {
     public void setCourseYear(CourseYear courseYear) {
         this.courseYear = courseYear;
     }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public Collection<Backlog> getBacklogs() { return this.backlogs; }
 }
