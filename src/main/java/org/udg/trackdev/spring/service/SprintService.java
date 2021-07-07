@@ -11,7 +11,7 @@ import org.udg.trackdev.spring.repository.SprintRepository;
 import java.util.Optional;
 
 @Service
-public class SprintService extends BaseService<Sprint, SprintRepository> {
+public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
 
     @Autowired
     IterationService iterationService;

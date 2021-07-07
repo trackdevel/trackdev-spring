@@ -9,7 +9,7 @@ import org.udg.trackdev.spring.repository.BaseRepositoryLong;
 import java.util.List;
 import java.util.Optional;
 
-public class BaseService<T extends BaseEntityLong, Repo extends BaseRepositoryLong<T>> implements IBaseService<T> {
+public class BaseServiceLong<T extends BaseEntityLong, Repo extends BaseRepositoryLong<T>> implements IBaseService<T> {
 
     @Autowired
     Repo repo;
@@ -29,5 +29,7 @@ public class BaseService<T extends BaseEntityLong, Repo extends BaseRepositoryLo
     public List<T> findAll() {
         return repo.findAll();
     }
+
+    protected Repo repo() { return repo; }
 
 }

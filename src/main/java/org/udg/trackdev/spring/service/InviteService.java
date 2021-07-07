@@ -13,7 +13,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-public class InviteService extends BaseService<Invite, InviteRepository> {
+public class InviteService extends BaseServiceLong<Invite, InviteRepository> {
+
     @Autowired
     RoleService roleService;
 

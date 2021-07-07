@@ -11,7 +11,7 @@ import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
 @Service
-public class TaskService extends BaseService<Task, TaskRepository> {
+public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     @Autowired
     BacklogService backlogService;

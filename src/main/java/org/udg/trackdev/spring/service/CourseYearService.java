@@ -8,7 +8,7 @@ import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.CourseYearRepository;
 
 @Service
-public class CourseYearService extends BaseService<CourseYear, CourseYearRepository> {
+public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRepository> {
 
     @Autowired
     CourseService courseService;
