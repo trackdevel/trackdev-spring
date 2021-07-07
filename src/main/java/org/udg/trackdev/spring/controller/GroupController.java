@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Group;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.GroupService;
 
 import javax.validation.Valid;
@@ -19,10 +20,15 @@ public class GroupController extends BaseController {
     @Autowired
     GroupService service;
 
+    @Autowired
+    AccessChecker accessChecker;
+
     @GetMapping(path = "/{groupId}")
     @JsonView(EntityLevelViews.Basic.class)
-    public Group getGroup(@PathVariable(name = "groupId") Long groupId) {
+    public Group getGroup(Principal principal, @PathVariable(name = "groupId") Long groupId) {
+        String userId = super.getUserId(principal);
         Group group = service.get(groupId);
+        accessChecker.checkCanViewGroup(group, userId);
         return group;
     }
 

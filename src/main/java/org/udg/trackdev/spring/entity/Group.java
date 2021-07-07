@@ -53,6 +53,15 @@ public class Group extends BaseEntityLong {
         return this.members.contains(user);
     }
 
+    public boolean isMember(String userId) {
+        for(User user: this.members) {
+            if(user.getId().equals(userId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void removeMember(User user) {
         if(this.members.contains(user)) {
             this.members.remove(user);

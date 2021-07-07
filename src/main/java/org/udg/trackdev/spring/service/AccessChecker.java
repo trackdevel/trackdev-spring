@@ -16,6 +16,7 @@ import org.udg.trackdev.spring.entity.*;
  */
 @Component
 public class AccessChecker {
+    private final String defaultNoAccessMessage = "User does not have access to this resource";
 
     @Autowired
     UserService userService;
@@ -33,13 +34,31 @@ public class AccessChecker {
         }
     }
 
+    public void checkCanViewCourse(Course course, String userId) {
+        if(isCourseOwner(course, userId)) {
+            return;
+        }
+        throw new ServiceException(defaultNoAccessMessage);
+    }
+
     public void checkCanManageCourseYear(CourseYear courseYear, String userId) {
         checkCanManageCourse(courseYear.getCourse(), userId);
     }
 
+    public void checkCanViewCourseYear(CourseYear courseYear, String userId) {
+        if(isCourseOwner(courseYear.getCourse(), userId)) {
+            return;
+        }
+        User user = userService.get(userId);
+        if(courseYear.isEnrolled(user)) {
+            return;
+        }
+        throw new ServiceException(defaultNoAccessMessage);
+    }
+
     public void checkCanViewCourseYearStudents(CourseYear courseYear, String userId) {
         if(!isCourseOwner(courseYear.getCourse(), userId)) {
-            throw new ServiceException("User does not have access to this resource");
+            throw new ServiceException(defaultNoAccessMessage);
         }
     }
 
@@ -51,18 +70,46 @@ public class AccessChecker {
         if(courseYear.isEnrolled(user)) {
             return;
         }
-        throw new ServiceException("User does not have access to this resource");
+        throw new ServiceException(defaultNoAccessMessage);
     }
 
     public void checkCanManageGroup(Group group, String userId) {
         checkCanManageCourseYear(group.getCourseYear(), userId);
     }
 
-    public void checkCanManageBacklog(Backlog backlog, User userId) {
-        Group group = backlog.getGroup();
-        if(!group.isMember(userId)) {
-            throw new ServiceException("User cannot manage this backlog");
+    public void checkCanViewGroup(Group group, String userId) {
+        if(group.isMember(userId)) {
+            return;
         }
+        Course course = group.getCourseYear().getCourse();
+        if(isCourseOwner(course, userId)) {
+            return;
+        }
+        throw new ServiceException(defaultNoAccessMessage);
+    }
+
+    public void checkCanManageBacklog(Backlog backlog, User user) {
+        Group group = backlog.getGroup();
+        if(group.isMember(user)) {
+           return;
+        }
+        Course course = group.getCourseYear().getCourse();
+        if(isCourseOwner(course, user.getId())) {
+            return;
+        }
+        throw new ServiceException("User cannot manage this backlog");
+    }
+
+    public void checkCanViewBacklog(Backlog backlog, String userId) {
+        Group group = backlog.getGroup();
+        if(group.isMember(userId)) {
+            return;
+        }
+        Course course = group.getCourseYear().getCourse();
+        if(isCourseOwner(course, userId)) {
+            return;
+        }
+        throw new ServiceException(defaultNoAccessMessage);
     }
 
     private boolean isCourseOwner(Course course, String userId) {

@@ -48,7 +48,9 @@ public class CourseYearController extends BaseController {
     @GetMapping(path = "/{yearId}")
     @JsonView(EntityLevelViews.CourseYearComplete.class)
     public CourseYear getCourseYear(Principal principal, @PathVariable("yearId") Long yearId) {
+        String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
+        accessChecker.checkCanViewCourseYear(courseYear, userId);
         return courseYear;
     }
 
