@@ -58,6 +58,8 @@ public class User extends BaseEntityUUID {
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Invite> invites = new ArrayList<>();
 
+  private String githubName;
+
   @JsonView(PrivacyLevelViews.Private.class)
   public String getId() {
     return super.getId();

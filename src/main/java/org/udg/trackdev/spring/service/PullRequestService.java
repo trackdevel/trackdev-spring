@@ -12,7 +12,7 @@ import org.udg.trackdev.spring.repository.PullRequestRepository;
 import java.util.Optional;
 
 @Service
-public class PullRequestService extends BaseServiceLong<PullRequest, PullRequestRepository> {
+public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequestRepository> {
 
     @Autowired
     TaskService taskService;
