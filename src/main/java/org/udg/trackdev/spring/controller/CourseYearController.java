@@ -18,8 +18,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/courses/years")
@@ -69,7 +71,7 @@ public class CourseYearController extends BaseController {
                                  @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
-        accessChecker.checkCanViewCourseYearStudents(courseYear, userId);
+        accessChecker.checkCanViewCourseYearAllStudents(courseYear, userId);
         return courseYear.getStudents();
     }
 
@@ -88,8 +90,15 @@ public class CourseYearController extends BaseController {
                                     @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
         CourseYear courseYear = courseYearService.get(yearId);
-        accessChecker.checkCanViewCourseYearGroups(courseYear, userId);
-        return courseYear.getGroups();
+        Collection<Group> groups;
+        if(accessChecker.canViewCourseYearAllGroups(courseYear, userId)) {
+            groups = courseYear.getGroups();
+        } else {
+            groups = courseYear.getGroups().stream()
+                    .filter(group -> group.isMember(userId))
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
+        return groups;
     }
 
     @PostMapping(path = "/{yearId}/groups")

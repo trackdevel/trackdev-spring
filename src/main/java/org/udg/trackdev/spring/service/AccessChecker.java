@@ -56,21 +56,17 @@ public class AccessChecker {
         throw new ServiceException(defaultNoAccessMessage);
     }
 
-    public void checkCanViewCourseYearStudents(CourseYear courseYear, String userId) {
+    public void checkCanViewCourseYearAllStudents(CourseYear courseYear, String userId) {
         if(!isCourseOwner(courseYear.getCourse(), userId)) {
             throw new ServiceException(defaultNoAccessMessage);
         }
     }
 
-    public void checkCanViewCourseYearGroups(CourseYear courseYear, String userId) {
+    public boolean canViewCourseYearAllGroups(CourseYear courseYear, String userId) {
         if(isCourseOwner(courseYear.getCourse(), userId)) {
-            return;
+            return true;
         }
-        User user = userService.get(userId);
-        if(courseYear.isEnrolled(user)) {
-            return;
-        }
-        throw new ServiceException(defaultNoAccessMessage);
+        return false;
     }
 
     public void checkCanManageGroup(Group group, String userId) {

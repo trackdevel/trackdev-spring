@@ -68,15 +68,23 @@ public class DemoDataSeeder {
         }
         inviteAndEnroll(courseYear, enrolledStudents, admin);
         // one course set up
-        Group group = groupService.createGroup("Test application", Arrays.asList("student1", "student2"), courseYear.getId(), admin.getId());
         Iteration iteration = iterationService.create("First iteration", courseYear.getId());
-        Sprint sprint = sprintService.create("Sprint 1", iteration.getId(), group.getId());
-        Backlog backlog = backlogService.create(group.getId());
-        Task task = taskService.createTask(backlog.getId(), "Be able to login", student1.getId());
-        task = taskService.createTask(backlog.getId(), "Register new user", student1.getId());
-        task = taskService.createTask(backlog.getId(), "View all tasks", student2.getId());
-        task = taskService.createTask(backlog.getId(), "Create a new task", student2.getId());
+        populateGroup(admin, courseYear, iteration, "Movie reviews", Arrays.asList(student1, student2));
+        populateGroup(admin, courseYear, iteration, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
+    }
+
+    private void populateGroup(User admin, CourseYear courseYear, Iteration iteration, String groupName, List<User> users) {
+        List<String> usernames = new ArrayList<>();
+        for(User user: users) {
+            usernames.add(user.getUsername());
+        }
+        Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
+        Sprint sprint = sprintService.create(groupName, iteration.getId(), group.getId());
+        Backlog backlog = backlogService.create(group.getId());
+        for(int i = 0; i <= 8; i++) {
+            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum", users.get(i % users.size()).getId());
+        }
     }
 
     private List<User> createDemoStudents() {
