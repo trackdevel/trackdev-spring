@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.IdObjectLong;
 import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.User;
@@ -81,6 +82,8 @@ public class InviteController extends BaseController {
                     break;
                 case "courseYear":
                     spec = spec.and(InviteSpecs.forCourseYear());
+                default:
+                    throw new ControllerException("Unknown filter value");
             }
         }
         if(yearId != null) {

@@ -29,7 +29,11 @@ public class Task extends BaseEntityLong {
     private String name;
 
     @ManyToOne
+    @JoinColumn(name = "backlogId")
     private Backlog backlog;
+
+    @Column(name = "backlogId", insertable = false, updatable = false)
+    private Long backlogId;
 
     @ManyToOne
     private User reporter;

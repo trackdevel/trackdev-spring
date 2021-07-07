@@ -34,7 +34,7 @@ public class CourseController extends CrudController<Course, CourseService> {
     @JsonView(EntityLevelViews.CourseComplete.class)
     public List<Course> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
-        String refinedSearch = "ownerId:" + userId + (search != null ? "," + search : "");
+        String refinedSearch = super.scopedSearch("ownerId:"+userId, search);
         return super.search(refinedSearch);
     }
 
