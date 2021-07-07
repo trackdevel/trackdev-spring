@@ -10,18 +10,16 @@ import org.udg.trackdev.spring.entity.User;
 @Component
 public class InviteCourseBuilder extends InviteBuilder<CourseYear> {
 
-    private CourseService courseService;
+    private AccessChecker accessChecker;
 
-    public InviteCourseBuilder(UserService userService, InviteService inviteService, CourseService courseService) {
+    public InviteCourseBuilder(UserService userService, InviteService inviteService, AccessChecker accessChecker) {
         super(userService, inviteService);
-        this.courseService = courseService;
+        this.accessChecker = accessChecker;
     }
 
     @Override
     protected void checkIfCanInviteToResource(User owner, CourseYear resource) {
-        if(!courseService.canManageCourse(resource.getCourse(), owner.getId())) {
-            throw new ServiceException("User cannot manage this course");
-        }
+        accessChecker.checkCanManageCourseYear(resource, owner.getId());
     }
 
     @Override

@@ -23,13 +23,13 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
     CourseYearService courseYearService;
 
     @Autowired
-    CourseService courseService;
+    AccessChecker accessChecker;
 
     @Transactional
     public Group createGroup(String name, Collection<String> usernames, Long courseYearId,
                              String loggedInUserId) {
         CourseYear course = courseYearService.get(courseYearId);
-        checkCanManageCourseYear(course, loggedInUserId);
+        accessChecker.checkCanManageCourseYear(course, loggedInUserId);
         Group group = new Group(name);
         course.addGroup(group);
         group.setCourseYear(course);
@@ -45,7 +45,7 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
     public Group editGroup(Long groupId, String name, Collection<String> usernames,
                           String loggedInUserId) {
         Group group = get(groupId);
-        checkCanManageGroup(group, loggedInUserId);
+        accessChecker.checkCanManageGroup(group, loggedInUserId);
         if(name != null) {
             group.setName(name);
         }
@@ -62,18 +62,8 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
 
     public void deleteGroup(Long groupId, String userId) {
         Group group = get(groupId);
-        checkCanManageGroup(group, userId);
+        accessChecker.checkCanManageGroup(group, userId);
         repo.delete(group);
-    }
-
-    private void checkCanManageGroup(Group group, String userId) {
-        checkCanManageCourseYear(group.getCourseYear(), userId);
-    }
-
-    private void checkCanManageCourseYear(CourseYear courseYear, String userId) {
-        if(!courseService.canManageCourse(courseYear.getCourse(), userId)) {
-            throw new ServiceException("User cannot manage this course");
-        }
     }
 
     private void addMembers(CourseYear course, Group group, Collection<String> usernames) {

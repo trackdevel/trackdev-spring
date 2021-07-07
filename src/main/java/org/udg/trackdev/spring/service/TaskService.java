@@ -19,21 +19,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Autowired
     UserService userService;
 
+    @Autowired
+    AccessChecker accessChecker;
+
     @Transactional
     public Task createTask(Long backlogId, String name, String userId) {
         Backlog backlog = backlogService.get(backlogId);
         User user = userService.get(userId);
-        checkCanManageBacklog(backlog, user);
+        accessChecker.checkCanManageBacklog(backlog, user);
         Task task = new Task(name, user);
         task.setBacklog(backlog);
         this.repo.save(task);
         return task;
-    }
-
-    private void checkCanManageBacklog(Backlog backlog, User user) {
-        Group group = backlog.getGroup();
-        if(!group.isMember(user)) {
-            throw new ServiceException("User cannot manage this backlog");
-        }
     }
 }
