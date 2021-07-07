@@ -83,6 +83,10 @@ public class UserService {
         return user;
     }
 
+    public User getByGithubName(String githubName) {
+        return null;
+    }
+
     public Boolean existsEmail(String email) {
         return userRepository.existsByEmail(email);
     }
