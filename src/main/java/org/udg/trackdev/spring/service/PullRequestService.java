@@ -12,7 +12,7 @@ import org.udg.trackdev.spring.repository.PullRequestRepository;
 import java.util.Optional;
 
 @Service
-public class PullRequestService extends BaseService<PullRequest, PullRequestRepository> {
+public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequestRepository> {
 
     @Autowired
     TaskService taskService;
@@ -34,19 +34,19 @@ public class PullRequestService extends BaseService<PullRequest, PullRequestRepo
 
     @Transactional
     public PullRequest findOrCreateByNodeId(String url, String nodeId, String login) {
-        User author = userService.getByUsername(login);
-        Optional<PullRequest> opr = this.repo.findByPrNodeId(nodeId);
+        User author = userService.getByUserName(login);
+        Optional<PullRequest> opr = this.repo().findByNodeId(nodeId);
         if (opr.isEmpty()) {
             PullRequest pr = new PullRequest(url, nodeId);
             pr.setAuthor(author);
-            this.repo.save(pr);
+            this.repo().save(pr);
             return pr;
         }
         return opr.get();
     }
 
     public PullRequest getByNodeId(String prNodeId) {
-        return this.repo.findByPrNodeId(prNodeId).orElseThrow(
+        return this.repo().findByNodeId(prNodeId).orElseThrow(
                 () -> new ServiceException(String.format("PullRequest wit node_id = %s does not exists", prNodeId)));
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CourseService extends BaseService<Course, CourseRepository> {
+public class CourseService extends BaseServiceLong<Course, CourseRepository> {
 
     @Autowired
     UserService userService;

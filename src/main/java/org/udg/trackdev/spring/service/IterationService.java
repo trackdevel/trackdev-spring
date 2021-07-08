@@ -8,7 +8,7 @@ import org.udg.trackdev.spring.entity.Iteration;
 import org.udg.trackdev.spring.repository.IterationRepository;
 
 @Service
-public class IterationService extends BaseService<Iteration, IterationRepository> {
+public class IterationService extends BaseServiceLong<Iteration, IterationRepository> {
 
     @Autowired
     UserService userService;

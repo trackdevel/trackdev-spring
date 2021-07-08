@@ -8,7 +8,7 @@ import org.udg.trackdev.spring.entity.Group;
 import org.udg.trackdev.spring.repository.BacklogRepository;
 
 @Service
-public class BacklogService extends BaseService<Backlog, BacklogRepository> {
+public class BacklogService extends BaseServiceLong<Backlog, BacklogRepository> {
 
     @Autowired
     GroupService groupService;

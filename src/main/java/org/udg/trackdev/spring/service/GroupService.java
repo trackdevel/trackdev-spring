@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-public class GroupService extends BaseService<Group, GroupRepository> {
+public class GroupService extends BaseServiceLong<Group, GroupRepository> {
 
     @Autowired
     UserService userService;

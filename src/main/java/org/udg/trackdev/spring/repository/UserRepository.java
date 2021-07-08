@@ -11,17 +11,20 @@ import org.udg.trackdev.spring.entity.User;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends BaseRepositoryUUID<User> {
 
-    User findByUsername(@Param("username") String username);
+    Optional<User> findByUsername(@Param("username") String username);
 
     User findByEmail(@Param("email") String email);
 
     boolean existsByEmail(@Param("email") String email);
 
     boolean existsByUsername(@Param("username") String username);
+
+    Optional<User> findByGithubName(String githubName);
 
 //    @Query("UPDATE User u SET u.lastLogin=:lastLogin WHERE u.username = ?#{ principal?.username }")
 //    @Modifying

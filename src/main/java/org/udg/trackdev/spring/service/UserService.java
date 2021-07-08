@@ -15,11 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService {
-
-    @Autowired
-    private UserRepository userRepository;
-
+public class UserService extends BaseServiceUUID<User, UserRepository> {
+    
     @Autowired
     private RoleService roleService;
 
@@ -28,13 +25,9 @@ public class UserService {
 
     @Autowired
     Global global;
-
-    public UserRepository crud() {
-        return userRepository;
-    }
-
+    
     public User matchPassword(String username, String password) {
-        User user = userRepository.findByUsername(username);
+        User user = this.getByUserName(username);
 
         if (user == null) throw new ServiceException("User does not exists");
 
@@ -55,12 +48,12 @@ public class UserService {
         for (Invite invite: invites) {
             inviteService.useInvite(invite, user);
         }
-        userRepository.save(user);
+        repo().save(user);
         return user;
     }
 
     public User get(String id) {
-        Optional<User> uo = userRepository.findById(id);
+        Optional<User> uo = repo().findById(id);
         if (uo.isPresent())
             return uo.get();
         else
@@ -68,15 +61,15 @@ public class UserService {
     }
 
     public User getByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if(user == null) {
+        Optional<User> user = repo().findByUsername(username);
+        if(user.isEmpty()) {
             throw new EntityNotFound(String.format("User with name = %s does not exist", username));
         }
-        return user;
+        return user.get();
     }
 
     public User getByEmail(String email) {
-        User user = userRepository.findByEmail(email);
+        User user = repo().findByEmail(email);
         if(user == null) {
             throw new EntityNotFound(String.format("User with name = %s does not exist", email));
         }
@@ -88,7 +81,7 @@ public class UserService {
     }
 
     public Boolean existsEmail(String email) {
-        return userRepository.existsByEmail(email);
+        return repo().existsByEmail(email);
     }
 
     @Transactional
@@ -100,16 +93,27 @@ public class UserService {
             Role role = roleService.get(ut);
             user.addRole(role);
         }
-        userRepository.save(user);
+        repo().save(user);
 
         return user;
     }
 
     private void checkIfExists(String username, String email) {
-        if (userRepository.existsByEmail(email))
+        if (repo().existsByEmail(email))
             throw new ServiceException("User with this email already exist");
 
-        if (userRepository.existsByUsername(username))
+        if (repo().existsByUsername(username))
             throw new ServiceException("Username already exists");
+    }
+
+    public User getByUserName(String userName) {
+        Optional<User> u = repo().findByUsername(userName);
+        if (u.isEmpty())
+            throw new ServiceException(String.format("User with username <%s> does not exist", userName));
+        return u.get();
+    }
+    public User getByGithubName(String githubName) {
+        return this.repo().findByGithubName(githubName).orElseThrow(
+                () -> new ServiceException(String.format("User with githb name = %s does not exists", githubName)));
     }
 }
