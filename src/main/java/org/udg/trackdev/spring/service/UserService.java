@@ -76,6 +76,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         return user;
     }
 
+    public User getByGithubName(String githubName) {
+        return null;
+    }
+
     public Boolean existsEmail(String email) {
         return repo().existsByEmail(email);
     }

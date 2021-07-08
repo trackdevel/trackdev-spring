@@ -9,7 +9,7 @@ import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.PRNoteRepository;
 
 @Service
-public class PRNoteService extends BaseServiceLong<PRNote, PRNoteRepository> {
+public class PRNoteService extends BaseService<PRNote, PRNoteRepository> {
 
     @Autowired
     PullRequestService prService;
@@ -24,7 +24,7 @@ public class PRNoteService extends BaseServiceLong<PRNote, PRNoteRepository> {
         User author = userService.getByGithubName(authorId);
         PRNote prNote = new PRNote(pr, subject, author, url, level, type);
         // pr.setTask(task);
-        this.repo().save(prNote);
+        this.repo.save(prNote);
         return prNote;
     }
 
