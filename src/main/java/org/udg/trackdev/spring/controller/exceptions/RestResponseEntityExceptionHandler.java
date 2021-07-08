@@ -2,6 +2,7 @@ package org.udg.trackdev.spring.controller.exceptions;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         } else if (ex instanceof EntityNotFound) {
             return handleExceptionInternal(ex,
                     buildErrorEntity("Not found", HttpStatus.NOT_FOUND, ex),
+                    new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+        } else if (ex instanceof InvalidDataAccessApiUsageException) {
+            return handleExceptionInternal(ex,
+                    buildErrorEntity("Controller error", HttpStatus.BAD_REQUEST,
+                            "Error parsing search parameter"),
                     new HttpHeaders(), HttpStatus.NOT_FOUND, request);
         } else
             return handleExceptionInternal(ex,

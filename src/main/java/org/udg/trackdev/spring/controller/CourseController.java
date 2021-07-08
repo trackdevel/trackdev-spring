@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.CourseYear;
 import org.udg.trackdev.spring.entity.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.CourseService;
 import org.udg.trackdev.spring.service.CourseYearService;
 
@@ -26,18 +27,23 @@ public class CourseController extends CrudController<Course, CourseService> {
     @Autowired
     CourseYearService courseYearService;
 
+    @Autowired
+    AccessChecker accessChecker;
+
     @GetMapping
     @JsonView(EntityLevelViews.CourseComplete.class)
     public List<Course> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
-        String refinedSearch = "ownerId:" + userId + (search != null ? "," + search : "");
+        String refinedSearch = super.scopedSearch("ownerId:"+userId, search);
         return super.search(refinedSearch);
     }
 
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.CourseComplete.class)
-    public Course getCourse(@PathVariable("id") Long id) {
+    public Course getCourse(Principal principal, @PathVariable("id") Long id) {
         Course course = service.getCourse(id);
+        String userId = super.getUserId(principal);
+        accessChecker.checkCanViewCourse(course, userId);
         return course;
     }
 

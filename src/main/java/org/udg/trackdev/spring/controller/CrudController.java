@@ -2,31 +2,37 @@ package org.udg.trackdev.spring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.query.*;
 import org.udg.trackdev.spring.service.IBaseService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CrudController<T, Service extends IBaseService<T>> extends BaseController {
 
     @Autowired
-    Service service;
+    protected Service service;
 
     public List<T> search(String search) {
         if (search == null)
             return service.findAll();
-        Specification<T> specification = this.resolveSpecificationFromInfixExpr(search);
+        Specification<T> specification = this.buildSpecificationFromSearch(search);
         return service.search(specification);
     }
 
-    protected Specification<T> resolveSpecificationFromInfixExpr(String searchParameters) {
-        CriteriaParser parser = new CriteriaParser();
-        GenericSpecificationsBuilder<T> specBuilder = new GenericSpecificationsBuilder<>();
-        return specBuilder.build(parser.parse(searchParameters), SearchSpecification<T>::new);
+    protected <K> Specification<K> buildSpecificationFromSearch(String search) {
+        Specification<K> specification;
+        try {
+            CriteriaParser parser = new CriteriaParser();
+            GenericSpecificationsBuilder<K> specBuilder = new GenericSpecificationsBuilder<>();
+            specification = specBuilder.build(parser.parse(search), SearchSpecification::new);
+        } catch (Exception ex) {
+            throw new ControllerException("Error parsing search parameter");
+        }
+        return specification;
     }
 
+    protected String scopedSearch(String reducedScopeSearch, String requestSearch) {
+        return reducedScopeSearch + (requestSearch != null ? " and ( " + requestSearch + " )" : "");
+    }
 }

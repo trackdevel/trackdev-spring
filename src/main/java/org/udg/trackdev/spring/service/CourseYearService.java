@@ -3,7 +3,6 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.CourseYearRepository;
 
@@ -19,10 +18,13 @@ public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRep
     @Autowired
     UserService userService;
 
+    @Autowired
+    AccessChecker accessChecker;
+
     @Transactional
     public CourseYear createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
         Course course = courseService.getCourse(courseId);
-        checkCanManageCourse(course, loggedInUserId);
+        accessChecker.checkCanManageCourse(course, loggedInUserId);
         CourseYear courseYear = new CourseYear(startYear);
         courseYear.setCourse(course);
         course.addCourseYear(courseYear);
@@ -31,7 +33,7 @@ public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRep
 
     public void deleteCourseYear(Long yearId, String loggedInUserId) {
         CourseYear courseYear = get(yearId);
-        checkCanManageCourseYear(courseYear, loggedInUserId);
+        accessChecker.checkCanManageCourseYear(courseYear, loggedInUserId);
         repo.delete(courseYear);
     }
 
@@ -45,7 +47,7 @@ public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRep
     @Transactional
     public void removeStudent(Long yearId, String username, String loggedInUserId) {
         CourseYear courseYear = get(yearId);
-        checkCanManageCourseYear(courseYear, loggedInUserId);
+        accessChecker.checkCanManageCourseYear(courseYear, loggedInUserId);
         User user = userService.getByUsername(username);
         for(Group group : courseYear.getGroups()) {
             if(group.isMember(user)) {
@@ -55,15 +57,5 @@ public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRep
         }
         courseYear.removeStudent(user);
         user.removeFromCourseYear(courseYear);
-    }
-
-    private void checkCanManageCourseYear(CourseYear courseYear, String userId) {
-        checkCanManageCourse(courseYear.getCourse(), userId);
-    }
-
-    private void checkCanManageCourse(Course course, String userId) {
-        if(!courseService.canManageCourse(course, userId)) {
-            throw new ServiceException("User cannot manage this course");
-        }
     }
 }

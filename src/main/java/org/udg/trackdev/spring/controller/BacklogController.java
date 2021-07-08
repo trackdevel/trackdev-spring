@@ -1,21 +1,45 @@
 package org.udg.trackdev.spring.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.IdObjectLong;
 import org.udg.trackdev.spring.entity.Task;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.service.AccessChecker;
+import org.udg.trackdev.spring.service.BacklogService;
 import org.udg.trackdev.spring.service.TaskService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/backlogs")
-public class BacklogController extends BaseController {
+public class BacklogController extends CrudController<Backlog, BacklogService> {
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private AccessChecker accessChecker;
+
+    @GetMapping(path = "/{id}/tasks")
+    @JsonView(EntityLevelViews.Basic.class)
+    public List<Task> getTasks(Principal principal,
+                           @PathVariable("id") Long id,
+                           @RequestParam(value = "search", required = false) String search) {
+        String userId = getUserId(principal);
+        Backlog backlog = service.get(id);
+        accessChecker.checkCanViewBacklog(backlog, userId);
+        String refinedSearch = super.scopedSearch("backlogId:"+id, search);
+
+        Specification<Task> specification = super.buildSpecificationFromSearch(refinedSearch);
+        return taskService.search(specification);
+    }
 
     @PostMapping(path = "/{id}/tasks")
     public IdObjectLong createTask(Principal principal,
