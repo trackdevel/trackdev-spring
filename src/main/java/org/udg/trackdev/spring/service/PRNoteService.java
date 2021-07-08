@@ -9,7 +9,7 @@ import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.PRNoteRepository;
 
 @Service
-public class PRNoteService extends BaseService<PRNote, PRNoteRepository> {
+public class PRNoteService extends BaseServiceLong<PRNote, PRNoteRepository> {
 
     @Autowired
     PullRequestService prService;

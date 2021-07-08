@@ -34,7 +34,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
 
     @Transactional
     public PullRequest findOrCreateByNodeId(String url, String nodeId, String login) {
-        User author = userService.getByUserName(login);
+        User author = userService.getByUsername(login);
         Optional<PullRequest> opr = this.repo().findByNodeId(nodeId);
         if (opr.isEmpty()) {
             PullRequest pr = new PullRequest(url, nodeId);
