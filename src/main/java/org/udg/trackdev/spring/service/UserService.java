@@ -27,7 +27,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     Global global;
     
     public User matchPassword(String username, String password) {
-        User user = this.getByUserName(username);
+        User user = this.getByUsername(username);
 
         if (user == null) throw new ServiceException("User does not exists");
 
@@ -63,7 +63,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User getByUsername(String username) {
         Optional<User> user = repo().findByUsername(username);
         if(user.isEmpty()) {
-            throw new EntityNotFound(String.format("User with name = %s does not exist", username));
+            throw new EntityNotFound(String.format("User with username <%s> does not exist", username));
         }
         return user.get();
     }
@@ -74,10 +74,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new EntityNotFound(String.format("User with name = %s does not exist", email));
         }
         return user;
-    }
-
-    public User getByGithubName(String githubName) {
-        return null;
     }
 
     public Boolean existsEmail(String email) {
@@ -106,12 +102,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new ServiceException("Username already exists");
     }
 
-    public User getByUserName(String userName) {
-        Optional<User> u = repo().findByUsername(userName);
-        if (u.isEmpty())
-            throw new ServiceException(String.format("User with username <%s> does not exist", userName));
-        return u.get();
-    }
     public User getByGithubName(String githubName) {
         return this.repo().findByGithubName(githubName).orElseThrow(
                 () -> new ServiceException(String.format("User with githb name = %s does not exists", githubName)));
