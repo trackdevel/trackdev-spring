@@ -108,6 +108,11 @@ public class AccessChecker {
         throw new ServiceException(defaultNoAccessMessage);
     }
 
+    public void checkCanViewAllTasks(String userId) {
+        // Consider allowing Admin in the future.
+        throw new ServiceException("User cannot see all tasks");
+    }
+
     private boolean isCourseOwner(Course course, String userId) {
         return course.getOwnerId().equals(userId);
     }

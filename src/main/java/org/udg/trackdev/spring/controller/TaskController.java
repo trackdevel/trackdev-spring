@@ -3,9 +3,11 @@ package org.udg.trackdev.spring.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
+import org.udg.trackdev.spring.service.BacklogService;
 import org.udg.trackdev.spring.service.TaskService;
 
 import java.security.Principal;
@@ -15,13 +17,19 @@ import java.util.List;
 @RequestMapping(path = "/tasks")
 public class TaskController extends CrudController<Task, TaskService> {
     @Autowired
+    BacklogService backlogService;
+
+    @Autowired
     AccessChecker accessChecker;
 
     @GetMapping
     @JsonView(EntityLevelViews.Basic.class)
-    public List<Task> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
+    public List<Task> search(Principal principal,
+                         @RequestParam(value = "backlogId", required = false) Long backlogId,
+                         @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
-        return super.search(search);
+        String refinedSearch = buildRefinedSearch(backlogId, search, userId);
+        return super.search(refinedSearch);
     }
 
     @GetMapping(path = "/{id}")
@@ -31,5 +39,17 @@ public class TaskController extends CrudController<Task, TaskService> {
         Task task = service.get(id);
         accessChecker.checkCanViewBacklog(task.getBacklog(), userId);
         return task;
+    }
+
+    private String buildRefinedSearch(Long backlogId, String search, String userId) {
+        String refinedSearch = search;
+        if(backlogId != null) {
+            Backlog backlog = backlogService.get(backlogId);
+            accessChecker.checkCanViewBacklog(backlog, userId);
+            refinedSearch = super.scopedSearch("backlogId:"+ backlogId, search);
+        } else {
+            accessChecker.checkCanViewAllTasks(userId);
+        }
+        return refinedSearch;
     }
 }
