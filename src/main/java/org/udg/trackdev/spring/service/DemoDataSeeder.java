@@ -83,8 +83,9 @@ public class DemoDataSeeder {
         Sprint sprint = sprintService.create(groupName, iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
         for(int i = 0; i <= 8; i++) {
-            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum", users.get(i % users.size()).getId());
+            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", users.get(i % users.size()).getId());
         }
+        backlog = backlogService.create(group.getId());
     }
 
     private List<User> createDemoStudents() {
