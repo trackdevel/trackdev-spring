@@ -22,6 +22,7 @@ import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping()
@@ -76,12 +77,14 @@ public class InviteController extends BaseController {
     private Specification<Invite> buildSpecification(String type, Long yearId) {
         Specification<Invite> spec = InviteSpecs.isPending(); // Only show open invites
         if(type != null) {
+            type = type.toLowerCase();
             switch (type) {
                 case "role":
                     spec = spec.and(InviteSpecs.notForCourseYear());
                     break;
-                case "courseYear":
+                case "courseyear":
                     spec = spec.and(InviteSpecs.forCourseYear());
+                    break;
                 default:
                     throw new ControllerException("Unknown filter value");
             }
