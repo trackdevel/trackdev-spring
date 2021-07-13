@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.TaskChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.BacklogService;
@@ -54,7 +54,7 @@ public class TaskController extends CrudController<Task, TaskService> {
                            @PathVariable(name = "id") Long id,
                            @Valid @RequestBody EditTask taskRequest) {
         String userId = super.getUserId(principal);
-        Task modifiedTask = service.editTask(id, taskRequest.name, userId);
+        Task modifiedTask = service.editTask(id, taskRequest.name, taskRequest.assignee, userId);
         return modifiedTask;
     }
 
@@ -84,5 +84,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     static class EditTask {
         @Size(max = Task.NAME_LENGTH)
         public String name;
+
+        public String assignee;
     }
 }

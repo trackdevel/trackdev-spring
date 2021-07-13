@@ -3,11 +3,15 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.udg.trackdev.spring.entity.Backlog;
-import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.TaskNameChange;
-import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.controller.exceptions.ServiceException;
+import org.udg.trackdev.spring.entity.*;
+import org.udg.trackdev.spring.entity.taskchanges.TaskAssigneeChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskNameChange;
 import org.udg.trackdev.spring.repository.TaskRepository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TaskService extends BaseServiceLong<Task, TaskRepository> {
@@ -36,17 +40,27 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task editTask(Long id, String name, String userId) {
+    public Task editTask(Long id, String name, String assignee, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
         accessChecker.checkCanManageBacklog(task.getBacklog(), user);
+        List<TaskChange> changes = new ArrayList<>();
         if(name != null) {
             task.setName(name);
+            changes.add(new TaskNameChange(user, task, name));
+        }
+        if(assignee != null) {
+            User assigneeUser = userService.getByUsername(assignee);
+            if(!task.getBacklog().getGroup().isMember(assigneeUser)) {
+                throw new ServiceException("Assignee is not in the list of possible assignees");
+            }
+            task.setAssignee(assigneeUser);
+            changes.add(new TaskAssigneeChange(user, task, assigneeUser));
         }
         repo.save(task);
-        TaskNameChange change = new TaskNameChange(user, task, name);
-        taskChangeService.store(change);
-
+        for(TaskChange change: changes) {
+            taskChangeService.store(change);
+        }
         return task;
     }
 }

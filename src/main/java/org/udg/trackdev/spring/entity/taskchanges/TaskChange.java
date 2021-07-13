@@ -1,8 +1,11 @@
-package org.udg.trackdev.spring.entity;
+package org.udg.trackdev.spring.entity.taskchanges;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.udg.trackdev.spring.entity.BaseEntityLong;
+import org.udg.trackdev.spring.entity.Task;
+import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.Global;
 
@@ -14,7 +17,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "task_changes")
-public class TaskChange extends BaseEntityLong {
+public abstract class TaskChange extends BaseEntityLong {
 
     public TaskChange() { }
 

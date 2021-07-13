@@ -1,7 +1,7 @@
 package org.udg.trackdev.spring.service;
 
 import org.springframework.stereotype.Service;
-import org.udg.trackdev.spring.entity.TaskChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.repository.TaskChangeRepository;
 
 import java.util.List;

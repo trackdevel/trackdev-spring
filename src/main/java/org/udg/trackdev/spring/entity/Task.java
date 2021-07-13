@@ -40,6 +40,9 @@ public class Task extends BaseEntityLong {
 
     private Date createdAt;
 
+    @ManyToOne
+    private User assignee;
+
     @OneToMany(mappedBy = "task")
     private Collection<TaskLog> taskLogs;
 
@@ -78,6 +81,13 @@ public class Task extends BaseEntityLong {
 
     public void setBacklog(Backlog backlog) {
         this.backlog = backlog;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public User getAssignee() { return assignee; }
+
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
     }
 
     public Collection<TaskLog> getTaskLogs() {
