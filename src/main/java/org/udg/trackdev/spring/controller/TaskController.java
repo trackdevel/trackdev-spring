@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
+import org.udg.trackdev.spring.entity.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.BacklogService;
+import org.udg.trackdev.spring.service.TaskChangeService;
 import org.udg.trackdev.spring.service.TaskService;
 
 import javax.validation.Valid;
@@ -20,6 +22,9 @@ import java.util.List;
 public class TaskController extends CrudController<Task, TaskService> {
     @Autowired
     BacklogService backlogService;
+
+    @Autowired
+    TaskChangeService taskChangeService;
 
     @Autowired
     AccessChecker accessChecker;
@@ -51,6 +56,17 @@ public class TaskController extends CrudController<Task, TaskService> {
         String userId = super.getUserId(principal);
         Task modifiedTask = service.editTask(id, taskRequest.name, userId);
         return modifiedTask;
+    }
+
+    @GetMapping(path = "/{id}/history")
+    @JsonView(EntityLevelViews.Basic.class)
+    public List<TaskChange> getHistory(Principal principal,
+                                       @PathVariable(name = "id") Long id) {
+        String userId = super.getUserId(principal);
+        Task task = service.get(id);
+        accessChecker.checkCanViewBacklog(task.getBacklog(), userId);
+
+        return taskChangeService.findTaskChangesByTask(id);
     }
 
     private String buildRefinedSearch(Long backlogId, String search, String userId) {

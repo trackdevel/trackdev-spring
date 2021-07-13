@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
+import org.udg.trackdev.spring.entity.TaskNameChange;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
@@ -16,6 +17,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    TaskChangeService taskChangeService;
 
     @Autowired
     AccessChecker accessChecker;
@@ -31,6 +35,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         return task;
     }
 
+    @Transactional
     public Task editTask(Long id, String name, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
@@ -39,6 +44,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             task.setName(name);
         }
         repo.save(task);
+        TaskNameChange change = new TaskNameChange(user, task, name);
+        taskChangeService.store(change);
+
         return task;
     }
 }
