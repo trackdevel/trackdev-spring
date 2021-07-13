@@ -2,6 +2,7 @@ package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
@@ -61,12 +62,15 @@ public class TaskController extends CrudController<Task, TaskService> {
     @GetMapping(path = "/{id}/history")
     @JsonView(EntityLevelViews.Basic.class)
     public List<TaskChange> getHistory(Principal principal,
-                                       @PathVariable(name = "id") Long id) {
+                                       @PathVariable(name = "id") Long id,
+                                       @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         Task task = service.get(id);
         accessChecker.checkCanViewBacklog(task.getBacklog(), userId);
 
-        return taskChangeService.findTaskChangesByTask(id);
+        String refinedSearch = super.scopedSearch("taskId:"+ id, search);
+        Specification<TaskChange> specification = super.buildSpecificationFromSearch(refinedSearch);
+        return taskChangeService.search(specification);
     }
 
     private String buildRefinedSearch(Long backlogId, String search, String userId) {
