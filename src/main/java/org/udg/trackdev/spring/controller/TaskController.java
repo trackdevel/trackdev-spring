@@ -10,6 +10,8 @@ import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.BacklogService;
 import org.udg.trackdev.spring.service.TaskService;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 
@@ -41,6 +43,16 @@ public class TaskController extends CrudController<Task, TaskService> {
         return task;
     }
 
+    @PatchMapping(path = "/{id}")
+    @JsonView(EntityLevelViews.Basic.class)
+    public Task editTask(Principal principal,
+                           @PathVariable(name = "id") Long id,
+                           @Valid @RequestBody EditTask taskRequest) {
+        String userId = super.getUserId(principal);
+        Task modifiedTask = service.editTask(id, taskRequest.name, userId);
+        return modifiedTask;
+    }
+
     private String buildRefinedSearch(Long backlogId, String search, String userId) {
         String refinedSearch = search;
         if(backlogId != null) {
@@ -51,5 +63,10 @@ public class TaskController extends CrudController<Task, TaskService> {
             accessChecker.checkCanViewAllTasks(userId);
         }
         return refinedSearch;
+    }
+
+    static class EditTask {
+        @Size(max = Task.NAME_LENGTH)
+        public String name;
     }
 }
