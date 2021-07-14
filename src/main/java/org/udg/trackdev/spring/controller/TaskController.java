@@ -55,7 +55,9 @@ public class TaskController extends CrudController<Task, TaskService> {
                            @PathVariable(name = "id") Long id,
                            @Valid @RequestBody EditTask taskRequest) {
         String userId = super.getUserId(principal);
-        Task modifiedTask = service.editTask(id, taskRequest.name, taskRequest.assignee, userId);
+        Task modifiedTask = service.editTask(id,
+                taskRequest.name, taskRequest.assignee, taskRequest.estimationPoints,
+                userId);
         return modifiedTask;
     }
 
@@ -90,5 +92,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         public String name;
 
         public String assignee;
+
+        public Integer estimationPoints;
     }
 }

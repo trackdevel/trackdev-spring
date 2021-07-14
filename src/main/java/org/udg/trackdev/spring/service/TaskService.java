@@ -7,6 +7,7 @@ import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.taskchanges.TaskAssigneeChange;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskEstimationPointsChange;
 import org.udg.trackdev.spring.entity.taskchanges.TaskNameChange;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
@@ -40,10 +41,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task editTask(Long id, String name, String assignee, String userId) {
+    public Task editTask(Long id, String name, String assignee, Integer estimationPoints, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
         accessChecker.checkCanManageBacklog(task.getBacklog(), user);
+
         List<TaskChange> changes = new ArrayList<>();
         if(name != null) {
             task.setName(name);
@@ -56,6 +58,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
             task.setAssignee(assigneeUser);
             changes.add(new TaskAssigneeChange(user, task, assigneeUser));
+        }
+        if(estimationPoints != null) {
+            task.setEstimationPoints(estimationPoints);
+            changes.add(new TaskEstimationPointsChange(user, task, estimationPoints));
         }
         repo.save(task);
         for(TaskChange change: changes) {

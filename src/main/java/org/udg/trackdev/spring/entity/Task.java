@@ -43,6 +43,8 @@ public class Task extends BaseEntityLong {
     @ManyToOne
     private User assignee;
 
+    private Integer estimationPoints;
+
     @OneToMany(mappedBy = "task")
     private Collection<TaskLog> taskLogs;
 
@@ -88,6 +90,13 @@ public class Task extends BaseEntityLong {
 
     public void setAssignee(User assignee) {
         this.assignee = assignee;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public Integer getEstimationPoints() { return estimationPoints; }
+
+    public void setEstimationPoints(Integer estimation) {
+        this.estimationPoints = estimation;
     }
 
     public Collection<TaskLog> getTaskLogs() {
