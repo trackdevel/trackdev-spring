@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.udg.trackdev.spring.entity.BaseEntityLong;
+import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -43,6 +44,9 @@ public abstract class TaskChange extends BaseEntityLong {
     // Used for specifications
     @Column(name = "type", insertable = false, updatable = false)
     private String type;
+
+    @ManyToOne
+    private Sprint sprint;
 
     @JsonView(EntityLevelViews.Basic.class)
     public User getAuthor() { return this.author; }

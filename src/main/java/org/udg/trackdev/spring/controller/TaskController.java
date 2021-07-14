@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
+import org.udg.trackdev.spring.entity.TaskStatus;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
@@ -55,9 +56,7 @@ public class TaskController extends CrudController<Task, TaskService> {
                            @PathVariable(name = "id") Long id,
                            @Valid @RequestBody EditTask taskRequest) {
         String userId = super.getUserId(principal);
-        Task modifiedTask = service.editTask(id,
-                taskRequest.name, taskRequest.assignee, taskRequest.estimationPoints,
-                userId);
+        Task modifiedTask = service.editTask(id, taskRequest, userId);
         return modifiedTask;
     }
 
@@ -87,12 +86,14 @@ public class TaskController extends CrudController<Task, TaskService> {
         return refinedSearch;
     }
 
-    static class EditTask {
+    public static class EditTask {
         @Size(max = Task.NAME_LENGTH)
         public String name;
 
         public String assignee;
 
         public Integer estimationPoints;
+
+        public TaskStatus status;
     }
 }

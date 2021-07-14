@@ -3,12 +3,10 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.controller.TaskController;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
-import org.udg.trackdev.spring.entity.taskchanges.TaskAssigneeChange;
-import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
-import org.udg.trackdev.spring.entity.taskchanges.TaskEstimationPointsChange;
-import org.udg.trackdev.spring.entity.taskchanges.TaskNameChange;
+import org.udg.trackdev.spring.entity.taskchanges.*;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
 import java.util.ArrayList;
@@ -41,27 +39,31 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task editTask(Long id, String name, String assignee, Integer estimationPoints, String userId) {
+    public Task editTask(Long id, TaskController.EditTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
         accessChecker.checkCanManageBacklog(task.getBacklog(), user);
 
         List<TaskChange> changes = new ArrayList<>();
-        if(name != null) {
-            task.setName(name);
-            changes.add(new TaskNameChange(user, task, name));
+        if(editTask.name != null) {
+            task.setName(editTask.name);
+            changes.add(new TaskNameChange(user, task, editTask.name));
         }
-        if(assignee != null) {
-            User assigneeUser = userService.getByUsername(assignee);
+        if(editTask.assignee != null) {
+            User assigneeUser = userService.getByUsername(editTask.assignee);
             if(!task.getBacklog().getGroup().isMember(assigneeUser)) {
                 throw new ServiceException("Assignee is not in the list of possible assignees");
             }
             task.setAssignee(assigneeUser);
             changes.add(new TaskAssigneeChange(user, task, assigneeUser));
         }
-        if(estimationPoints != null) {
-            task.setEstimationPoints(estimationPoints);
-            changes.add(new TaskEstimationPointsChange(user, task, estimationPoints));
+        if(editTask.estimationPoints != null) {
+            task.setEstimationPoints(editTask.estimationPoints);
+            changes.add(new TaskEstimationPointsChange(user, task, editTask.estimationPoints));
+        }
+        if(editTask.status != null) {
+            task.setStatus(editTask.status);
+            changes.add(new TaskStatusChange(user, task, editTask.status));
         }
         repo.save(task);
         for(TaskChange change: changes) {
