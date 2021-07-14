@@ -8,7 +8,7 @@ import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
-import org.udg.trackdev.spring.model.EditTask;
+import org.udg.trackdev.spring.model.MergePatchTask;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.BacklogService;
 import org.udg.trackdev.spring.service.TaskChangeService;
@@ -53,7 +53,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @JsonView(EntityLevelViews.Basic.class)
     public Task editTask(Principal principal,
                            @PathVariable(name = "id") Long id,
-                           @Valid @RequestBody EditTask taskRequest) {
+                           @Valid @RequestBody MergePatchTask taskRequest) {
         String userId = super.getUserId(principal);
         Task modifiedTask = service.editTask(id, taskRequest, userId);
         return modifiedTask;

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.*;
-import org.udg.trackdev.spring.model.EditTask;
+import org.udg.trackdev.spring.model.MergePatchTask;
 
 import java.util.*;
 
@@ -87,22 +87,22 @@ public class DemoDataSeeder {
             Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
 
             if(random.nextBoolean()) {
-                EditTask editTask = buildEditTask(users, random);
+                MergePatchTask editTask = buildEditTask(users, random);
                 taskService.editTask(task.getId(), editTask, reporter.getId());
             }
         }
         backlog = backlogService.create(group.getId());
     }
 
-    private EditTask buildEditTask(List<User> users, Random random) {
+    private MergePatchTask buildEditTask(List<User> users, Random random) {
         Integer points = possibleEstimationPoints.get(random.nextInt(possibleEstimationPoints.size()));
         User assignee = users.get(random.nextInt(users.size()));
         TaskStatus status = getRandomStatus(random);
 
-        EditTask editTask = new EditTask();
-        editTask.assignee = assignee.getUsername();
-        editTask.estimationPoints = points;
-        editTask.status = status;
+        MergePatchTask editTask = new MergePatchTask();
+        editTask.assignee = Optional.of(assignee.getUsername());
+        editTask.estimationPoints = Optional.of(points);
+        editTask.status = Optional.of(status);
         return editTask;
     }
 
