@@ -3,10 +3,10 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.udg.trackdev.spring.controller.TaskController;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.taskchanges.*;
+import org.udg.trackdev.spring.model.EditTask;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task editTask(Long id, TaskController.EditTask editTask, String userId) {
+    public Task editTask(Long id, EditTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
         accessChecker.checkCanManageBacklog(task.getBacklog(), user);

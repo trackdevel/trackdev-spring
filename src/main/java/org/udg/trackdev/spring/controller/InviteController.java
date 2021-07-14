@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
-import org.udg.trackdev.spring.entity.IdObjectLong;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -22,7 +22,6 @@ import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @RequestMapping()

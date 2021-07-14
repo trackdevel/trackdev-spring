@@ -1,4 +1,4 @@
-package org.udg.trackdev.spring.entity;
+package org.udg.trackdev.spring.model;
 
 import lombok.Data;
 import lombok.NonNull;

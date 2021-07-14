@@ -6,16 +6,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.TaskStatus;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.model.EditTask;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.BacklogService;
 import org.udg.trackdev.spring.service.TaskChangeService;
 import org.udg.trackdev.spring.service.TaskService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 
@@ -84,16 +83,5 @@ public class TaskController extends CrudController<Task, TaskService> {
             accessChecker.checkCanViewAllTasks(userId);
         }
         return refinedSearch;
-    }
-
-    public static class EditTask {
-        @Size(max = Task.NAME_LENGTH)
-        public String name;
-
-        public String assignee;
-
-        public Integer estimationPoints;
-
-        public TaskStatus status;
     }
 }

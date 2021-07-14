@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.CourseYear;
-import org.udg.trackdev.spring.entity.IdObjectLong;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.CourseService;
