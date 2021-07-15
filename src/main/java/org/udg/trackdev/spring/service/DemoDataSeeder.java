@@ -97,30 +97,30 @@ public class DemoDataSeeder {
     private MergePatchTask buildEditTask(List<User> users, Random random) {
         Integer points = possibleEstimationPoints.get(random.nextInt(possibleEstimationPoints.size()));
         User assignee = users.get(random.nextInt(users.size()));
-        TaskStatus status = getRandomStatus(random);
 
         MergePatchTask editTask = new MergePatchTask();
         editTask.assignee = Optional.of(assignee.getUsername());
         editTask.estimationPoints = Optional.of(points);
-        editTask.status = Optional.of(status);
+        if(random.nextBoolean()) {
+            TaskStatus status = getRandomStatus(random);
+            editTask.status = Optional.of(status);
+        }
         return editTask;
     }
 
     private TaskStatus getRandomStatus(Random random) {
         TaskStatus status = TaskStatus.CREATED;
-        if(random.nextBoolean()) {
-            int index = random.nextInt(3);
-            switch (index) {
-                case 0:
-                    status = TaskStatus.TODO;
-                    break;
-                case 1:
-                    status = TaskStatus.INPROGRESS;
-                    break;
-                case 2:
-                    status = TaskStatus.DONE;
-                    break;
-            }
+        int index = random.nextInt(3);
+        switch (index) {
+            case 0:
+                status = TaskStatus.TODO;
+                break;
+            case 1:
+                status = TaskStatus.INPROGRESS;
+                break;
+            case 2:
+                status = TaskStatus.DONE;
+                break;
         }
         return status;
     }
