@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
-import org.udg.trackdev.spring.entity.IdObjectLong;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -76,12 +76,14 @@ public class InviteController extends BaseController {
     private Specification<Invite> buildSpecification(String type, Long yearId) {
         Specification<Invite> spec = InviteSpecs.isPending(); // Only show open invites
         if(type != null) {
+            type = type.toLowerCase();
             switch (type) {
                 case "role":
                     spec = spec.and(InviteSpecs.notForCourseYear());
                     break;
-                case "courseYear":
+                case "courseyear":
                     spec = spec.and(InviteSpecs.forCourseYear());
+                    break;
                 default:
                     throw new ControllerException("Unknown filter value");
             }

@@ -25,7 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.web.util.WebUtils;
 import org.udg.trackdev.spring.service.Global;
-import org.udg.trackdev.spring.entity.ErrorEntity;
+import org.udg.trackdev.spring.model.ErrorEntity;
 
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 

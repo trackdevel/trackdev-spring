@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.CourseYearService;
 import org.udg.trackdev.spring.service.GroupService;
@@ -58,8 +59,8 @@ public class CourseYearController extends BaseController {
 
     @PostMapping(path = "/{yearId}/invites")
     public IdObjectLong createInvite(Principal principal,
-                                    @PathVariable("yearId") Long yearId,
-                                    @Valid @RequestBody NewCourseInvite inviteRequest) {
+                                     @PathVariable("yearId") Long yearId,
+                                     @Valid @RequestBody NewCourseInvite inviteRequest) {
         String userId = super.getUserId(principal);
         Invite createdInvite = courseYearService.createInvite(inviteRequest.email, yearId, userId);
         return new IdObjectLong(createdInvite.getId());

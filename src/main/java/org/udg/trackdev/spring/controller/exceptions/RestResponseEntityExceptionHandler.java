@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.util.WebUtils;
-import org.udg.trackdev.spring.entity.ErrorEntity;
+import org.udg.trackdev.spring.model.ErrorEntity;
 import org.udg.trackdev.spring.service.Global;
 
 import java.util.Date;

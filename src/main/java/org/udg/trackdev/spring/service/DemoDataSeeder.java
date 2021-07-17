@@ -6,16 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.*;
+import org.udg.trackdev.spring.model.MergePatchTask;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Component
 public class DemoDataSeeder {
 
     private final Logger logger = LoggerFactory.getLogger(Global.class);
+    private final List<Integer> possibleEstimationPoints = Arrays.asList(1, 2, 3, 4, 5, 8, 13, 20, 40, 100);
 
     @Autowired
     Global global;
@@ -82,9 +81,48 @@ public class DemoDataSeeder {
         Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
         Sprint sprint = sprintService.create(groupName, iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
-        for(int i = 0; i <= 8; i++) {
-            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum", users.get(i % users.size()).getId());
+        Random random = new Random();
+        for(int i = 0; i <= 15; i++) {
+            User reporter = users.get(random.nextInt(users.size()));
+            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
+
+            if(random.nextBoolean()) {
+                MergePatchTask editTask = buildEditTask(users, random);
+                taskService.editTask(task.getId(), editTask, reporter.getId());
+            }
         }
+        backlog = backlogService.create(group.getId());
+    }
+
+    private MergePatchTask buildEditTask(List<User> users, Random random) {
+        Integer points = possibleEstimationPoints.get(random.nextInt(possibleEstimationPoints.size()));
+        User assignee = users.get(random.nextInt(users.size()));
+
+        MergePatchTask editTask = new MergePatchTask();
+        editTask.assignee = Optional.of(assignee.getUsername());
+        editTask.estimationPoints = Optional.of(points);
+        if(random.nextBoolean()) {
+            TaskStatus status = getRandomStatus(random);
+            editTask.status = Optional.of(status);
+        }
+        return editTask;
+    }
+
+    private TaskStatus getRandomStatus(Random random) {
+        TaskStatus status = TaskStatus.CREATED;
+        int index = random.nextInt(3);
+        switch (index) {
+            case 0:
+                status = TaskStatus.TODO;
+                break;
+            case 1:
+                status = TaskStatus.INPROGRESS;
+                break;
+            case 2:
+                status = TaskStatus.DONE;
+                break;
+        }
+        return status;
     }
 
     private List<User> createDemoStudents() {

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
-import org.udg.trackdev.spring.entity.IdObjectLong;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
