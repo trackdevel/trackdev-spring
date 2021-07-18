@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
+import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -78,6 +79,8 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public User getReporter() { return reporter; }
 
+    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class } )
+    @JsonSerialize(using = JsonHierarchyViewSerializer.class)
     public Backlog getBacklog() {
         return backlog;
     }
