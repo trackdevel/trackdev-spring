@@ -11,11 +11,12 @@ import org.udg.trackdev.spring.model.MergePatchTask;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
 public class TaskService extends BaseServiceLong<Task, TaskRepository> {
-    
+
     @Autowired
     BacklogService backlogService;
 
@@ -35,7 +36,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         accessChecker.checkCanManageBacklog(backlog, user);
         Task task = new Task(name, user);
         task.setBacklog(backlog);
-        List<Task> lastRankedTasks = repo().findLastRankedTaskOfBacklog(backlogId, PageRequest.of(0,1));
+        List<Task> lastRankedTasks = repo().findLastRankedOfBacklog(backlogId, PageRequest.of(0,1));
         Integer rank = 1;
         if(lastRankedTasks.size() > 0) {
             rank = lastRankedTasks.get(0).getRank() + 1;
@@ -82,10 +83,42 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             task.setStatus(status);
             changes.add(new TaskStatusChange(user, task, status));
         }
+        if(editTask.rank != null) {
+            Integer newRank = editTask.rank.orElseThrow(
+                    () -> new ServiceException("Not possible to set rank to null"));
+            Long backlogId = task.getBacklog().getId();
+            Integer currentRank = task.getRank();
+            if(newRank != currentRank) {
+                Collection<TaskChange> otherChanges = updateOtherTasksRank(backlogId, user, newRank, currentRank);
+                task.setRank(newRank);
+                changes.add(new TaskRankChange(user, task, newRank));
+                changes.addAll(otherChanges);
+            }
+        }
         repo.save(task);
         for(TaskChange change: changes) {
             taskChangeService.store(change);
         }
         return task;
+    }
+
+    private Collection<TaskChange> updateOtherTasksRank(Long backlogId, User user, Integer newRank, Integer currentRank) {
+        List<TaskChange> changes = new ArrayList<>();
+        List<Task> tasks = new ArrayList<>();
+        int increase = 0;
+        if(newRank > currentRank) {
+            tasks = repo().findAllBetweenRanksOfBacklog(backlogId, currentRank +1, newRank);
+            increase = -1;
+        } else if (newRank < currentRank){
+            tasks = repo().findAllBetweenRanksOfBacklog(backlogId, newRank, currentRank -1);
+            increase = 1;
+        }
+        for(Task otherTask : tasks) {
+            Integer otherNewRank = otherTask.getRank() + increase;
+            otherTask.setRank(otherNewRank);
+            changes.add(new TaskRankChange(user, otherTask, otherNewRank));
+        }
+
+        return changes;
     }
 }

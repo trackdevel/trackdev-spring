@@ -26,4 +26,6 @@ public class MergePatchTask {
     public Optional<Integer> estimationPoints;
 
     public Optional<TaskStatus> status;
+
+    public Optional<Integer> rank;
 }

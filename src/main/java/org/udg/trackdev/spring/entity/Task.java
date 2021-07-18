@@ -11,8 +11,7 @@ import java.util.Collection;
 import java.util.Date;
 
 @Entity
-@Table(name = "tasks",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"backlogId", "rank"}))
+@Table(name = "tasks")
 public class Task extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 100;
