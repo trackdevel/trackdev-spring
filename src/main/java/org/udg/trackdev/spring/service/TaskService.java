@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Service
 public class TaskService extends BaseServiceLong<Task, TaskRepository> {
-
+    
     @Autowired
     BacklogService backlogService;
 
@@ -34,6 +35,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         accessChecker.checkCanManageBacklog(backlog, user);
         Task task = new Task(name, user);
         task.setBacklog(backlog);
+        List<Task> lastRankedTasks = repo().findLastRankedTaskOfBacklog(backlogId, PageRequest.of(0,1));
+        Integer rank = 1;
+        if(lastRankedTasks.size() > 0) {
+            rank = lastRankedTasks.get(0).getRank() + 1;
+        }
+        task.setRank(rank);
         this.repo.save(task);
         return task;
     }
