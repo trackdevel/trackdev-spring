@@ -14,7 +14,7 @@ import java.util.*;
 public class DemoDataSeeder {
 
     private final Logger logger = LoggerFactory.getLogger(Global.class);
-    private final List<Integer> possibleEstimationPoints = Arrays.asList(1, 2, 3, 4, 5, 8, 13, 20, 40, 100);
+    private final List<Integer> possibleEstimationPoints = Arrays.asList(1, 2, 3, 5, 8, 13, 20, 40, 100);
 
     @Autowired
     Global global;

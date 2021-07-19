@@ -1,5 +1,7 @@
 package org.udg.trackdev.spring.controller.exceptions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -22,6 +24,8 @@ import java.util.Date;
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private final Logger logger = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
     public RestResponseEntityExceptionHandler() {
         super();
@@ -53,6 +57,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
                             "Error parsing search parameter"),
                     new HttpHeaders(), HttpStatus.NOT_FOUND, request);
         } else
+            logger.warn("Unknown error occurred", ex);
             return handleExceptionInternal(ex,
                     buildErrorEntity("Unknown error", HttpStatus.INTERNAL_SERVER_ERROR, ex),
                     new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
@@ -62,6 +67,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
 
+        logger.warn("Unknown error occurred", ex);
         if (HttpStatus.INTERNAL_SERVER_ERROR.equals(status)) {
             request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
         }
