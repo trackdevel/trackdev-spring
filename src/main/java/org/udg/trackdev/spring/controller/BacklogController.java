@@ -2,6 +2,7 @@ package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Backlog;
@@ -38,7 +39,7 @@ public class BacklogController extends CrudController<Backlog, BacklogService> {
         String refinedSearch = super.scopedSearch("backlogId:"+id, search);
 
         Specification<Task> specification = super.buildSpecificationFromSearch(refinedSearch);
-        return taskService.search(specification);
+        return taskService.search(specification, Sort.by("rank"));
     }
 
     @PostMapping(path = "/{id}/tasks")
