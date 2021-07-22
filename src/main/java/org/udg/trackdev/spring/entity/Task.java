@@ -50,6 +50,9 @@ public class Task extends BaseEntityLong {
     @Column(name = "`status`")
     private TaskStatus status;
 
+    @Column(name = "`rank`")
+    private Integer rank;
+
     @OneToMany(mappedBy = "parentTask")
     private Collection<Task> childTasks;
 
@@ -108,6 +111,13 @@ public class Task extends BaseEntityLong {
 
     public void setEstimationPoints(Integer estimation) {
         this.estimationPoints = estimation;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public Integer getRank() { return this.rank; }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 
     public Collection<Task> getChildTasks() {
