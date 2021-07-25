@@ -63,7 +63,11 @@ public class Task extends BaseEntityLong {
     private Collection<Task> childTasks;
 
     @ManyToOne
+    @JoinColumn(name = "parentTaskId")
     private Task parentTask;
+
+    @Column(name = "parentTaskId", insertable = false, updatable = false)
+    private Long parentTaskId;
 
     @OneToMany(mappedBy = "task")
     private Collection<PullRequest> pullRequests;
