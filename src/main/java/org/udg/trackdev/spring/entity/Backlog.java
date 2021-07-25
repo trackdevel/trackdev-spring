@@ -19,6 +19,9 @@ public class Backlog extends BaseEntityLong {
     @OneToMany(mappedBy = "backlog", cascade = CascadeType.ALL)
     private Collection<Task> tasks = new ArrayList<>();
 
+    @OneToMany(mappedBy = "backlog", cascade = CascadeType.ALL)
+    private Collection<Sprint> sprints = new ArrayList<>();
+
     @JsonView(EntityLevelViews.Hierarchy.class)
     @JsonSerialize(using = JsonHierarchyViewSerializer.class)
     public Group getGroup() {
@@ -27,5 +30,13 @@ public class Backlog extends BaseEntityLong {
 
     public void setGroup(Group group) {
         this.group = group;
+    }
+
+    public Collection<Sprint> getSprints() {
+        return sprints;
+    }
+
+    public void addSprint(Sprint sprint) {
+        sprints.add(sprint);
     }
 }

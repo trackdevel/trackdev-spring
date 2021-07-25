@@ -32,9 +32,6 @@ public class DemoDataSeeder {
     private GroupService groupService;
 
     @Autowired
-    private IterationService iterationService;
-
-    @Autowired
     private SprintService sprintService;
 
     @Autowired
@@ -67,20 +64,23 @@ public class DemoDataSeeder {
         }
         inviteAndEnroll(courseYear, enrolledStudents, admin);
         // one course set up
-        Iteration iteration = iterationService.create("First iteration", courseYear.getId());
-        populateGroup(admin, courseYear, iteration, "Movie reviews", Arrays.asList(student1, student2));
-        populateGroup(admin, courseYear, iteration, "Calendar", enrolledStudents.subList(0,4));
+        populateGroup(admin, courseYear, "Movie reviews", Arrays.asList(student1, student2));
+        populateGroup(admin, courseYear, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
     }
 
-    private void populateGroup(User admin, CourseYear courseYear, Iteration iteration, String groupName, List<User> users) {
+    private void populateGroup(User admin, CourseYear courseYear, String groupName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
         }
         Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
-        Sprint sprint = sprintService.create(groupName, iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
+        Calendar start = Calendar.getInstance();
+        start.set(2021, Calendar.FEBRUARY, 1);
+        Calendar end = Calendar.getInstance();
+        end.set(2021, Calendar.FEBRUARY, 19);
+        Sprint sprint = sprintService.create(backlog.getId(), "First iteration", start.getTime(), end.getTime(), admin.getId());
         Random random = new Random();
         for(int i = 0; i <= 15; i++) {
             User reporter = users.get(random.nextInt(users.size()));

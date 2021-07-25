@@ -33,9 +33,6 @@ public class Group extends BaseEntityLong {
     @ManyToOne
     private CourseYear courseYear;
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
-    private Collection<Sprint> sprints = new ArrayList<>();
-
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Backlog> backlogs = new ArrayList<>();
 
