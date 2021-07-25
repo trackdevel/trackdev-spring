@@ -90,6 +90,11 @@ public class DemoDataSeeder {
                 MergePatchTask editTask = buildEditTask(users, random);
                 taskService.editTask(task.getId(), editTask, reporter.getId());
             }
+            if(i == 0) {
+                taskService.createSubTask(task.getId(), "Create endpoint GET /items", reporter.getId());
+                taskService.createSubTask(task.getId(), "Show list of items in UI", reporter.getId());
+                taskService.createSubTask(task.getId(), "Style items", reporter.getId());
+            }
         }
         backlog = backlogService.create(group.getId());
     }
