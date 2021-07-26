@@ -56,6 +56,18 @@ public class BacklogController extends CrudController<Backlog, BacklogService> {
         return new IdObjectLong(createdTask.getId());
     }
 
+    @GetMapping(path = "/{id}/sprints")
+    @JsonView(EntityLevelViews.Basic.class)
+    public List<Sprint> getSprints(Principal principal,
+                               @PathVariable("id") Long id) {
+        String userId = getUserId(principal);
+        Backlog backlog = service.get(id);
+        accessChecker.checkCanViewBacklog(backlog, userId);
+
+        Specification<Sprint> specification = super.buildSpecificationFromSearch("backlogId:"+id);
+        return sprintService.search(specification, Sort.by("startDate").descending());
+    }
+
     @PostMapping(path = "/{id}/sprints")
     public IdObjectLong createSprint(Principal principal,
                                    @PathVariable("id") Long id,

@@ -7,10 +7,7 @@ import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Collection;
 import java.util.Date;
 
@@ -28,7 +25,11 @@ public class Sprint extends BaseEntityLong {
     private String name;
 
     @ManyToOne
+    @JoinColumn(name = "backlogId")
     private Backlog backlog;
+
+    @Column(name = "backlogId", insertable = false, updatable = false)
+    private Long backlogId;
 
     @JsonSerialize(using = JsonDateSerializer.class)
     private Date startDate;
