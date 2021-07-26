@@ -9,6 +9,8 @@ public enum SearchOperation {
 
     public static final String ZERO_OR_MORE_REGEX = "*";
 
+    public static final String NO_VALUE = "NULL";
+
     public static final String OR_OPERATOR = "OR";
 
     public static final String AND_OPERATOR = "AND";

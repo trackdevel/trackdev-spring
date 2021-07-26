@@ -42,6 +42,9 @@ public class SpecSearchCriteria {
                 }
             }
         }
+        if(value.equals(SearchOperation.NO_VALUE)) {
+            value = null;
+        }
         this.key = key;
         this.operation = op;
         this.value = value;
