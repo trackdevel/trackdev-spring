@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -131,6 +132,7 @@ public class Task extends BaseEntityLong {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
+    @JsonIdentityReference(alwaysAsId = true)
     public Collection<Task> getChildTasks() {
         return childTasks;
     }
