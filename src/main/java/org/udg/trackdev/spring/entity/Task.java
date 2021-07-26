@@ -1,6 +1,9 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -13,6 +16,10 @@ import java.util.Date;
 
 @Entity
 @Table(name = "tasks")
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "id"
+)
 public class Task extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 100;
@@ -57,7 +64,11 @@ public class Task extends BaseEntityLong {
     private Collection<Task> childTasks;
 
     @ManyToOne
+    @JoinColumn(name = "parentTaskId")
     private Task parentTask;
+
+    @Column(name = "parentTaskId", insertable = false, updatable = false)
+    private Long parentTaskId;
 
     @OneToMany(mappedBy = "task")
     private Collection<PullRequest> pullRequests;
@@ -120,10 +131,15 @@ public class Task extends BaseEntityLong {
         this.rank = rank;
     }
 
+    @JsonView(EntityLevelViews.Basic.class)
+    @JsonIdentityReference(alwaysAsId = true)
     public Collection<Task> getChildTasks() {
         return childTasks;
     }
 
+    public void addChildTask(Task task) { this.childTasks.add(task); }
+
+    @JsonView(EntityLevelViews.Basic.class)
     public Task getParentTask() {
         return parentTask;
     }

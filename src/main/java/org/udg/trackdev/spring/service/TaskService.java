@@ -47,6 +47,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
+    public Task createSubTask(Long taskId, String name, String userId) {
+        Task parentTask = this.get(taskId);
+        User user = userService.get(userId);
+        accessChecker.checkCanManageBacklog(parentTask.getBacklog(), user);
+        Task subtask = new Task(name, user);
+        subtask.setBacklog(parentTask.getBacklog());
+        subtask.setParentTask(parentTask);
+        parentTask.addChildTask(subtask);
+        this.repo.save(subtask);
+
+        return subtask;
+    }
+
+    @Transactional
     public Task editTask(Long id, MergePatchTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);

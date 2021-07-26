@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.model.MergePatchTask;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.BacklogService;
@@ -15,6 +16,8 @@ import org.udg.trackdev.spring.service.TaskChangeService;
 import org.udg.trackdev.spring.service.TaskService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 
@@ -73,6 +76,16 @@ public class TaskController extends CrudController<Task, TaskService> {
         return taskChangeService.search(specification);
     }
 
+    @PostMapping(path = "/{id}/subtasks")
+    public IdObjectLong createSubtask(Principal principal,
+                                      @PathVariable(name = "id") Long id,
+                                      @Valid @RequestBody NewSubTask request) {
+        String userId = super.getUserId(principal);
+        Task subtask = service.createSubTask(id, request.name, userId);
+
+        return new IdObjectLong(subtask.getId());
+    }
+
     private String buildRefinedSearch(Long backlogId, String search, String userId) {
         String refinedSearch = search;
         if(backlogId != null) {
@@ -83,5 +96,11 @@ public class TaskController extends CrudController<Task, TaskService> {
             accessChecker.checkCanViewAllTasks(userId);
         }
         return refinedSearch;
+    }
+
+    static class NewSubTask {
+        @NotBlank
+        @Size(max = Task.NAME_LENGTH)
+        public String name;
     }
 }
