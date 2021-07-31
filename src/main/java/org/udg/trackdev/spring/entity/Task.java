@@ -74,7 +74,11 @@ public class Task extends BaseEntityLong {
     private Collection<PullRequest> pullRequests;
 
     @ManyToOne
+    @JoinColumn(name = "activeSprintId")
     private Sprint activeSprint;
+
+    @Column(name = "activeSprintId", insertable = false, updatable = false)
+    private Long activeSprintId;
 
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)
