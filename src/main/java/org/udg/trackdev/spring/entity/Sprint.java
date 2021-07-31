@@ -1,7 +1,9 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 
 import javax.persistence.Entity;
@@ -37,6 +39,7 @@ public class Sprint extends BaseEntityLong {
     private Collection<Task> activeTasks;
 
     @NonNull
+    @JsonView(EntityLevelViews.Basic.class)
     public String getName() {
         return name;
     }
@@ -53,6 +56,7 @@ public class Sprint extends BaseEntityLong {
         this.backlog = backlog;
     }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public Date getStartDate() {
         return startDate;
     }
@@ -61,6 +65,7 @@ public class Sprint extends BaseEntityLong {
         this.startDate = startDate;
     }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public Date getEndDate() {
         return endDate;
     }
@@ -68,7 +73,6 @@ public class Sprint extends BaseEntityLong {
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
-
 
     public Collection<Task> getActiveTasks() {
         return activeTasks;
