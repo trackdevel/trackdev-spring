@@ -43,6 +43,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             return handleExceptionInternal(ex,
                     buildErrorEntity("Controller error", HttpStatus.BAD_REQUEST, ex),
                     new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        } else if (ex instanceof EntityException) {
+            return handleExceptionInternal(ex,
+                    buildErrorEntity("Entity error", HttpStatus.BAD_REQUEST, ex),
+                    new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
         } else if (ex instanceof java.lang.SecurityException) {
             return handleExceptionInternal(ex,
                     buildErrorEntity("Security error", HttpStatus.FORBIDDEN, ex),

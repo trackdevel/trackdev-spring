@@ -3,6 +3,7 @@ package org.udg.trackdev.spring.entity;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
+import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 
@@ -78,4 +79,14 @@ public class Sprint extends BaseEntityLong {
         return activeTasks;
     }
 
+    public void addTask(Task task) {
+        if(task.getBacklog() != this.backlog) {
+            throw new EntityException("Cannot add task to sprint as they belong to different backlogs");
+        }
+        this.activeTasks.add(task);
+    }
+
+    public void removeTask(Task task) {
+        this.activeTasks.remove(task);
+    }
 }

@@ -28,4 +28,6 @@ public class MergePatchTask {
     public Optional<TaskStatus> status;
 
     public Optional<Integer> rank;
+
+    public Optional<Long> activeSprint;
 }

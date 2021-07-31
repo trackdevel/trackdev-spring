@@ -27,6 +27,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     TaskChangeService taskChangeService;
 
     @Autowired
+    SprintService sprintService;
+
+    @Autowired
     AccessChecker accessChecker;
 
     @Transactional
@@ -107,6 +110,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 task.setRank(newRank);
                 changes.add(new TaskRankChange(user, task, newRank));
                 changes.addAll(otherChanges);
+            }
+        }
+        if(editTask.activeSprint != null) {
+            if(editTask.rank == null || !editTask.rank.isPresent()) {
+                throw new ServiceException("Is not allowed to change sprint without specifying rank");
+            }
+            if(editTask.activeSprint.isPresent()) {
+                Long newSprintId = editTask.activeSprint.get();
+                Sprint sprint = sprintService.get(newSprintId);
+                sprint.addTask(task);
+                task.setActiveSprint(sprint);
+            } else {
+                task.getActiveSprint().removeTask(task);
+                task.setActiveSprint(null);
             }
         }
         repo.save(task);
