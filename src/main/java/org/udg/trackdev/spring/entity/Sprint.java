@@ -19,6 +19,7 @@ public class Sprint extends BaseEntityLong {
 
     public Sprint(String name) {
         this.name = name;
+        this.status = SprintStatus.DRAFT;
     }
 
     @NonNull
@@ -36,6 +37,9 @@ public class Sprint extends BaseEntityLong {
 
     @JsonSerialize(using = JsonDateSerializer.class)
     private Date endDate;
+
+    @Column(name = "`status`")
+    private SprintStatus status;
 
     @OneToMany(mappedBy = "activeSprint")
     private Collection<Task> activeTasks;
@@ -76,6 +80,16 @@ public class Sprint extends BaseEntityLong {
         this.endDate = endDate;
     }
 
+    @JsonView(EntityLevelViews.Basic.class)
+    public SprintStatus getStatus() { return this.status; }
+
+    public void setStatus(SprintStatus status) {
+        if(status == SprintStatus.CLOSED && !areAllTasksClosed()) {
+            throw new EntityException("Cannot close sprint with open tasks");
+        }
+        this.status = status;
+    }
+
     public Collection<Task> getActiveTasks() {
         return activeTasks;
     }
@@ -89,5 +103,11 @@ public class Sprint extends BaseEntityLong {
 
     public void removeTask(Task task) {
         this.activeTasks.remove(task);
+    }
+
+    private boolean areAllTasksClosed() {
+        boolean allClosed = this.activeTasks.stream().allMatch(
+                t -> t.getStatus() == TaskStatus.DONE || t.getStatus() == TaskStatus.DELETED);
+        return allClosed;
     }
 }

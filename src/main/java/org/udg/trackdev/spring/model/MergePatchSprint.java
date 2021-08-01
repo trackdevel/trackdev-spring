@@ -1,5 +1,7 @@
 package org.udg.trackdev.spring.model;
 
+import org.udg.trackdev.spring.entity.SprintStatus;
+
 import java.util.Calendar;
 import java.util.Optional;
 
@@ -13,4 +15,6 @@ public class MergePatchSprint {
     public Optional<Calendar> startDate;
 
     public Optional<Calendar> endDate;
+
+    public Optional<SprintStatus> status;
 }

@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Sprint;
+import org.udg.trackdev.spring.entity.SprintStatus;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.repository.SprintRepository;
@@ -59,6 +60,11 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             Calendar endDate = editSprint.endDate.orElseThrow(
                     () -> new ServiceException("Not possible to set endDate to null"));
             sprint.setEndDate(endDate.getTime());
+        }
+        if(editSprint.status != null) {
+            SprintStatus status = editSprint.status.orElseThrow(
+                    () -> new ServiceException("Not possible to set status to null"));
+            sprint.setStatus(status);
         }
         repo().save(sprint);
         return sprint;
