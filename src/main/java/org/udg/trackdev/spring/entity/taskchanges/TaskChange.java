@@ -45,9 +45,6 @@ public abstract class TaskChange extends BaseEntityLong {
     @Column(name = "type", insertable = false, updatable = false)
     private String type;
 
-    @ManyToOne
-    private Sprint sprint;
-
     @JsonView(EntityLevelViews.Basic.class)
     public User getAuthor() { return this.author; }
 

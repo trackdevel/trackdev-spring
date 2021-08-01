@@ -116,15 +116,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if(editTask.rank == null || !editTask.rank.isPresent()) {
                 throw new ServiceException("Is not allowed to change sprint without specifying rank");
             }
+            Sprint newSprint = null;
             if(editTask.activeSprint.isPresent()) {
                 Long newSprintId = editTask.activeSprint.get();
-                Sprint sprint = sprintService.get(newSprintId);
-                sprint.addTask(task);
-                task.setActiveSprint(sprint);
+                newSprint = sprintService.get(newSprintId);
+                newSprint.addTask(task);
+                task.setActiveSprint(newSprint);
             } else {
                 task.getActiveSprint().removeTask(task);
                 task.setActiveSprint(null);
             }
+            changes.add(new TaskActiveSprintChange(user, task, newSprint));
         }
         repo.save(task);
         for(TaskChange change: changes) {
