@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 public class Global {
     public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
+    public static final String SIMPLE_LOCALDATE_FORMAT = "yyyy-MM-dd";
+
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
 
     private MinioClient minioClient;

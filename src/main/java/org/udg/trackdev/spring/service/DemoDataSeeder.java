@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.model.MergePatchTask;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Component
@@ -76,11 +77,9 @@ public class DemoDataSeeder {
         }
         Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
         Backlog backlog = backlogService.create(group.getId());
-        Calendar start = Calendar.getInstance();
-        start.set(2021, Calendar.FEBRUARY, 1);
-        Calendar end = Calendar.getInstance();
-        end.set(2021, Calendar.FEBRUARY, 19);
-        Sprint sprint = sprintService.create(backlog.getId(), "First iteration", start.getTime(), end.getTime(), admin.getId());
+        LocalDate start = LocalDate.now().minusDays(13);
+        LocalDate end = LocalDate.now().plusDays(1);
+        Sprint sprint = sprintService.create(backlog.getId(), "First iteration", start, end, admin.getId());
         Random random = new Random();
         for(int i = 0; i <= 15; i++) {
             User reporter = users.get(random.nextInt(users.size()));

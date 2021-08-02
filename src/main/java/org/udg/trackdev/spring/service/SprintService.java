@@ -11,6 +11,7 @@ import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.repository.SprintRepository;
 
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -27,7 +28,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     UserService userService;
 
     @Transactional
-    public Sprint create(Long backlogId, String name, Date startDate, Date endDate, String userId) {
+    public Sprint create(Long backlogId, String name, LocalDate startDate, LocalDate endDate, String userId) {
         Backlog backlog = backlogService.get(backlogId);
         accessChecker.checkCanManageBacklog(backlog, userId);
 
@@ -52,14 +53,14 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             sprint.setName(name);
         }
         if(editSprint.startDate != null) {
-            Calendar startDate = editSprint.startDate.orElseThrow(
+            LocalDate startDate = editSprint.startDate.orElseThrow(
                     () -> new ServiceException("Not possible to set startDate to null"));
-            sprint.setStartDate(startDate.getTime());
+            sprint.setStartDate(startDate);
         }
         if(editSprint.endDate != null) {
-            Calendar endDate = editSprint.endDate.orElseThrow(
+            LocalDate endDate = editSprint.endDate.orElseThrow(
                     () -> new ServiceException("Not possible to set endDate to null"));
-            sprint.setEndDate(endDate.getTime());
+            sprint.setEndDate(endDate);
         }
         if(editSprint.status != null) {
             SprintStatus status = editSprint.status.orElseThrow(

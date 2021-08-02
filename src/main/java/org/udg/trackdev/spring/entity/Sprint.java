@@ -1,13 +1,16 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
+import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 
@@ -32,11 +35,9 @@ public class Sprint extends BaseEntityLong {
     @Column(name = "backlogId", insertable = false, updatable = false)
     private Long backlogId;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date startDate;
+    private LocalDate startDate;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date endDate;
+    private LocalDate endDate;
 
     @Column(name = "`status`")
     private SprintStatus status;
@@ -63,20 +64,22 @@ public class Sprint extends BaseEntityLong {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public Date getStartDate() {
+    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public Date getEndDate() {
+    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
