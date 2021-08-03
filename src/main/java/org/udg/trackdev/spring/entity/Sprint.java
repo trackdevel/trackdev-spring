@@ -2,17 +2,15 @@ package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
-import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
+import java.util.Collections;
 
 @Entity
 @Table(name = "sprints")
@@ -94,7 +92,7 @@ public class Sprint extends BaseEntityLong {
     }
 
     public Collection<Task> getActiveTasks() {
-        return activeTasks;
+        return Collections.unmodifiableCollection(this.activeTasks);
     }
 
     public void addTask(Task task) {

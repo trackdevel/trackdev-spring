@@ -8,12 +8,13 @@ import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.SprintStatus;
 import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.entity.sprintchanges.*;
 import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.repository.SprintRepository;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
@@ -26,6 +27,9 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    SprintChangeService sprintChangeService;
 
     @Transactional
     public Sprint create(Long backlogId, String name, LocalDate startDate, LocalDate endDate, String userId) {
@@ -47,27 +51,43 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         Sprint sprint = get(sprintId);
         User user = userService.get(userId);
         accessChecker.checkCanManageBacklog(sprint.getBacklog(), user);
+        List<SprintChange> changes = new ArrayList<>();
         if(editSprint.name != null) {
             String name = editSprint.name.orElseThrow(
                     () -> new ServiceException("Not possible to set name to null"));
-            sprint.setName(name);
+            if(!name.equals(sprint.getName())) {
+                sprint.setName(name);
+                changes.add(new SprintNameChange(user, sprint, name));
+            }
         }
         if(editSprint.startDate != null) {
             LocalDate startDate = editSprint.startDate.orElseThrow(
                     () -> new ServiceException("Not possible to set startDate to null"));
-            sprint.setStartDate(startDate);
+            if(!startDate.equals(sprint.getStartDate())) {
+                sprint.setStartDate(startDate);
+                changes.add(new SprintStartDateChange(user, sprint, startDate));
+            }
         }
         if(editSprint.endDate != null) {
             LocalDate endDate = editSprint.endDate.orElseThrow(
                     () -> new ServiceException("Not possible to set endDate to null"));
-            sprint.setEndDate(endDate);
+            if(!endDate.equals(sprint.getEndDate())) {
+                sprint.setEndDate(endDate);
+                changes.add(new SprintEndDateChange(user, sprint, endDate));
+            }
         }
         if(editSprint.status != null) {
             SprintStatus status = editSprint.status.orElseThrow(
                     () -> new ServiceException("Not possible to set status to null"));
-            sprint.setStatus(status);
+            if(status != sprint.getStatus()) {
+                sprint.setStatus(status);
+                changes.add(new SprintStatusChange(user, sprint, status));
+            }
         }
         repo().save(sprint);
+        for(SprintChange change: changes) {
+            sprintChangeService.store(change);
+        }
         return sprint;
     }
 }
