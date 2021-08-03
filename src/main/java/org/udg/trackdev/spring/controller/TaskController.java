@@ -71,7 +71,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         Task task = service.get(id);
         accessChecker.checkCanViewBacklog(task.getBacklog(), userId);
 
-        String refinedSearch = super.scopedSearch("taskId:"+ id, search);
+        String refinedSearch = super.scopedSearch("entityId:"+ id, search);
         Specification<TaskChange> specification = super.buildSpecificationFromSearch(refinedSearch);
         return taskChangeService.search(specification);
     }
