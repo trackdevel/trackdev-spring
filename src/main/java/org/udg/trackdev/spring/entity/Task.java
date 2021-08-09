@@ -137,7 +137,6 @@ public class Task extends BaseEntityLong {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    @JsonIdentityReference(alwaysAsId = true)
     public Collection<Task> getChildTasks() {
         return childTasks;
     }
