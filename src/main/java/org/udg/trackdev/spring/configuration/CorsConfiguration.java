@@ -22,6 +22,6 @@ public class CorsConfiguration {
     }
 
     public boolean isAllowedOrigin(String origin) {
-        return this.isEnabled() && origin.equals(this.allowedOrigin);
+        return this.isEnabled() && origin != null && origin.equals(this.allowedOrigin);
     }
 }
