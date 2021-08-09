@@ -1,10 +1,16 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.lang.NonNull;
+import org.udg.trackdev.spring.controller.exceptions.EntityException;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Table(name = "sprints")
@@ -14,21 +20,31 @@ public class Sprint extends BaseEntityLong {
 
     public Sprint(String name) {
         this.name = name;
+        this.status = SprintStatus.DRAFT;
     }
 
     @NonNull
     private String name;
 
     @ManyToOne
-    private Iteration iteration;
+    @JoinColumn(name = "backlogId")
+    private Backlog backlog;
 
-    @ManyToOne
-    private Group group;
+    @Column(name = "backlogId", insertable = false, updatable = false)
+    private Long backlogId;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
+
+    @Column(name = "`status`")
+    private SprintStatus status;
 
     @OneToMany(mappedBy = "activeSprint")
     private Collection<Task> activeTasks;
 
     @NonNull
+    @JsonView(EntityLevelViews.Basic.class)
     public String getName() {
         return name;
     }
@@ -37,24 +53,62 @@ public class Sprint extends BaseEntityLong {
         this.name = name;
     }
 
-    public Iteration getIteration() {
-        return iteration;
+    public Backlog getBacklog() {
+        return backlog;
     }
 
-    public void setIteration(Iteration iteration) {
-        this.iteration = iteration;
+    public void setBacklog(Backlog backlog) {
+        this.backlog = backlog;
     }
 
-    public Group getGroup() {
-        return group;
+    @JsonView(EntityLevelViews.Basic.class)
+    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setGroup(Group group) {
-        this.group = group;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public SprintStatus getStatus() { return this.status; }
+
+    public void setStatus(SprintStatus status) {
+        if(status == SprintStatus.CLOSED && !areAllTasksClosed()) {
+            throw new EntityException("Cannot close sprint with open tasks");
+        }
+        this.status = status;
     }
 
     public Collection<Task> getActiveTasks() {
-        return activeTasks;
+        return Collections.unmodifiableCollection(this.activeTasks);
     }
 
+    public void addTask(Task task) {
+        if(task.getBacklog() != this.backlog) {
+            throw new EntityException("Cannot add task to sprint as they belong to different backlogs");
+        }
+        this.activeTasks.add(task);
+    }
+
+    public void removeTask(Task task) {
+        this.activeTasks.remove(task);
+    }
+
+    private boolean areAllTasksClosed() {
+        boolean allClosed = this.activeTasks.stream().allMatch(
+                t -> t.getStatus() == TaskStatus.DONE || t.getStatus() == TaskStatus.DELETED);
+        return allClosed;
+    }
 }

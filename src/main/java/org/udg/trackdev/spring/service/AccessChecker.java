@@ -84,6 +84,11 @@ public class AccessChecker {
         throw new ServiceException(defaultNoAccessMessage);
     }
 
+    public void checkCanManageBacklog(Backlog backlog, String userId) {
+        User user = userService.get(userId);
+        checkCanManageBacklog(backlog, user);
+    }
+
     public void checkCanManageBacklog(Backlog backlog, User user) {
         Group group = backlog.getGroup();
         if(group.isMember(user)) {

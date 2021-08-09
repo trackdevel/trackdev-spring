@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.*;
+import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.model.MergePatchTask;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Component
@@ -30,9 +32,6 @@ public class DemoDataSeeder {
 
     @Autowired
     private GroupService groupService;
-
-    @Autowired
-    private IterationService iterationService;
 
     @Autowired
     private SprintService sprintService;
@@ -67,21 +66,30 @@ public class DemoDataSeeder {
         }
         inviteAndEnroll(courseYear, enrolledStudents, admin);
         // one course set up
-        Iteration iteration = iterationService.create("First iteration", courseYear.getId());
-        populateGroup(admin, courseYear, iteration, "Movie reviews", Arrays.asList(student1, student2));
-        populateGroup(admin, courseYear, iteration, "Calendar", enrolledStudents.subList(0,4));
+        populateGroup(admin, courseYear, "Movie reviews", Arrays.asList(student1, student2));
+        populateGroup(admin, courseYear, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
     }
 
-    private void populateGroup(User admin, CourseYear courseYear, Iteration iteration, String groupName, List<User> users) {
+    private void populateGroup(User admin, CourseYear courseYear, String groupName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
         }
         Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
-        Sprint sprint = sprintService.create(groupName, iteration.getId(), group.getId());
         Backlog backlog = backlogService.create(group.getId());
+
         Random random = new Random();
+        LocalDate start = LocalDate.of(2021,3,1);
+        LocalDate end = start.plusDays(14);
+        populatePastSprint(backlog.getId(), "First iteration", start, end, users, true);
+        start = end;
+        end = start.plusDays(14);
+        populatePastSprint(backlog.getId(), "Second iteration", start, end, users, true);
+        start = end;
+        end = start.plusDays(14);
+        populatePastSprint(backlog.getId(), "Third iteration", start, end, users, false);
+
         for(int i = 0; i <= 15; i++) {
             User reporter = users.get(random.nextInt(users.size()));
             Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
@@ -97,6 +105,63 @@ public class DemoDataSeeder {
             }
         }
         backlog = backlogService.create(group.getId());
+    }
+
+    private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
+        Random random = new Random();
+        User sprintCreator = users.get(random.nextInt(users.size()));
+        Sprint sprint = sprintService.create(backlogId, name, start, end, sprintCreator.getId());
+
+        List<Task> tasks = createTasks(backlogId, 5, users, random);
+        User editor = users.get(random.nextInt(users.size()));
+        int rank = 1;
+        for(Task task : tasks) {
+            // Add to sprint
+            MergePatchTask change = new MergePatchTask();
+            change.activeSprint = Optional.of(sprint.getId());
+            change.rank = Optional.of(rank);
+            taskService.editTask(task.getId(), change, editor.getId());
+
+            // Random change
+            MergePatchTask editTask = buildEditTask(users, random);
+            taskService.editTask(task.getId(), editTask, editor.getId());
+
+            rank++;
+        }
+        saveOpenSprint(sprintCreator, sprint);
+
+        if(close) {
+            for(Task task : tasks) {
+                if(task.getStatus() != TaskStatus.DONE) {
+                    MergePatchTask change = new MergePatchTask();
+                    change.status = Optional.of(TaskStatus.DONE);
+                    taskService.editTask(task.getId(), change, editor.getId());
+                }
+            }
+            saveCloseSprint(sprintCreator, sprint);
+        }
+    }
+
+    private void saveOpenSprint(User sprintCreator, Sprint sprint) {
+        MergePatchSprint sprintChange = new MergePatchSprint();
+        sprintChange.status = Optional.of(SprintStatus.ACTIVE);
+        sprintService.editSprint(sprint.getId(), sprintChange, sprintCreator.getId());
+    }
+
+    private void saveCloseSprint(User sprintCreator, Sprint sprint) {
+        MergePatchSprint sprintChange = new MergePatchSprint();
+        sprintChange.status = Optional.of(SprintStatus.CLOSED);
+        sprintService.editSprint(sprint.getId(), sprintChange, sprintCreator.getId());
+    }
+
+    private List<Task> createTasks(Long backlogId, int amount, List<User> users, Random random) {
+        List<Task> tasks = new ArrayList<>();
+        for(int i = 0; i <= amount; i++) {
+            User reporter = users.get(random.nextInt(users.size()));
+            Task task = taskService.createTask(backlogId, "Lorem ipsum dolor sit amet", reporter.getId());
+            tasks.add(task);
+        }
+        return tasks;
     }
 
     private MergePatchTask buildEditTask(List<User> users, Random random) {

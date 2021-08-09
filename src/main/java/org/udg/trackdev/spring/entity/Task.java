@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
+import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
@@ -74,7 +75,11 @@ public class Task extends BaseEntityLong {
     private Collection<PullRequest> pullRequests;
 
     @ManyToOne
+    @JoinColumn(name = "activeSprintId")
     private Sprint activeSprint;
+
+    @Column(name = "activeSprintId", insertable = false, updatable = false)
+    private Long activeSprintId;
 
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)
@@ -157,6 +162,9 @@ public class Task extends BaseEntityLong {
     }
 
     public void setActiveSprint(Sprint activeSprint) {
+        if(activeSprint != null && activeSprint.getBacklog() != this.backlog) {
+            throw new EntityException("Cannot active sprint to task because they belong to different backlogs");
+        }
         this.activeSprint = activeSprint;
     }
 }
