@@ -114,7 +114,7 @@ public class AuthController extends BaseController {
                                 .collect(Collectors.toList()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
-                .signWith(JWTAuthorizationFilter.KEY)
+                .signWith(authorizationConfiguration.getKey())
                 .compact();
 
         return "Bearer " + token;
