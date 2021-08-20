@@ -22,7 +22,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import io.jsonwebtoken.security.Keys;
 import org.springframework.web.util.WebUtils;
 import org.udg.trackdev.spring.service.Global;
 import org.udg.trackdev.spring.model.ErrorEntity;
@@ -31,7 +30,12 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     public static final String HEADER = "Authorization";
     public static final String PREFIX = "Bearer ";
-    public static Key KEY = Keys.hmacShaKeyFor("B%&!b8!86V!%!/(b7B/&!B&/shy0/67hBU~@2 k@24432klvlfdjgb lflsñkkkf¿?_¨FRJqdrvs<<´<,ñ<ñO!!MImjnbJ!B".getBytes());
+
+    private AuthorizationConfiguration authorizationConfiguration;
+
+    public JWTAuthorizationFilter(AuthorizationConfiguration authorizationConfiguration) {
+        this.authorizationConfiguration = authorizationConfiguration;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -53,7 +57,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
             cookie.setMaxAge(0);
             response.addCookie(cookie);
 
-            ErrorEntity errorEntityResponse = new ErrorEntity(Global.dateFormat.format(new Date()), HttpStatus.FORBIDDEN.value(), "Security errror", e.getMessage());
+            ErrorEntity errorEntityResponse = new ErrorEntity(Global.dateFormat.format(new Date()), HttpStatus.FORBIDDEN.value(), "Security error", e.getMessage());
 
             response.setStatus(HttpStatus.FORBIDDEN.value());
             PrintWriter out = response.getWriter();
@@ -69,7 +73,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
         if (authenticationHeader != null) {
             if (authenticationHeader.startsWith(PREFIX)) {
                 return Jwts.parserBuilder()
-                           .setSigningKey(KEY)
+                           .setSigningKey(authorizationConfiguration.getKey())
                            .build()
                            .parseClaimsJws(authenticationHeader.replace(PREFIX, ""));
             } else
@@ -80,7 +84,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
                 String cv = tokenCookie.getValue();
                 String decoded = new String(Base64.getDecoder().decode(cv));
                 return Jwts.parserBuilder()
-                                  .setSigningKey(KEY)
+                                  .setSigningKey(authorizationConfiguration.getKey())
                                   .build()
                                   .parseClaimsJws(decoded.replace(PREFIX, ""));
             } else
@@ -102,5 +106,4 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(auth);
 
     }
-
 }

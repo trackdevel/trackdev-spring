@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.configuration.AuthorizationConfiguration;
 import org.udg.trackdev.spring.configuration.CorsConfiguration;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
@@ -36,6 +37,9 @@ public class AuthController extends BaseController {
 
     @Autowired
     CorsConfiguration corsConfiguration;
+
+    @Autowired
+    AuthorizationConfiguration authorizationConfiguration;
 
     @PostMapping(path="/login")
     @JsonView(PrivacyLevelViews.Private.class)
@@ -97,6 +101,9 @@ public class AuthController extends BaseController {
         List<GrantedAuthority> grantedAuthorities = AuthorityUtils
                 .commaSeparatedStringToAuthorityList("ROLE_USER");
 
+        int durationInMinutes = authorizationConfiguration.getTokenLifetimeInMinutes();
+        int durationInMilliseconds = durationInMinutes * 60 * 1000;
+
         String token = Jwts
                 .builder()
                 .setId("trackdev_JWT")
@@ -106,8 +113,8 @@ public class AuthController extends BaseController {
                                 .map(GrantedAuthority::getAuthority)
                                 .collect(Collectors.toList()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 600000))
-                .signWith(JWTAuthorizationFilter.KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
+                .signWith(authorizationConfiguration.getKey())
                 .compact();
 
         return "Bearer " + token;
