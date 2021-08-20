@@ -1,12 +1,12 @@
 package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
+import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
@@ -80,6 +80,9 @@ public class Task extends BaseEntityLong {
 
     @Column(name = "activeSprintId", insertable = false, updatable = false)
     private Long activeSprintId;
+
+    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
+    private Collection<TaskChange> taskChanges;
 
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)

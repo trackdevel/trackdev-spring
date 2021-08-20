@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
+import org.udg.trackdev.spring.entity.sprintchanges.SprintChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.Global;
 
@@ -42,6 +43,9 @@ public class Sprint extends BaseEntityLong {
 
     @OneToMany(mappedBy = "activeSprint")
     private Collection<Task> activeTasks;
+
+    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
+    private Collection<SprintChange> sprintChanges;
 
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)
