@@ -76,4 +76,8 @@ public class Group extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Backlog> getBacklogs() { return this.backlogs; }
+
+    public void addBacklog(Backlog backlog) {
+        this.backlogs.add(backlog);
+    }
 }

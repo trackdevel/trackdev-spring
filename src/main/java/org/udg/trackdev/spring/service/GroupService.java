@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
+import org.udg.trackdev.spring.entity.Backlog;
 import org.udg.trackdev.spring.entity.CourseYear;
 import org.udg.trackdev.spring.entity.Group;
 import org.udg.trackdev.spring.entity.User;
@@ -37,6 +38,10 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
         if(usernames != null && usernames.size() > 0) {
             addMembers(course, group, usernames);
         }
+
+        Backlog backlog = new Backlog();
+        backlog.setGroup(group);
+        group.addBacklog(backlog);
 
         return group;
     }
