@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.sprintchanges.SprintChange;
+import org.udg.trackdev.spring.entity.sprintchanges.SprintStatusChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.Global;
 
@@ -88,11 +89,19 @@ public class Sprint extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public SprintStatus getStatus() { return this.status; }
 
-    public void setStatus(SprintStatus status) {
+    public void setStatus(SprintStatus status, User modifier) {
         if(status == SprintStatus.CLOSED && !areAllTasksClosed()) {
             throw new EntityException("Cannot close sprint with open tasks");
         }
+        if(status == SprintStatus.ACTIVE) {
+            for(Task task : this.activeTasks) {
+                if(task.getStatus() == TaskStatus.CREATED) {
+                    task.setStatus(TaskStatus.TODO, modifier);
+                }
+            }
+        }
         this.status = status;
+        this.sprintChanges.add(new SprintStatusChange(modifier, this, status));
     }
 
     public Collection<Task> getActiveTasks() {

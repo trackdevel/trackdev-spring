@@ -6,8 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.sprintchanges.*;
-import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
-import org.udg.trackdev.spring.entity.taskchanges.TaskStatusChange;
 import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.repository.SprintRepository;
 
@@ -29,9 +27,6 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
 
     @Autowired
     SprintChangeService sprintChangeService;
-
-    @Autowired
-    TaskChangeService taskChangeService;
 
     @Transactional
     public Sprint create(Long backlogId, String name, LocalDate startDate, LocalDate endDate, String userId) {
@@ -82,11 +77,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             SprintStatus status = editSprint.status.orElseThrow(
                     () -> new ServiceException("Not possible to set status to null"));
             if(status != sprint.getStatus()) {
-                sprint.setStatus(status);
-                if(status == SprintStatus.ACTIVE) {
-                    moveToTodo(sprint, user);
-                }
-                changes.add(new SprintStatusChange(user, sprint, status));
+                sprint.setStatus(status, user);
             }
         }
         repo().save(sprint);
@@ -97,15 +88,6 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     }
 
     private void moveToTodo(Sprint sprint, User user) {
-        List<TaskChange> taskChanges = new ArrayList<>();
-        for(Task task : sprint.getActiveTasks()) {
-            if(task.getStatus() == TaskStatus.CREATED) {
-                task.setStatus(TaskStatus.TODO);
-                taskChanges.add(new TaskStatusChange(user, task, TaskStatus.TODO));
-            }
-        }
-        for(TaskChange change: taskChanges) {
-            taskChangeService.store(change);
-        }
+
     }
 }

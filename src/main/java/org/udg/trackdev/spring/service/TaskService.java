@@ -102,8 +102,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.status != null) {
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException("Not possible to set status to null"));
-            task.setStatus(status);
-            changes.add(new TaskStatusChange(user, task, status));
+            task.setStatus(status, user);
         }
         if(editTask.rank != null) {
             Integer newRank = editTask.rank.orElseThrow(

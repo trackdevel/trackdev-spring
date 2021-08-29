@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskStatusChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
@@ -121,8 +122,9 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public TaskStatus getStatus() { return status; }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(TaskStatus status, User modifier) {
         this.status = status;
+        this.taskChanges.add(new TaskStatusChange(modifier, this, status));
     }
 
     @JsonView(EntityLevelViews.Basic.class)
