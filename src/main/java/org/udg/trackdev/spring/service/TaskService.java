@@ -123,12 +123,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 }
                 Long newSprintId = editTask.activeSprint.get();
                 newSprint = sprintService.get(newSprintId);
-                newSprint.addTask(task, user);
                 task.setActiveSprint(newSprint);
+                newSprint.addTask(task, user);
             } else {
                 Sprint oldSprint = task.getActiveSprint();
-                oldSprint.removeTask(task, user);
                 task.setActiveSprint(null);
+                oldSprint.removeTask(task, user);
             }
             changes.add(new TaskActiveSprintChange(user, task, newSprint));
         }
