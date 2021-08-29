@@ -12,7 +12,6 @@ import org.udg.trackdev.spring.configuration.AuthorizationConfiguration;
 import org.udg.trackdev.spring.configuration.CorsConfiguration;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
-import org.udg.trackdev.spring.configuration.JWTAuthorizationFilter;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.servlet.http.Cookie;

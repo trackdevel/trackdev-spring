@@ -37,20 +37,6 @@ public class UserController extends BaseController {
         return userService.getByUsername(username);
     }
 
-//  @DeleteMapping(path="/{id}")
-//  public String deleteT(HttpSession session, @PathVariable("id") Long TId) {
-//
-//    Long loggedTId = getLoggedT(session);
-//
-//    if (!loggedTId.equals(TId))
-//      throw new ControllerException("You cannot delete other Ts!");
-//
-//    TService.crud().deleteById(TId);
-//    session.removeAttribute("simpleapp_auth_id");
-//
-//    return BaseController.OK_MESSAGE;
-//  }
-
     @PostMapping(path = "/register")
     public ResponseEntity register(Principal principal, @Valid @RequestBody RegisterT ru) {
         checkNotLoggedIn(principal);
@@ -72,15 +58,6 @@ public class UserController extends BaseController {
         @NotBlank
         @Size(min = 8, max = 50)
         public String password;
-    }
-
-    static class UpdateT {
-        public String username;
-        public String email;
-        public String password;
-        public String name;
-        public String address;
-        public double saldo;
     }
 
 }
