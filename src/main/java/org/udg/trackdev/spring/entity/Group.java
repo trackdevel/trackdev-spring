@@ -1,7 +1,9 @@
 package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -65,7 +67,8 @@ public class Group extends BaseEntityLong {
         }
     }
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
+    @JsonSerialize(using = JsonHierarchyViewSerializer.class)
     public CourseYear getCourseYear() {
         return this.courseYear;
     }

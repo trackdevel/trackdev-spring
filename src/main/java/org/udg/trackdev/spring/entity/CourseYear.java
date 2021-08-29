@@ -2,7 +2,9 @@ package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -31,10 +33,10 @@ public class CourseYear extends BaseEntityLong {
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Set<User> students = new HashSet<>();
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public Integer getStartYear() { return startYear; }
 
-    @JsonView(EntityLevelViews.CourseYearComplete.class)
+    @JsonView({ EntityLevelViews.CourseYearComplete.class, EntityLevelViews.Hierarchy.class })
     public Course getCourse() { return this.course; }
 
     public void setCourse(Course course) { this.course = course; }

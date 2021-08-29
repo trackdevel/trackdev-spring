@@ -34,7 +34,7 @@ public class Course extends BaseEntityLong {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
     private Collection<CourseYear> courseYears;
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public String getName() {
         return name;
     }
