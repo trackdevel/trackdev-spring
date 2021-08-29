@@ -77,7 +77,7 @@ public class DemoDataSeeder {
             usernames.add(user.getUsername());
         }
         Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
-        Backlog backlog = backlogService.create(group.getId());
+        Backlog backlog = group.getBacklogs().iterator().next();
 
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);
