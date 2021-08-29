@@ -123,6 +123,7 @@ public class Task extends BaseEntityLong {
     public TaskStatus getStatus() { return status; }
 
     public void setStatus(TaskStatus status, User modifier) {
+        checkCanMoveToStatus(status);
         this.status = status;
         this.taskChanges.add(new TaskStatusChange(modifier, this, status));
     }
@@ -170,5 +171,18 @@ public class Task extends BaseEntityLong {
             throw new EntityException("Cannot active sprint to task because they belong to different backlogs");
         }
         this.activeSprint = activeSprint;
+    }
+
+    private void checkCanMoveToStatus(TaskStatus status) {
+        boolean canBeMovedToTodo = this.activeSprint != null;
+        if(this.status == TaskStatus.CREATED && !(status == TaskStatus.TODO && canBeMovedToTodo || status == TaskStatus.DELETED)) {
+            throw new EntityException(String.format("Cannot change status from CREATED to new status <%s>", status));
+        }
+        if(this.status == TaskStatus.DELETED) {
+            throw new EntityException("Cannot change status of DELETED task");
+        }
+        if(status == TaskStatus.CREATED) {
+            throw new EntityException("Cannot set status to CREATED");
+        }
     }
 }
