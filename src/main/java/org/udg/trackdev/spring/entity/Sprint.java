@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
-import org.udg.trackdev.spring.entity.sprintchanges.SprintChange;
-import org.udg.trackdev.spring.entity.sprintchanges.SprintStatusChange;
+import org.udg.trackdev.spring.entity.sprintchanges.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.Global;
 
@@ -54,8 +53,9 @@ public class Sprint extends BaseEntityLong {
         return name;
     }
 
-    public void setName(@NonNull String name) {
+    public void setName(@NonNull String name, User modifier) {
         this.name = name;
+        this.sprintChanges.add(new SprintNameChange(modifier, this, name));
     }
 
     public Backlog getBacklog() {
@@ -72,8 +72,12 @@ public class Sprint extends BaseEntityLong {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
+    public void setStartDate(LocalDate startDate, User modifier) {
+        LocalDate oldValue = this.startDate;
         this.startDate = startDate;
+        if(oldValue != null) {
+            sprintChanges.add(new SprintStartDateChange(modifier, this, startDate));
+        }
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -82,8 +86,12 @@ public class Sprint extends BaseEntityLong {
         return endDate;
     }
 
-    public void setEndDate(LocalDate endDate) {
+    public void setEndDate(LocalDate endDate, User modifier) {
+        LocalDate oldValue = this.endDate;
         this.endDate = endDate;
+        if(oldValue != null) {
+            sprintChanges.add(new SprintEndDateChange(modifier, this, endDate));
+        }
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -108,15 +116,17 @@ public class Sprint extends BaseEntityLong {
         return Collections.unmodifiableCollection(this.activeTasks);
     }
 
-    public void addTask(Task task) {
+    public void addTask(Task task, User modifier) {
         if(task.getBacklog() != this.backlog) {
             throw new EntityException("Cannot add task to sprint as they belong to different backlogs");
         }
         this.activeTasks.add(task);
+        this.sprintChanges.add(new SprintTaskAdded(modifier, this, task));
     }
 
-    public void removeTask(Task task) {
+    public void removeTask(Task task, User modifier) {
         this.activeTasks.remove(task);
+        this.sprintChanges.add(new SprintTaskRemoved(modifier, this, task));
     }
 
     private boolean areAllTasksClosed() {

@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
-import org.udg.trackdev.spring.entity.sprintchanges.SprintTaskAdded;
-import org.udg.trackdev.spring.entity.sprintchanges.SprintTaskRemoved;
 import org.udg.trackdev.spring.entity.taskchanges.*;
 import org.udg.trackdev.spring.model.MergePatchTask;
 import org.udg.trackdev.spring.repository.TaskRepository;
@@ -30,9 +28,6 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     @Autowired
     SprintService sprintService;
-
-    @Autowired
-    SprintChangeService sprintChangeService;
 
     @Autowired
     AccessChecker accessChecker;
@@ -124,18 +119,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if(editTask.activeSprint.isPresent()) {
                 Sprint oldSprint = task.getActiveSprint();
                 if(oldSprint != null) {
-                    oldSprint.removeTask(task);
-                    sprintChangeService.store(new SprintTaskRemoved(user, oldSprint, task));
+                    oldSprint.removeTask(task, user);
                 }
                 Long newSprintId = editTask.activeSprint.get();
                 newSprint = sprintService.get(newSprintId);
-                newSprint.addTask(task);
+                newSprint.addTask(task, user);
                 task.setActiveSprint(newSprint);
-                sprintChangeService.store(new SprintTaskAdded(user, newSprint, task));
             } else {
                 Sprint oldSprint = task.getActiveSprint();
-                oldSprint.removeTask(task);
-                sprintChangeService.store(new SprintTaskRemoved(user, oldSprint, task));
+                oldSprint.removeTask(task, user);
                 task.setActiveSprint(null);
             }
             changes.add(new TaskActiveSprintChange(user, task, newSprint));
