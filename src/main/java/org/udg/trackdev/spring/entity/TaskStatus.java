@@ -5,7 +5,6 @@ public enum TaskStatus {
     INPROGRESS,
     DONE,
     TESTED,
-    SPRINT,
     DELETED,
     CREATED
 }
