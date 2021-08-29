@@ -95,7 +95,7 @@ public class DemoDataSeeder {
             Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
 
             if(random.nextBoolean()) {
-                MergePatchTask editTask = buildEditTask(users, random);
+                MergePatchTask editTask = buildBacklogEditTask(users, random);
                 taskService.editTask(task.getId(), editTask, reporter.getId());
             }
             if(i == 0) {
@@ -123,7 +123,7 @@ public class DemoDataSeeder {
             taskService.editTask(task.getId(), change, editor.getId());
 
             // Random change
-            MergePatchTask editTask = buildEditTask(users, random);
+            MergePatchTask editTask = buildBacklogEditTask(users, random);
             taskService.editTask(task.getId(), editTask, editor.getId());
 
             rank++;
@@ -139,6 +139,14 @@ public class DemoDataSeeder {
                 }
             }
             saveCloseSprint(sprintCreator, sprint);
+        } else {
+            for(Task task : tasks) {
+                if(random.nextBoolean()) {
+                    MergePatchTask change = new MergePatchTask();
+                    change.status = Optional.of(getRandomStatus(random));
+                    taskService.editTask(task.getId(), change, editor.getId());
+                }
+            }
         }
     }
 
@@ -164,17 +172,13 @@ public class DemoDataSeeder {
         return tasks;
     }
 
-    private MergePatchTask buildEditTask(List<User> users, Random random) {
+    private MergePatchTask buildBacklogEditTask(List<User> users, Random random) {
         Integer points = possibleEstimationPoints.get(random.nextInt(possibleEstimationPoints.size()));
         User assignee = users.get(random.nextInt(users.size()));
 
         MergePatchTask editTask = new MergePatchTask();
         editTask.assignee = Optional.of(assignee.getUsername());
         editTask.estimationPoints = Optional.of(points);
-        if(random.nextBoolean()) {
-            TaskStatus status = getRandomStatus(random);
-            editTask.status = Optional.of(status);
-        }
         return editTask;
     }
 
