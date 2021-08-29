@@ -122,6 +122,9 @@ public class Sprint extends BaseEntityLong {
         }
         this.activeTasks.add(task);
         this.sprintChanges.add(new SprintTaskAdded(modifier, this, task));
+        if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.CREATED) {
+            task.setStatus(TaskStatus.TODO, modifier);
+        }
     }
 
     public void removeTask(Task task, User modifier) {
