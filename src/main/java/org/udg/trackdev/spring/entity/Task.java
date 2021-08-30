@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
+import org.udg.trackdev.spring.entity.taskchanges.TaskStatusChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
@@ -121,8 +122,10 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public TaskStatus getStatus() { return status; }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(TaskStatus status, User modifier) {
+        checkCanMoveToStatus(status);
         this.status = status;
+        this.taskChanges.add(new TaskStatusChange(modifier, this, status));
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -168,5 +171,18 @@ public class Task extends BaseEntityLong {
             throw new EntityException("Cannot active sprint to task because they belong to different backlogs");
         }
         this.activeSprint = activeSprint;
+    }
+
+    private void checkCanMoveToStatus(TaskStatus status) {
+        boolean canBeMovedToTodo = this.activeSprint != null;
+        if(this.status == TaskStatus.CREATED && !(status == TaskStatus.TODO && canBeMovedToTodo || status == TaskStatus.DELETED)) {
+            throw new EntityException(String.format("Cannot change status from CREATED to new status <%s>", status));
+        }
+        if(this.status == TaskStatus.DELETED) {
+            throw new EntityException("Cannot change status of DELETED task");
+        }
+        if(status == TaskStatus.CREATED) {
+            throw new EntityException("Cannot set status to CREATED");
+        }
     }
 }
