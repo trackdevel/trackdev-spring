@@ -174,8 +174,7 @@ public class Task extends BaseEntityLong {
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {
-        boolean canBeMovedToTodo = this.activeSprint != null;
-        if(this.status == TaskStatus.CREATED && !(status == TaskStatus.TODO && canBeMovedToTodo || status == TaskStatus.DELETED)) {
+        if(this.status == TaskStatus.CREATED && !(status == TaskStatus.TODO || status == TaskStatus.DELETED)) {
             throw new EntityException(String.format("Cannot change status from CREATED to new status <%s>", status));
         }
         if(this.status == TaskStatus.DELETED) {
