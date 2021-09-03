@@ -48,7 +48,7 @@ public class DemoDataSeeder {
     public void seedDemoData() {
         logger.info("Starting populating database ...");
         // users
-        User admin = userService.addUserInternal("neich", "ignacio.martin@udg.edu", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
+        User admin = userService.addUserInternal("professor1", "professor1@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
         User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
         User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
         User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.PROFESSOR));

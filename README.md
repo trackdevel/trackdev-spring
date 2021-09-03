@@ -1,8 +1,17 @@
-# TODOjavaee
+# TrackDev-spring
+The REST API for the TrackDev project built with Spring Boot.
 
-This is a Spring Boot application that implements an pure API REST for a TODO appication. It is used for educational purposes and the goal is to show good practices when building multi-tier applications with JavaEE (and in general). It works with the the [TODOandroid](https://github.com/neich/TODOAndroid) Android application as client.
+The TrackDev project is an application built for educational purposes with the goal to teach and help students to learn to work in teams using an agile metodology while working together to build an application. It works with the [TrackDev-react](https://github.com/trackdevel/trackdev-react) as a web client.
 
-The main three tiers used are:
+This is an ongoing project.
+
+Current features:
+* Courses, students and groups management
+* Backlogs, tasks and sprints management
+
+## About the API
+
+This Spring Boot application is a multi-tier application. The main three tiers used are:
 
 * REST tier (```@Controller```)
 * Business tier (```@Service```)
@@ -22,7 +31,7 @@ gradle bootRun
 
 ## Image uploading
 
-In order to store files, the app uses a private object storage server: [minio      ](https://www.minio.io/). The minio configuration has to be passed to the application as properties via command line:
+In order to store files, the app uses a private object storage server: [minio](https://www.minio.io/). The minio configuration has to be passed to the application as properties via command line:
 
 ```
 gradlew bootJar
