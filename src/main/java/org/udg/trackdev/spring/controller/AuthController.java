@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.AuthorizationConfiguration;
+import org.udg.trackdev.spring.configuration.CookieManager;
 import org.udg.trackdev.spring.configuration.CorsConfiguration;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
@@ -35,7 +36,7 @@ public class AuthController extends BaseController {
     UserService userService;
 
     @Autowired
-    CorsConfiguration corsConfiguration;
+    CookieManager cookieManager;
 
     @Autowired
     AuthorizationConfiguration authorizationConfiguration;
@@ -50,19 +51,7 @@ public class AuthController extends BaseController {
         String token = getJWTToken(user);
 
         String cookieTokenValue = Base64.getEncoder().withoutPadding().encodeToString(token.getBytes());
-
-        String sameSite = "Lax";
-        String requestOrigin = request.getHeader("Origin");
-        if(corsConfiguration.isEnabled() && corsConfiguration.isAllowedOrigin(requestOrigin)) {
-            sameSite = "None";
-        }
-        ResponseCookie cookie = ResponseCookie.from("trackdev_JWT", cookieTokenValue)
-                .path("/")
-                .secure(true)
-                .httpOnly(true)
-                .sameSite(sameSite)
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
+        cookieManager.addSessionCookie(request, response, "trackdev_JWT", cookieTokenValue);
 
         return ResponseEntity.ok().body(Map.of("userdata",user,"token", token));
     }
@@ -72,12 +61,7 @@ public class AuthController extends BaseController {
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                                      HttpServletResponse response) {
 
-        Cookie cookie = new Cookie("trackdev_JWT", "");
-        cookie.setPath("/");
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        cookieManager.removeCookie(response, "trackdev_JWT");
         return okNoContent();
     }
 

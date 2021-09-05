@@ -32,9 +32,11 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     public static final String PREFIX = "Bearer ";
 
     private AuthorizationConfiguration authorizationConfiguration;
+    private CookieManager cookieManager;
 
-    public JWTAuthorizationFilter(AuthorizationConfiguration authorizationConfiguration) {
+    public JWTAuthorizationFilter(AuthorizationConfiguration authorizationConfiguration, CookieManager cookieManager) {
         this.authorizationConfiguration = authorizationConfiguration;
+        this.cookieManager = cookieManager;
     }
 
     @Override
@@ -50,12 +52,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
             }
             chain.doFilter(request, response);
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException e) {
-            Cookie cookie = new Cookie("trackdev_JWT", "");
-            cookie.setPath("/");
-            cookie.setSecure(true);
-            cookie.setHttpOnly(true);
-            cookie.setMaxAge(0);
-            response.addCookie(cookie);
+            cookieManager.removeCookie(response, "trackdev_JWT");
 
             ErrorEntity errorEntityResponse = new ErrorEntity(Global.dateFormat.format(new Date()), HttpStatus.FORBIDDEN.value(), "Security error", e.getMessage());
 
