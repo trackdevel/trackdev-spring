@@ -52,7 +52,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
             }
             chain.doFilter(request, response);
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException e) {
-            cookieManager.removeCookie(response, "trackdev_JWT");
+            cookieManager.removeCookie(request, response, "trackdev_JWT");
 
             ErrorEntity errorEntityResponse = new ErrorEntity(Global.dateFormat.format(new Date()), HttpStatus.FORBIDDEN.value(), "Security error", e.getMessage());
 

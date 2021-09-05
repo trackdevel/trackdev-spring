@@ -61,7 +61,7 @@ public class AuthController extends BaseController {
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                                      HttpServletResponse response) {
 
-        cookieManager.removeCookie(response, "trackdev_JWT");
+        cookieManager.removeCookie(request, response, "trackdev_JWT");
         return okNoContent();
     }
 

@@ -3,8 +3,6 @@ package org.udg.trackdev.spring.configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -15,11 +13,7 @@ public class CookieManager {
     CorsConfiguration corsConfiguration;
 
     public void addSessionCookie(HttpServletRequest request, HttpServletResponse response, String cookieName, String cookieValue) {
-        String sameSite = "Lax";
-        String requestOrigin = request.getHeader("Origin");
-        if(corsConfiguration.isEnabled() && corsConfiguration.isAllowedOrigin(requestOrigin)) {
-            sameSite = "None";
-        }
+        String sameSite = getSameSite(request);
         ResponseCookie cookie = ResponseCookie.from(cookieName, cookieValue)
                 .path("/")
                 .secure(true)
@@ -29,12 +23,24 @@ public class CookieManager {
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
-    public void removeCookie(HttpServletResponse response, String cookieName) {
-        Cookie cookie = new Cookie(cookieName, "");
-        cookie.setPath("/");
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+    public void removeCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
+        String sameSite = getSameSite(request);
+        ResponseCookie cookie = ResponseCookie.from(cookieName, "")
+                .path("/")
+                .secure(true)
+                .httpOnly(true)
+                .maxAge(0)
+                .sameSite(sameSite)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    private String getSameSite(HttpServletRequest request) {
+        String sameSite = "Lax";
+        String requestOrigin = request.getHeader("Origin");
+        if(corsConfiguration.isEnabled() && corsConfiguration.isAllowedOrigin(requestOrigin)) {
+            sameSite = "None";
+        }
+        return sameSite;
     }
 }
