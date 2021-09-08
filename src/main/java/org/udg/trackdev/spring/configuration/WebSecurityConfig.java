@@ -16,12 +16,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthorizationConfiguration authorizationConfiguration;
 
+    @Autowired
+    private CookieManager cookieManager;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .cors().and()
-            .addFilterAfter(new JWTAuthorizationFilter(authorizationConfiguration), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(new JWTAuthorizationFilter(authorizationConfiguration, cookieManager), UsernamePasswordAuthenticationFilter.class)
             .authorizeRequests()
             .antMatchers(HttpMethod.POST, "/auth/login").permitAll()
             .antMatchers(HttpMethod.POST, "/users/register").permitAll()
