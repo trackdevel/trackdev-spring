@@ -34,6 +34,12 @@ dependencies {
     implementation 'org.springframework.security:spring-security-data'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // Mail dependecy
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // Random password dependency
+    implementation 'org.apache.commons:commons-lang3'
+
     implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
