@@ -60,6 +60,18 @@ public class User extends BaseEntityUUID {
 
   private String githubName;
 
+  /**APARTIR D'AQUI SON MODIFICACIONS PER EL TFG**/
+
+  private String nicename;
+
+
+  private Boolean changePassword;
+
+
+  private Boolean enabled;
+
+  /**********************************/
+
   @JsonView(PrivacyLevelViews.Private.class)
   public String getId() {
     return super.getId();
@@ -83,6 +95,24 @@ public class User extends BaseEntityUUID {
   @JsonView(PrivacyLevelViews.Private.class)
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
+
+  /** COSES NOVES **/
+
+  public String nicename() { return nicename; }
+
+  public void setNicename(String nicename) { this.nicename = nicename; }
+
+
+  public Boolean getChangePassword() { return changePassword; }
+
+  public void setChangePassword(Boolean changePassword) { this.changePassword = changePassword; }
+
+
+  public Boolean getEnabled() { return enabled; }
+
+  public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+
+  /***********/
 
   public void addRole(Role role) {
     roles.add(role);

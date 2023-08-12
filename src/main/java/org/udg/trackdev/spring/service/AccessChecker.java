@@ -121,4 +121,8 @@ public class AccessChecker {
     private boolean isCourseOwner(Course course, String userId) {
         return course.getOwnerId().equals(userId);
     }
+
+    public boolean checkCanRegister(User user) {
+        return user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN);
+    }
 }

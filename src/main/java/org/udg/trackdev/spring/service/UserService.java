@@ -1,5 +1,6 @@
 package org.udg.trackdev.spring.service;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
     private InviteService inviteService;
+
+    @Autowired
+    private EmailSenderService emailSenderService;
 
     @Autowired
     Global global;
@@ -50,6 +54,30 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         }
         repo().save(user);
         return user;
+    }
+
+    /** COSA NOVA **/
+    @Transactional
+    public User registerv2(String username, String email) {
+        try{
+            checkIfExists(username, email);
+
+            String tempPassword = RandomStringUtils.randomAlphanumeric(8);
+
+            User user = new User(username, email, global.getPasswordEncoder().encode(tempPassword));
+            user.setChangePassword(true);
+            user.setEnabled(true);
+            user.addRole(roleService.get(UserType.STUDENT));
+            repo().save(user);
+
+            emailSenderService.sendRegisterEmail(username,email,tempPassword);
+
+            return user;
+        }
+        catch (Exception e) {
+            throw new ServiceException("Error when registering user" + e.getMessage());
+        }
+
     }
 
     public User get(String id) {
@@ -84,7 +112,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User addUserInternal(String username, String email, String password, List<UserType> roles) {
         checkIfExists(username, email);
 
+        /** COSES NOVES **/
         User user = new User(username, email, password);
+        user.setChangePassword(true);
+        user.setEnabled(true);
+        user.setNicename("Test User Dos");
+        /**************/
+
         for (UserType ut: roles) {
             Role role = roleService.get(ut);
             user.addRole(role);

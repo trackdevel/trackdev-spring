@@ -36,4 +36,9 @@ public class BaseController {
   ResponseEntity okNoContent() {
     return ResponseEntity.noContent().build();
   }
+
+  ResponseEntity okContent() {
+    return ResponseEntity.ok(OK_MESSAGE);
+  }
+
 }

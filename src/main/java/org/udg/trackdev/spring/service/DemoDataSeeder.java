@@ -1,5 +1,6 @@
 package org.udg.trackdev.spring.service;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,11 @@ public class DemoDataSeeder {
         User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
         User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
         User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.PROFESSOR));
+
+        /** coses noves **/
+        User test_nou = userService.addUserInternal("test_nou", "test_nou@gmail.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.STUDENT));
+        User test_random_pass = userService.addUserInternal("test1","test.randompass@gmail.com",global.getPasswordEncoder().encode(RandomStringUtils.randomAscii(8)), List.of(UserType.STUDENT));
+
         List<User> enrolledStudents = createDemoStudents();
         enrolledStudents.add(student1);
         enrolledStudents.add(student2);
