@@ -161,4 +161,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         em.persist(user);
     }
 
+    @Transactional
+    public void changePassword(User user, String newpassword) {
+        user.setPassword(global.getPasswordEncoder().encode(newpassword));
+        em.persist(user);
+    }
+
 }
