@@ -21,11 +21,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.security.Principal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 // This class is used to process all the authentication related URLs
 @RequestMapping(path = "/auth")
@@ -52,6 +55,8 @@ public class AuthController extends BaseController {
 
         String cookieTokenValue = Base64.getEncoder().withoutPadding().encodeToString(token.getBytes());
         cookieManager.addSessionCookie(request, response, "trackdev_JWT", cookieTokenValue);
+
+        userService.setLastLogin(user);
 
         return ResponseEntity.ok().body(Map.of("userdata",user,"token", token));
     }

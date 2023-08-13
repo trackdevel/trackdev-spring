@@ -9,6 +9,7 @@ import org.udg.trackdev.spring.repository.EmailRepository;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.time.LocalDateTime;
 
 @Service
 public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
@@ -39,7 +40,7 @@ public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
 
         Email email = new Email();
         email.setDestination(to);
-        email.setTimestamp(java.time.LocalDateTime.now());
+        email.setTimestamp(LocalDateTime.now());
 
         this.repo.save(email);
     }
