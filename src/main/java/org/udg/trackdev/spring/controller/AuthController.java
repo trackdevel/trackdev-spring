@@ -108,12 +108,34 @@ public class AuthController extends BaseController {
         return "Bearer " + token;
     }
 
+    //change password
+    @PostMapping(path="/changepassword")
+    @JsonView(PrivacyLevelViews.Private.class)
+    public ResponseEntity<Map<String, Object>> changePassword(HttpServletRequest request,
+                                                     HttpServletResponse response,
+                                                     @Valid @RequestBody ChangePasswordT userBody) {
+
+        User user = userService.matchPassword(userBody.username, userBody.oldpassword);
+        userService.changePassword(user, userBody.newpassword);
+
+        return okNoContent();
+    }
+
 
     static class LoginT {
         @NotNull
         public String username;
         @NotNull
         public String password;
+    }
+
+    static class ChangePasswordT {
+        @NotNull
+        public String username;
+        @NotNull
+        public String oldpassword;
+        @NotNull
+        public String newpassword;
     }
 
 }

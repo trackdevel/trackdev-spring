@@ -92,6 +92,10 @@ public class User extends BaseEntityUUID {
     return password;
   }
 
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
   @JsonView(PrivacyLevelViews.Private.class)
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
