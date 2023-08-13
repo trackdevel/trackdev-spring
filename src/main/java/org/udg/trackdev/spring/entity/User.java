@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
@@ -12,6 +13,7 @@ import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -41,7 +43,7 @@ public class User extends BaseEntityUUID {
   @NotNull
   private String password;
 
-  private Date lastLogin;
+  private LocalDateTime lastLogin;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Course> coursesOwns = new ArrayList<>();
@@ -64,9 +66,7 @@ public class User extends BaseEntityUUID {
 
   private String nicename;
 
-
   private Boolean changePassword;
-
 
   private Boolean enabled;
 
@@ -98,16 +98,17 @@ public class User extends BaseEntityUUID {
 
   /** COSES NOVES **/
 
+  @JsonView(PrivacyLevelViews.Public.class)
   public String nicename() { return nicename; }
 
   public void setNicename(String nicename) { this.nicename = nicename; }
 
-
+  @JsonView(PrivacyLevelViews.Public.class)
   public Boolean getChangePassword() { return changePassword; }
 
   public void setChangePassword(Boolean changePassword) { this.changePassword = changePassword; }
 
-
+  @JsonView(PrivacyLevelViews.Public.class)
   public Boolean getEnabled() { return enabled; }
 
   public void setEnabled(Boolean enabled) { this.enabled = enabled; }
@@ -129,11 +130,7 @@ public class User extends BaseEntityUUID {
     return inRole;
   }
 
-  public Date getLastLogin() {
-    return lastLogin;
-  }
-
-  public void setLastLogin(Date lastLogin) {
+  public void setLastLogin(LocalDateTime lastLogin) {
     this.lastLogin = lastLogin;
   }
 
