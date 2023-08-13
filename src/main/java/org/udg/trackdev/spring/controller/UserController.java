@@ -4,12 +4,9 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.udg.trackdev.spring.configuration.UserType;
-import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
-import org.udg.trackdev.spring.service.RoleService;
 import org.udg.trackdev.spring.service.UserService;
 
 
@@ -19,7 +16,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.security.Principal;
-import java.util.logging.Logger;
+import java.util.List;
 
 // This class is used to manage users and sign up
 @RequestMapping(path = "/users")
@@ -45,6 +42,14 @@ public class UserController extends BaseController {
         return userService.getByUsername(username);
     }
 
+    @GetMapping(path="/all")
+    public List<User> getAll(Principal principal) {
+        if (!accessChecker.isUserAdminOrProfessor(userService.get(principal.getName()))){
+            throw new SecurityException("Only admins can list all users");
+        }
+        return userService.findAll();
+    }
+
     @PostMapping(path = "/register")
     public ResponseEntity register(Principal principal, @Valid @RequestBody RegisterT ru) {
         checkNotLoggedIn(principal);
@@ -55,7 +60,7 @@ public class UserController extends BaseController {
     @PostMapping(path = "/v2/register")
     public ResponseEntity registerv2(Principal principal, @Valid @RequestBody RegisterV ru) {
         checkLoggedIn(principal);
-        if (!accessChecker.checkCanRegister(userService.get(principal.getName()))) {
+        if (!accessChecker.isUserAdminOrProfessor(userService.get(principal.getName()))) {
             throw new SecurityException("Only admins can register users");
         }
         userService.registerv2(ru.username, ru.email);

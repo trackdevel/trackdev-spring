@@ -13,6 +13,7 @@ import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.UserRepository;
 
 import javax.persistence.EntityManager;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -34,6 +35,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
     private EmailSenderService emailSenderService;
+
+    @Autowired
+    private AccessChecker accessChecker;
 
     @Autowired
     Global global;

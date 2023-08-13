@@ -122,7 +122,7 @@ public class AccessChecker {
         return course.getOwnerId().equals(userId);
     }
 
-    public boolean checkCanRegister(User user) {
+    public boolean isUserAdminOrProfessor(User user) {
         return user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN);
     }
 }
