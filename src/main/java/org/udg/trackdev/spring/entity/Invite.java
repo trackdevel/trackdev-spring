@@ -49,7 +49,7 @@ public class Invite extends BaseEntityLong {
     @JoinColumn(name = "courseYearId", foreignKey =
         @ForeignKey(name="course_year_foreign_key_cascade",
                     foreignKeyDefinition = "FOREIGN KEY (`courseYearId`) REFERENCES `course_years` (`id`) ON DELETE CASCADE"))
-    private CourseYear courseYear;
+    private Courses courses;
 
     @Column(name = "courseYearId", insertable = false, updatable = false)
     private Long courseYearId;
@@ -71,9 +71,9 @@ public class Invite extends BaseEntityLong {
     public void addRole(Role role) { this.roles.add(role); }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public CourseYear getCourseYear() { return courseYear; }
+    public Courses getCourseYear() { return courses; }
 
-    public void setCourseYear(CourseYear courseYear) { this.courseYear = courseYear; }
+    public void setCourseYear(Courses courses) { this.courses = courses; }
 
     @JsonView(EntityLevelViews.Basic.class)
     public InviteState getState() { return this.state; }

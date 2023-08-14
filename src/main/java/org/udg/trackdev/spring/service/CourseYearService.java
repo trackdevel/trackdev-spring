@@ -6,11 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.CourseYearRepository;
 
+import java.util.Collection;
+
 @Service
-public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRepository> {
+public class CourseYearService extends BaseServiceLong<Courses, CourseYearRepository> {
 
     @Autowired
-    CourseService courseService;
+    SubjectService subjectService;
 
     @Autowired
     InviteCourseBuilder courseInviteBuilder;
@@ -22,40 +24,44 @@ public class CourseYearService extends BaseServiceLong<CourseYear, CourseYearRep
     AccessChecker accessChecker;
 
     @Transactional
-    public CourseYear createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
-        Course course = courseService.getCourse(courseId);
-        accessChecker.checkCanManageCourse(course, loggedInUserId);
-        CourseYear courseYear = new CourseYear(startYear);
-        courseYear.setCourse(course);
-        course.addCourseYear(courseYear);
-        return courseYear;
+    public Courses createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
+        Subject subject = subjectService.getCourse(courseId);
+        accessChecker.checkCanManageCourse(subject, loggedInUserId);
+        Courses courses = new Courses(startYear);
+        courses.setCourse(subject);
+        //subject.addCourseYear(courses);
+        return courses;
     }
 
     public void deleteCourseYear(Long yearId, String loggedInUserId) {
-        CourseYear courseYear = get(yearId);
-        accessChecker.checkCanManageCourseYear(courseYear, loggedInUserId);
-        repo.delete(courseYear);
+        Courses courses = get(yearId);
+        accessChecker.checkCanManageCourseYear(courses, loggedInUserId);
+        repo.delete(courses);
     }
 
     @Transactional
     public Invite createInvite(String email, Long yearId, String ownerId) {
-        CourseYear courseYear = get(yearId);
-        Invite invite = courseInviteBuilder.Build(email, ownerId, courseYear);
+        Courses courses = get(yearId);
+        Invite invite = courseInviteBuilder.Build(email, ownerId, courses);
         return invite;
     }
 
     @Transactional
     public void removeStudent(Long yearId, String username, String loggedInUserId) {
-        CourseYear courseYear = get(yearId);
-        accessChecker.checkCanManageCourseYear(courseYear, loggedInUserId);
+        Courses courses = get(yearId);
+        accessChecker.checkCanManageCourseYear(courses, loggedInUserId);
         User user = userService.getByUsername(username);
-        for(Group group : courseYear.getGroups()) {
+        for(Group group : courses.getGroups()) {
             if(group.isMember(user)) {
                 group.removeMember(user);
                 user.removeFromGroup(group);
             }
         }
-        courseYear.removeStudent(user);
-        user.removeFromCourseYear(courseYear);
+        courses.removeStudent(user);
+        user.removeFromCourseYear(courses);
+    }
+
+    public Collection<Courses> getAll(){
+        return repo.findAll();
     }
 }

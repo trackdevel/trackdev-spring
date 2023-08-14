@@ -25,9 +25,6 @@ import java.util.Optional;
 public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
-    private EntityManager em;
-
-    @Autowired
     private RoleService roleService;
 
     @Autowired
@@ -158,14 +155,14 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         ZonedDateTime currentDateTimeSpain = ZonedDateTime.now(ZoneId.of("Europe/Madrid"));
         LocalDateTime localDateTimeSpain = currentDateTimeSpain.toLocalDateTime();
         user.setLastLogin(localDateTimeSpain);
-        em.persist(user);
+        repo.save(user);
     }
 
     @Transactional
     public void changePassword(User user, String newpassword) {
         user.setPassword(global.getPasswordEncoder().encode(newpassword));
         user.setChangePassword(false);
-        em.persist(user);
+        repo().save(user);
     }
 
 }

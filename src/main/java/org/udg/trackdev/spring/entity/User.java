@@ -1,11 +1,8 @@
 package org.udg.trackdev.spring.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Getter;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
@@ -45,14 +42,14 @@ public class User extends BaseEntityUUID {
 
   private LocalDateTime lastLogin;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
-  private Collection<Course> coursesOwns = new ArrayList<>();
+  //@OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
+  //private Collection<Subject> coursesOwns = new ArrayList<>();
 
   @ManyToMany(mappedBy = "members")
   private Collection<Group> groups = new ArrayList<>();
 
   @ManyToMany(mappedBy = "students")
-  private Collection<CourseYear> courseYears = new ArrayList<>();
+  private Collection<Courses> courses = new ArrayList<>();
 
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
@@ -134,11 +131,14 @@ public class User extends BaseEntityUUID {
     return inRole;
   }
 
+  @JsonIgnore
+  public LocalDateTime getLastLogin(){ return lastLogin; }
+
   public void setLastLogin(LocalDateTime lastLogin) {
     this.lastLogin = lastLogin;
   }
 
-  public void addOwnCourse(Course course) { coursesOwns.add(course); }
+  //public void addOwnCourse(Subject subject) { coursesOwns.add(subject); }
 
   public void addToGroup(Group group) {
     this.groups.add(group);
@@ -150,12 +150,12 @@ public class User extends BaseEntityUUID {
     }
   }
 
-  public void enrollToCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
+  public void enrollToCourseYear(Courses courses) { this.courses.add(courses); }
 
-  public void removeFromCourseYear(CourseYear courseYear) { this.courseYears.remove(courseYear); }
+  public void removeFromCourseYear(Courses courses) { this.courses.remove(courses); }
 
   public void addInvite(Invite invite) { this.invites.add(invite); }
 
   @JsonIgnore
-  public Collection<CourseYear> getEnrolledCourseYears() { return this.courseYears; }
+  public Collection<Courses> getEnrolledCourseYears() { return this.courses; }
 }

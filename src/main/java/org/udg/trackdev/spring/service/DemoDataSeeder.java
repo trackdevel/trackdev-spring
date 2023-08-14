@@ -26,7 +26,7 @@ public class DemoDataSeeder {
     private UserService userService;
 
     @Autowired
-    private CourseService courseService;
+    private SubjectService subjectService;
 
     @Autowired
     private CourseYearService courseYearService;
@@ -65,24 +65,24 @@ public class DemoDataSeeder {
         Invite inviteStudent = inviteService.createInvite("student3@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
         // courses
-        Course course = courseService.createCourse("Test course", admin.getId());
-        CourseYear courseYear = courseYearService.createCourseYear(course.getId(), 2021, admin.getId());
-        for(int i = 3; i <= 10; i++) {
-            Invite inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courseYear.getId(), admin.getId());
-        }
-        inviteAndEnroll(courseYear, enrolledStudents, admin);
-        // one course set up
-        populateGroup(admin, courseYear, "Movie reviews", Arrays.asList(student1, student2));
-        populateGroup(admin, courseYear, "Calendar", enrolledStudents.subList(0,4));
+        Subject subject = subjectService.createCourse("Test subject","TST" ,admin.getId());
+        //Courses courses = courseYearService.createCourseYear(subject.getId(), 2021, admin.getId());
+        //for(int i = 3; i <= 10; i++) {
+           // Invite inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courses.getId(), admin.getId());
+        //}
+        //inviteAndEnroll(courses, enrolledStudents, admin);
+        // one subject set up
+       // populateGroup(admin, courses, "Movie reviews", Arrays.asList(student1, student2));
+        //populateGroup(admin, courses, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
     }
 
-    private void populateGroup(User admin, CourseYear courseYear, String groupName, List<User> users) {
+    private void populateGroup(User admin, Courses courses, String groupName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
         }
-        Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
+        Group group = groupService.createGroup(groupName, usernames, courses.getId(), admin.getId());
         Backlog backlog = group.getBacklogs().iterator().next();
 
         Random random = new Random();
@@ -220,9 +220,9 @@ public class DemoDataSeeder {
         return users;
     }
 
-    private void inviteAndEnroll(CourseYear courseYear, List<User> users, User admin) {
+    private void inviteAndEnroll(Courses courses, List<User> users, User admin) {
         for(User user: users) {
-            Invite inviteCourse = courseYearService.createInvite(user.getEmail(), courseYear.getId(), admin.getId());
+            Invite inviteCourse = courseYearService.createInvite(user.getEmail(), courses.getId(), admin.getId());
             inviteService.acceptInvite(inviteCourse.getId(), user.getId());
         }
     }

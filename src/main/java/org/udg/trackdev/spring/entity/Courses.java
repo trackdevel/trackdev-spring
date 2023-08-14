@@ -2,32 +2,29 @@ package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
-import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "course_years")
-public class CourseYear extends BaseEntityLong {
+@Table(name = "courses")
+public class Courses extends BaseEntityLong {
 
-    public CourseYear() {}
+    public Courses() {}
 
-    public CourseYear(Integer startYear) {
+    public Courses(Integer startYear) {
         this.startYear = startYear;
     }
 
     private Integer startYear;
 
     @ManyToOne
-    private Course course;
+    private Subject subject;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "courseYear", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "courses", fetch = FetchType.LAZY)
     private Collection<Group> groups;
 
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
@@ -37,9 +34,9 @@ public class CourseYear extends BaseEntityLong {
     public Integer getStartYear() { return startYear; }
 
     @JsonView({ EntityLevelViews.CourseYearComplete.class, EntityLevelViews.Hierarchy.class })
-    public Course getCourse() { return this.course; }
+    public Subject getCourse() { return this.subject; }
 
-    public void setCourse(Course course) { this.course = course; }
+    public void setCourse(Subject subject) { this.subject = subject; }
 
     @JsonIgnore
     public Collection<Group> getGroups() { return this.groups; }

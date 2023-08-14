@@ -8,31 +8,28 @@ import javax.persistence.*;
 import java.util.Collection;
 
 @Entity
-@Table(name = "courses")
-public class Course extends BaseEntityLong {
+@Table(name = "subjects")
+public class Subject extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 50;
-
-    public Course() {}
-
-    public Course(String name) {
-        this.name = name;
-    }
 
     @NonNull
     @Column(length = NAME_LENGTH)
     private String name;
 
-    @NonNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ownerId")
-    private User owner;
-
     @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
-    private Collection<CourseYear> courseYears;
+    @NonNull
+    private String acronym;
+
+    public Subject() {}
+
+    public Subject(String name, String acronym, String ownerId  ) {
+        this.name = name;
+        this.acronym = acronym;
+        this.ownerId = ownerId;
+    }
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public String getName() {
@@ -46,14 +43,12 @@ public class Course extends BaseEntityLong {
         return ownerId;
     }
 
-    public void setOwner(@NonNull User owner) {
-        this.owner = owner;
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getAcronym() {
+        return acronym;
     }
 
-    @JsonView(EntityLevelViews.CourseComplete.class)
-    public Collection<CourseYear> getCourseYears() {
-        return this.courseYears;
+    public void setAcronym(String acronym) {
+        this.acronym = acronym;
     }
-
-    public void addCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
 }

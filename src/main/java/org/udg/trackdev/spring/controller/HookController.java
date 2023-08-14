@@ -1,29 +1,19 @@
 package org.udg.trackdev.spring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.udg.trackdev.spring.entity.Course;
-import org.udg.trackdev.spring.entity.PRNote;
+import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.PullRequest;
-import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.service.CourseService;
+import org.udg.trackdev.spring.service.SubjectService;
 import org.udg.trackdev.spring.service.PRNoteService;
 import org.udg.trackdev.spring.service.PullRequestService;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.security.Principal;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/hooks")
 @ResponseBody
-public class HookController extends CrudController<Course, CourseService> {
+public class HookController extends CrudController<Subject, SubjectService> {
 
     @Autowired
     PRNoteService prNoteService;

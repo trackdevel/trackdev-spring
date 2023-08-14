@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.Backlog;
-import org.udg.trackdev.spring.entity.CourseYear;
+import org.udg.trackdev.spring.entity.Courses;
 import org.udg.trackdev.spring.entity.Group;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.GroupRepository;
@@ -29,7 +29,7 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
     @Transactional
     public Group createGroup(String name, Collection<String> usernames, Long courseYearId,
                              String loggedInUserId) {
-        CourseYear course = courseYearService.get(courseYearId);
+        Courses course = courseYearService.get(courseYearId);
         accessChecker.checkCanManageCourseYear(course, loggedInUserId);
         Group group = new Group(name);
         course.addGroup(group);
@@ -71,14 +71,14 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
         repo.delete(group);
     }
 
-    private void addMembers(CourseYear course, Group group, Collection<String> usernames) {
+    private void addMembers(Courses course, Group group, Collection<String> usernames) {
         for(String username: usernames) {
             User user = userService.getByUsername(username);
             addMember(course, group, user);
         }
     }
 
-    private void addMember(CourseYear course, Group group, User user) {
+    private void addMember(Courses course, Group group, User user) {
         if(!course.isEnrolled(user)) {
             String message = String.format("User with name = %s is not enrolled to this course", user.getUsername());
             throw new ServiceException(message);

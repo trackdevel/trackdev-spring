@@ -28,42 +28,42 @@ public class AccessChecker {
         }
     }
 
-    public void checkCanManageCourse(Course course, String userId) {
-        if(!isCourseOwner(course, userId)) {
-            throw new ServiceException("User cannot manage this course");
+    public void checkCanManageCourse(Subject subject, String userId) {
+        if(!isCourseOwner(subject, userId)) {
+            throw new ServiceException("User cannot manage this subject");
         }
     }
 
-    public void checkCanViewCourse(Course course, String userId) {
-        if(isCourseOwner(course, userId)) {
+    public void checkCanViewCourse(Subject subject, String userId) {
+        if(isCourseOwner(subject, userId)) {
             return;
         }
         throw new ServiceException(defaultNoAccessMessage);
     }
 
-    public void checkCanManageCourseYear(CourseYear courseYear, String userId) {
-        checkCanManageCourse(courseYear.getCourse(), userId);
+    public void checkCanManageCourseYear(Courses courses, String userId) {
+        checkCanManageCourse(courses.getCourse(), userId);
     }
 
-    public void checkCanViewCourseYear(CourseYear courseYear, String userId) {
-        if(isCourseOwner(courseYear.getCourse(), userId)) {
+    public void checkCanViewCourseYear(Courses courses, String userId) {
+        if(isCourseOwner(courses.getCourse(), userId)) {
             return;
         }
         User user = userService.get(userId);
-        if(courseYear.isEnrolled(user)) {
+        if(courses.isEnrolled(user)) {
             return;
         }
         throw new ServiceException(defaultNoAccessMessage);
     }
 
-    public void checkCanViewCourseYearAllStudents(CourseYear courseYear, String userId) {
-        if(!isCourseOwner(courseYear.getCourse(), userId)) {
+    public void checkCanViewCourseYearAllStudents(Courses courses, String userId) {
+        if(!isCourseOwner(courses.getCourse(), userId)) {
             throw new ServiceException(defaultNoAccessMessage);
         }
     }
 
-    public boolean canViewCourseYearAllGroups(CourseYear courseYear, String userId) {
-        if(isCourseOwner(courseYear.getCourse(), userId)) {
+    public boolean canViewCourseYearAllGroups(Courses courses, String userId) {
+        if(isCourseOwner(courses.getCourse(), userId)) {
             return true;
         }
         return false;
@@ -77,8 +77,8 @@ public class AccessChecker {
         if(group.isMember(userId)) {
             return;
         }
-        Course course = group.getCourseYear().getCourse();
-        if(isCourseOwner(course, userId)) {
+        Subject subject = group.getCourseYear().getCourse();
+        if(isCourseOwner(subject, userId)) {
             return;
         }
         throw new ServiceException(defaultNoAccessMessage);
@@ -94,8 +94,8 @@ public class AccessChecker {
         if(group.isMember(user)) {
            return;
         }
-        Course course = group.getCourseYear().getCourse();
-        if(isCourseOwner(course, user.getId())) {
+        Subject subject = group.getCourseYear().getCourse();
+        if(isCourseOwner(subject, user.getId())) {
             return;
         }
         throw new ServiceException("User cannot manage this backlog");
@@ -106,8 +106,8 @@ public class AccessChecker {
         if(group.isMember(userId)) {
             return;
         }
-        Course course = group.getCourseYear().getCourse();
-        if(isCourseOwner(course, userId)) {
+        Subject subject = group.getCourseYear().getCourse();
+        if(isCourseOwner(subject, userId)) {
             return;
         }
         throw new ServiceException(defaultNoAccessMessage);
@@ -118,8 +118,8 @@ public class AccessChecker {
         throw new ServiceException("User cannot see all tasks");
     }
 
-    private boolean isCourseOwner(Course course, String userId) {
-        return course.getOwnerId().equals(userId);
+    private boolean isCourseOwner(Subject subject, String userId) {
+        return subject.getOwnerId().equals(userId);
     }
 
     public boolean isUserAdminOrProfessor(User user) {

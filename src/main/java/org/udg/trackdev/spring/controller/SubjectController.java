@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.udg.trackdev.spring.entity.Course;
-import org.udg.trackdev.spring.entity.CourseYear;
+import org.udg.trackdev.spring.entity.Subject;
+import org.udg.trackdev.spring.entity.Courses;
 import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
-import org.udg.trackdev.spring.service.CourseService;
+import org.udg.trackdev.spring.service.SubjectService;
 import org.udg.trackdev.spring.service.CourseYearService;
 
 import javax.validation.Valid;
@@ -21,8 +21,8 @@ import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/courses")
-public class CourseController extends CrudController<Course, CourseService> {
+@RequestMapping(path = "/subjects")
+public class SubjectController extends CrudController<Subject, SubjectService> {
 
     @Autowired
     CourseYearService courseYearService;
@@ -32,7 +32,7 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     @GetMapping
     @JsonView(EntityLevelViews.CourseComplete.class)
-    public List<Course> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
+    public List<Subject> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         String refinedSearch = super.scopedSearch("ownerId:"+userId, search);
         return super.search(refinedSearch);
@@ -40,34 +40,34 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.CourseComplete.class)
-    public Course getCourse(Principal principal, @PathVariable("id") Long id) {
-        Course course = service.getCourse(id);
+    public Subject getSubject(Principal principal, @PathVariable("id") Long id) {
+        Subject subject = service.getCourse(id);
         String userId = super.getUserId(principal);
-        accessChecker.checkCanViewCourse(course, userId);
-        return course;
+        accessChecker.checkCanViewCourse(subject, userId);
+        return subject;
     }
 
     @PostMapping
-    public IdObjectLong createCourse(Principal principal, @Valid @RequestBody NewCourse courseRequest) {
+    public IdObjectLong createSubject(Principal principal, @Valid @RequestBody NewCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Course createdCourse = service.createCourse(courseRequest.name, userId);
+        Subject createdSubject = service.createCourse(courseRequest.name, courseRequest.acronym, userId);
 
-        return new IdObjectLong(createdCourse.getId());
+        return new IdObjectLong(createdSubject.getId());
     }
 
     @PutMapping(path = "/{id}")
     @JsonView(EntityLevelViews.CourseComplete.class)
-    public Course editCourse(Principal principal,
-                             @PathVariable("id") Long id,
-                             @Valid @RequestBody EditCourse courseRequest) {
+    public Subject editSubject(Principal principal,
+                               @PathVariable("id") Long id,
+                               @Valid @RequestBody EditCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Course modifiedCourse = service.editCourseDetails(id, courseRequest.name, userId);
+        Subject modifiedSubject = service.editCourseDetails(id, courseRequest.name, userId);
 
-        return modifiedCourse;
+        return modifiedSubject;
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteCourse(Principal principal, @PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteSubject(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         service.deleteCourse(id, userId);
 
@@ -79,7 +79,7 @@ public class CourseController extends CrudController<Course, CourseService> {
                                         @PathVariable("courseId") Long courseId,
                                         @Valid @RequestBody NewCourseYear yearRequest) {
         String userId = super.getUserId(principal);
-        CourseYear createdYear = courseYearService.createCourseYear(courseId, yearRequest.startYear, userId);
+        Courses createdYear = courseYearService.createCourseYear(courseId, yearRequest.startYear, userId);
         return new IdObjectLong(createdYear.getId());
     }
 
@@ -93,13 +93,14 @@ public class CourseController extends CrudController<Course, CourseService> {
 
     static class NewCourse {
         @NotBlank
-        @Size(max = Course.NAME_LENGTH)
+        @Size(max = Subject.NAME_LENGTH)
         public String name;
+        public String acronym;
     }
 
     static class EditCourse {
         @NotBlank
-        @Size(max = Course.NAME_LENGTH)
+        @Size(max = Subject.NAME_LENGTH)
         public String name;
     }
 

@@ -79,14 +79,14 @@ public class InviteService extends BaseServiceLong<Invite, InviteRepository> {
     }
 
     private void applyCourseYearInvite(Invite invite, User user) {
-        CourseYear courseYear = invite.getCourseYear();
-        if(courseYear != null) {
+        Courses courses = invite.getCourseYear();
+        if(courses != null) {
             if(!user.isUserType(UserType.STUDENT)) {
                 Role role = roleService.get(UserType.STUDENT);
                 user.addRole(role);
             }
-            user.enrollToCourseYear(courseYear);
-            courseYear.enrollStudent(user);
+            user.enrollToCourseYear(courses);
+            courses.enrollStudent(user);
         }
     }
 }

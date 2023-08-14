@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
@@ -42,19 +43,27 @@ public class CourseYearController extends BaseController {
 
     @GetMapping
     @JsonView(EntityLevelViews.CourseYearComplete.class)
-    public Collection<CourseYear> getCourseYears(Principal principal) {
+    public Collection<Courses> getCourseYears(Principal principal) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        return user.getEnrolledCourseYears();
+        /**NOU BLOC**/
+        if (user.isUserType(UserType.STUDENT))
+            return user.getEnrolledCourseYears();
+        else if (user.isUserType(UserType.ADMIN) || user.isUserType(UserType.PROFESSOR))
+            return courseYearService.getAll();
+        else
+            throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
+        /***/
+        //return user.getEnrolledCourseYears();
     }
 
     @GetMapping(path = "/{yearId}")
     @JsonView(EntityLevelViews.CourseYearComplete.class)
-    public CourseYear getCourseYear(Principal principal, @PathVariable("yearId") Long yearId) {
+    public Courses getCourseYear(Principal principal, @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
-        CourseYear courseYear = courseYearService.get(yearId);
-        accessChecker.checkCanViewCourseYear(courseYear, userId);
-        return courseYear;
+        Courses courses = courseYearService.get(yearId);
+        accessChecker.checkCanViewCourseYear(courses, userId);
+        return courses;
     }
 
     @PostMapping(path = "/{yearId}/invites")
@@ -71,9 +80,9 @@ public class CourseYearController extends BaseController {
     public Set<User> getStudents(Principal principal,
                                  @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
-        CourseYear courseYear = courseYearService.get(yearId);
-        accessChecker.checkCanViewCourseYearAllStudents(courseYear, userId);
-        return courseYear.getStudents();
+        Courses courses = courseYearService.get(yearId);
+        accessChecker.checkCanViewCourseYearAllStudents(courses, userId);
+        return courses.getStudents();
     }
 
     @DeleteMapping(path = "/{yearId}/students/{username}")
@@ -90,12 +99,12 @@ public class CourseYearController extends BaseController {
     public Collection<Group> getGroups(Principal principal,
                                     @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
-        CourseYear courseYear = courseYearService.get(yearId);
+        Courses courses = courseYearService.get(yearId);
         Collection<Group> groups;
-        if(accessChecker.canViewCourseYearAllGroups(courseYear, userId)) {
-            groups = courseYear.getGroups();
+        if(accessChecker.canViewCourseYearAllGroups(courses, userId)) {
+            groups = courses.getGroups();
         } else {
-            groups = courseYear.getGroups().stream()
+            groups = courses.getGroups().stream()
                     .filter(group -> group.isMember(userId))
                     .collect(Collectors.toCollection(ArrayList::new));
         }
