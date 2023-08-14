@@ -25,7 +25,7 @@ public class CourseYearService extends BaseServiceLong<Courses, CourseYearReposi
 
     @Transactional
     public Courses createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
-        Subject subject = subjectService.getCourse(courseId);
+        Subject subject = subjectService.getSubject(courseId);
         accessChecker.checkCanManageCourse(subject, loggedInUserId);
         Courses courses = new Courses(startYear);
         courses.setCourse(subject);

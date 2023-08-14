@@ -41,7 +41,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Subject getSubject(Principal principal, @PathVariable("id") Long id) {
-        Subject subject = service.getCourse(id);
+        Subject subject = service.getSubject(id);
         String userId = super.getUserId(principal);
         accessChecker.checkCanViewCourse(subject, userId);
         return subject;
@@ -50,7 +50,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @PostMapping
     public IdObjectLong createSubject(Principal principal, @Valid @RequestBody NewCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Subject createdSubject = service.createCourse(courseRequest.name, courseRequest.acronym, userId);
+        Subject createdSubject = service.createSubject(courseRequest.name, courseRequest.acronym, userId);
 
         return new IdObjectLong(createdSubject.getId());
     }
@@ -61,7 +61,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
                                @PathVariable("id") Long id,
                                @Valid @RequestBody EditCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Subject modifiedSubject = service.editCourseDetails(id, courseRequest.name, userId);
+        Subject modifiedSubject = service.editSubjectDetails(id, courseRequest.name, userId);
 
         return modifiedSubject;
     }

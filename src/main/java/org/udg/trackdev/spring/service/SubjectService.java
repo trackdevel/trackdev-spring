@@ -3,12 +3,12 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.controller.SubjectController;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.SubjectRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,7 +20,7 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     @Autowired
     AccessChecker accessChecker;
 
-    public Subject getCourse(Long id) {
+    public Subject getSubject(Long id) {
         Optional<Subject> oc = this.repo.findById(id);
         if (oc.isEmpty())
             throw new EntityNotFound("Subject does not exists");
@@ -29,17 +29,17 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
 
 
     @Transactional
-    public Subject createCourse(String name, String acronym, String loggedInUserId) {
+    public Subject createSubject(String name, String acronym, String loggedInUserId) {
         User owner = userService.get(loggedInUserId);
         accessChecker.checkCanCreateCourse(owner);
-        Subject subject = new Subject(name,acronym,loggedInUserId);
-        //owner.addOwnCourse(subject);
-        repo.save(subject);
+        Subject  subject = new Subject(name,acronym);
+        owner.addOwnCourse(subject);
+        subject.setOwner(owner);
         return subject;
     }
 
-    public Subject editCourseDetails(Long id, String name, String loggedInUserId) {
-        Subject subject = getCourse(id);
+    public Subject editSubjectDetails(Long id, String name, String loggedInUserId) {
+        Subject subject = getSubject(id);
         accessChecker.checkCanManageCourse(subject, loggedInUserId);
         subject.setName(name);
         repo.save(subject);
@@ -47,7 +47,7 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     }
 
     public void deleteCourse(Long id, String loggedInUserId) {
-        Subject subject = getCourse(id);
+        Subject subject = getSubject(id);
         accessChecker.checkCanManageCourse(subject, loggedInUserId);
         repo.delete(subject);
     }

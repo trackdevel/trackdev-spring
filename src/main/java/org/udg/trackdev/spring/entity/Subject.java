@@ -17,6 +17,11 @@ public class Subject extends BaseEntityLong {
     @Column(length = NAME_LENGTH)
     private String name;
 
+    @NonNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ownerId")
+    private User owner;
+
     @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
@@ -25,10 +30,9 @@ public class Subject extends BaseEntityLong {
 
     public Subject() {}
 
-    public Subject(String name, String acronym, String ownerId  ) {
+    public Subject(String name, String acronym) {
         this.name = name;
         this.acronym = acronym;
-        this.ownerId = ownerId;
     }
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
@@ -46,6 +50,10 @@ public class Subject extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public String getAcronym() {
         return acronym;
+    }
+
+    public void setOwner(@NonNull User owner) {
+        this.owner = owner;
     }
 
     public void setAcronym(String acronym) {

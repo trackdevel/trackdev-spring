@@ -51,6 +51,9 @@ public class User extends BaseEntityUUID {
   @ManyToMany(mappedBy = "students")
   private Collection<Courses> courses = new ArrayList<>();
 
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
+  private Collection<Subject> coursesOwns = new ArrayList<>();
+
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
 
@@ -138,7 +141,7 @@ public class User extends BaseEntityUUID {
     this.lastLogin = lastLogin;
   }
 
-  //public void addOwnCourse(Subject subject) { coursesOwns.add(subject); }
+  public void addOwnCourse(Subject subject) { coursesOwns.add(subject); }
 
   public void addToGroup(Group group) {
     this.groups.add(group);

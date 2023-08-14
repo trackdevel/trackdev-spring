@@ -65,7 +65,7 @@ public class DemoDataSeeder {
         Invite inviteStudent = inviteService.createInvite("student3@trackdev.com", List.of(UserType.STUDENT), admin.getId());
         Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
         // courses
-        Subject subject = subjectService.createCourse("Test subject","TST" ,admin.getId());
+        Subject subject = subjectService.createSubject("Test subject","TST" ,admin.getId());
         //Courses courses = courseYearService.createCourseYear(subject.getId(), 2021, admin.getId());
         //for(int i = 3; i <= 10; i++) {
            // Invite inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courses.getId(), admin.getId());
