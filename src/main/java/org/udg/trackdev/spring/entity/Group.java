@@ -33,7 +33,7 @@ public class Group extends BaseEntityLong {
     private Set<User> members = new HashSet<>();
 
     @ManyToOne
-    private Courses courses;
+    private Courses course;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Backlog> backlogs = new ArrayList<>();
@@ -70,11 +70,11 @@ public class Group extends BaseEntityLong {
     @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     @JsonSerialize(using = JsonHierarchyViewSerializer.class)
     public Courses getCourseYear() {
-        return this.courses;
+        return this.course;
     }
 
     public void setCourseYear(Courses courses) {
-        this.courses = courses;
+        this.course = courses;
     }
 
     @JsonView(EntityLevelViews.Basic.class)

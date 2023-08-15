@@ -21,7 +21,7 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
     UserService userService;
 
     @Autowired
-    CourseYearService courseYearService;
+    CourseService courseService;
 
     @Autowired
     AccessChecker accessChecker;
@@ -29,7 +29,7 @@ public class GroupService extends BaseServiceLong<Group, GroupRepository> {
     @Transactional
     public Group createGroup(String name, Collection<String> usernames, Long courseYearId,
                              String loggedInUserId) {
-        Courses course = courseYearService.get(courseYearId);
+        Courses course = courseService.get(courseYearId);
         accessChecker.checkCanManageCourseYear(course, loggedInUserId);
         Group group = new Group(name);
         course.addGroup(group);

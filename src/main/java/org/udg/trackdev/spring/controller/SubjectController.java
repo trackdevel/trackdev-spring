@@ -4,13 +4,16 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.Courses;
+import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.SubjectService;
-import org.udg.trackdev.spring.service.CourseYearService;
+import org.udg.trackdev.spring.service.CourseService;
+import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -25,17 +28,26 @@ import java.util.List;
 public class SubjectController extends CrudController<Subject, SubjectService> {
 
     @Autowired
-    CourseYearService courseYearService;
+    CourseService courseService;
 
     @Autowired
     AccessChecker accessChecker;
+
+    @Autowired
+    UserService userService;
 
     @GetMapping
     @JsonView(EntityLevelViews.CourseComplete.class)
     public List<Subject> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
-        String refinedSearch = super.scopedSearch("ownerId:"+userId, search);
-        return super.search(refinedSearch);
+        User user = userService.get(userId);
+        if (user.isUserType(UserType.ADMIN)){
+            return super.search(search);
+        }
+        else {
+            String refinedSearch = super.scopedSearch("ownerId:" + userId, search);
+            return super.search(refinedSearch);
+        }
     }
 
     @GetMapping(path = "/{id}")
@@ -48,9 +60,9 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     }
 
     @PostMapping
-    public IdObjectLong createSubject(Principal principal, @Valid @RequestBody NewCourse courseRequest) {
+    public IdObjectLong createSubject(Principal principal, @Valid @RequestBody NewSubject subjectRequest) {
         String userId = super.getUserId(principal);
-        Subject createdSubject = service.createSubject(courseRequest.name, courseRequest.acronym, userId);
+        Subject createdSubject = service.createSubject(subjectRequest.name, subjectRequest.acronym, userId);
 
         return new IdObjectLong(createdSubject.getId());
     }
@@ -59,9 +71,9 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Subject editSubject(Principal principal,
                                @PathVariable("id") Long id,
-                               @Valid @RequestBody EditCourse courseRequest) {
+                               @Valid @RequestBody EditSubject subjectRequest) {
         String userId = super.getUserId(principal);
-        Subject modifiedSubject = service.editSubjectDetails(id, courseRequest.name, userId);
+        Subject modifiedSubject = service.editSubjectDetails(id, subjectRequest.name, userId);
 
         return modifiedSubject;
     }
@@ -69,42 +81,42 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteSubject(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
-        service.deleteCourse(id, userId);
+        service.deleteSubject(id, userId);
 
         return okNoContent();
     }
 
-    @PostMapping(path = "/{courseId}/years")
-    public IdObjectLong createYear(Principal principal,
-                                        @PathVariable("courseId") Long courseId,
-                                        @Valid @RequestBody NewCourseYear yearRequest) {
+    @PostMapping(path = "/{subjectId}/courses")
+    public IdObjectLong createCourse(Principal principal,
+                                     @PathVariable("subjectId") Long subjectId,
+                                     @Valid @RequestBody NewCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Courses createdYear = courseYearService.createCourseYear(courseId, yearRequest.startYear, userId);
-        return new IdObjectLong(createdYear.getId());
+        Courses createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, userId);
+        return new IdObjectLong(createdCourse.getId());
     }
 
-    @DeleteMapping(path = "/years/{yearId}")
-    public ResponseEntity deleteYear(Principal principal,
-                                @PathVariable("yearId") Long yearId) {
+    @DeleteMapping(path = "/courses/{courseId}")
+    public ResponseEntity deleteCourse(Principal principal,
+                                       @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        courseYearService.deleteCourseYear(yearId, userId);
+        courseService.deleteCourse(courseId, userId);
         return okNoContent();
     }
 
-    static class NewCourse {
+    static class NewSubject {
         @NotBlank
         @Size(max = Subject.NAME_LENGTH)
         public String name;
         public String acronym;
     }
 
-    static class EditCourse {
+    static class EditSubject {
         @NotBlank
         @Size(max = Subject.NAME_LENGTH)
         public String name;
     }
 
-    static class NewCourseYear {
+    static class NewCourse {
         @Min(value = 2020)
         @Max(value = 3000)
         public Integer startYear;

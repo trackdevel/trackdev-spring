@@ -29,7 +29,7 @@ public class DemoDataSeeder {
     private SubjectService subjectService;
 
     @Autowired
-    private CourseYearService courseYearService;
+    private CourseService courseService;
 
     @Autowired
     private GroupService groupService;
@@ -52,7 +52,7 @@ public class DemoDataSeeder {
         User admin = userService.addUserInternal("professor1", "professor1@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
         User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
         User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
-        User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.PROFESSOR));
+        User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.PROFESSOR));
 
         /** coses noves **/
         User test_nou = userService.addUserInternal("test_nou", "test_nou@gmail.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.STUDENT));
@@ -66,14 +66,14 @@ public class DemoDataSeeder {
         Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
         // courses
         Subject subject = subjectService.createSubject("Test subject","TST" ,admin.getId());
-        //Courses courses = courseYearService.createCourseYear(subject.getId(), 2021, admin.getId());
-        //for(int i = 3; i <= 10; i++) {
-           // Invite inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courses.getId(), admin.getId());
-        //}
-        //inviteAndEnroll(courses, enrolledStudents, admin);
+        Courses courses = courseService.createCourse(subject.getId(), 2021, admin.getId());
+        for(int i = 3; i <= 10; i++) {
+           Invite inviteCourse = courseService.createInvite("student" + i + "@trackdev.com", courses.getId(), admin.getId());
+        }
+        inviteAndEnroll(courses, enrolledStudents, admin);
         // one subject set up
-       // populateGroup(admin, courses, "Movie reviews", Arrays.asList(student1, student2));
-        //populateGroup(admin, courses, "Calendar", enrolledStudents.subList(0,4));
+        populateGroup(admin, courses, "Movie reviews", Arrays.asList(student1, student2));
+        populateGroup(admin, courses, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
     }
 
@@ -222,7 +222,7 @@ public class DemoDataSeeder {
 
     private void inviteAndEnroll(Courses courses, List<User> users, User admin) {
         for(User user: users) {
-            Invite inviteCourse = courseYearService.createInvite(user.getEmail(), courses.getId(), admin.getId());
+            Invite inviteCourse = courseService.createInvite(user.getEmail(), courses.getId(), admin.getId());
             inviteService.acceptInvite(inviteCourse.getId(), user.getId());
         }
     }

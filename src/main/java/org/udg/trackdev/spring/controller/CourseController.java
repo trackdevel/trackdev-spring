@@ -10,7 +10,7 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.service.AccessChecker;
-import org.udg.trackdev.spring.service.CourseYearService;
+import org.udg.trackdev.spring.service.CourseService;
 import org.udg.trackdev.spring.service.GroupService;
 import org.udg.trackdev.spring.service.UserService;
 
@@ -26,11 +26,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(path = "/courses/years")
-public class CourseYearController extends BaseController {
+@RequestMapping(path = "/subjects/courses")
+public class CourseController extends BaseController {
 
     @Autowired
-    CourseYearService courseYearService;
+    CourseService courseService;
 
     @Autowired
     GroupService groupService;
@@ -43,35 +43,35 @@ public class CourseYearController extends BaseController {
 
     @GetMapping
     @JsonView(EntityLevelViews.CourseYearComplete.class)
-    public Collection<Courses> getCourseYears(Principal principal) {
+    public Collection<Courses> getCourses(Principal principal) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         /**NOU BLOC**/
-        if (user.isUserType(UserType.STUDENT))
+        if (user.isUserType(UserType.ADMIN))
+            return courseService.getAll();
+        else if (user.isUserType(UserType.STUDENT) || user.isUserType(UserType.PROFESSOR))
             return user.getEnrolledCourseYears();
-        else if (user.isUserType(UserType.ADMIN) || user.isUserType(UserType.PROFESSOR))
-            return courseYearService.getAll();
         else
             throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
         /***/
         //return user.getEnrolledCourseYears();
     }
 
-    @GetMapping(path = "/{yearId}")
+    @GetMapping(path = "/{courseId}")
     @JsonView(EntityLevelViews.CourseYearComplete.class)
-    public Courses getCourseYear(Principal principal, @PathVariable("yearId") Long yearId) {
+    public Courses getCourse(Principal principal, @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Courses courses = courseYearService.get(yearId);
+        Courses courses = courseService.get(courseId);
         accessChecker.checkCanViewCourseYear(courses, userId);
         return courses;
     }
 
-    @PostMapping(path = "/{yearId}/invites")
+    @PostMapping(path = "/{courseId}/invites")
     public IdObjectLong createInvite(Principal principal,
-                                     @PathVariable("yearId") Long yearId,
+                                     @PathVariable("courseId") Long yearId,
                                      @Valid @RequestBody NewCourseInvite inviteRequest) {
         String userId = super.getUserId(principal);
-        Invite createdInvite = courseYearService.createInvite(inviteRequest.email, yearId, userId);
+        Invite createdInvite = courseService.createInvite(inviteRequest.email, yearId, userId);
         return new IdObjectLong(createdInvite.getId());
     }
 
@@ -80,26 +80,26 @@ public class CourseYearController extends BaseController {
     public Set<User> getStudents(Principal principal,
                                  @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
-        Courses courses = courseYearService.get(yearId);
+        Courses courses = courseService.get(yearId);
         accessChecker.checkCanViewCourseYearAllStudents(courses, userId);
         return courses.getStudents();
     }
 
-    @DeleteMapping(path = "/{yearId}/students/{username}")
+    @DeleteMapping(path = "/{courseId}/students/{username}")
     public ResponseEntity getStudents(Principal principal,
-                                      @PathVariable("yearId") Long yearId,
+                                      @PathVariable("courseId") Long courseId,
                                       @PathVariable("username") String username) {
         String principalUserId = super.getUserId(principal);
-        courseYearService.removeStudent(yearId, username, principalUserId);
+        courseService.removeStudent(courseId, username, principalUserId);
         return okNoContent();
     }
 
-    @GetMapping(path = "/{yearId}/groups")
+    @GetMapping(path = "/{courseId}/groups")
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Group> getGroups(Principal principal,
-                                    @PathVariable("yearId") Long yearId) {
+                                    @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Courses courses = courseYearService.get(yearId);
+        Courses courses = courseService.get(courseId);
         Collection<Group> groups;
         if(accessChecker.canViewCourseYearAllGroups(courses, userId)) {
             groups = courses.getGroups();
@@ -111,12 +111,12 @@ public class CourseYearController extends BaseController {
         return groups;
     }
 
-    @PostMapping(path = "/{yearId}/groups")
+    @PostMapping(path = "/{courseId}/groups")
     public IdObjectLong createGroup(Principal principal,
-                                     @PathVariable("yearId") Long yearId,
+                                     @PathVariable("courseId") Long courseId,
                                      @Valid @RequestBody NewGroup groupRequest) {
         String userId = super.getUserId(principal);
-        Group createdGroup = groupService.createGroup(groupRequest.name, groupRequest.members, yearId, userId);
+        Group createdGroup = groupService.createGroup(groupRequest.name, groupRequest.members, courseId, userId);
         return new IdObjectLong(createdGroup.getId());
     }
 

@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.entity.*;
-import org.udg.trackdev.spring.repository.CourseYearRepository;
+import org.udg.trackdev.spring.repository.CourseRepository;
 
 import java.util.Collection;
 
 @Service
-public class CourseYearService extends BaseServiceLong<Courses, CourseYearRepository> {
+public class CourseService extends BaseServiceLong<Courses, CourseRepository> {
 
     @Autowired
     SubjectService subjectService;
@@ -24,16 +24,16 @@ public class CourseYearService extends BaseServiceLong<Courses, CourseYearReposi
     AccessChecker accessChecker;
 
     @Transactional
-    public Courses createCourseYear(Long courseId, Integer startYear, String loggedInUserId) {
+    public Courses createCourse(Long courseId, Integer startYear, String loggedInUserId) {
         Subject subject = subjectService.getSubject(courseId);
         accessChecker.checkCanManageCourse(subject, loggedInUserId);
         Courses courses = new Courses(startYear);
-        courses.setCourse(subject);
-        //subject.addCourseYear(courses);
+        courses.setSubject(subject);
+        subject.addCourseYear(courses);
         return courses;
     }
 
-    public void deleteCourseYear(Long yearId, String loggedInUserId) {
+    public void deleteCourse(Long yearId, String loggedInUserId) {
         Courses courses = get(yearId);
         accessChecker.checkCanManageCourseYear(courses, loggedInUserId);
         repo.delete(courses);

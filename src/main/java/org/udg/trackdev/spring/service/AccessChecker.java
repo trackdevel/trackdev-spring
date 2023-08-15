@@ -42,11 +42,11 @@ public class AccessChecker {
     }
 
     public void checkCanManageCourseYear(Courses courses, String userId) {
-        checkCanManageCourse(courses.getCourse(), userId);
+        checkCanManageCourse(courses.getSubject(), userId);
     }
 
     public void checkCanViewCourseYear(Courses courses, String userId) {
-        if(isCourseOwner(courses.getCourse(), userId)) {
+        if(isCourseOwner(courses.getSubject(), userId)) {
             return;
         }
         User user = userService.get(userId);
@@ -57,13 +57,13 @@ public class AccessChecker {
     }
 
     public void checkCanViewCourseYearAllStudents(Courses courses, String userId) {
-        if(!isCourseOwner(courses.getCourse(), userId)) {
+        if(!isCourseOwner(courses.getSubject(), userId)) {
             throw new ServiceException(defaultNoAccessMessage);
         }
     }
 
     public boolean canViewCourseYearAllGroups(Courses courses, String userId) {
-        if(isCourseOwner(courses.getCourse(), userId)) {
+        if(isCourseOwner(courses.getSubject(), userId)) {
             return true;
         }
         return false;
@@ -77,7 +77,7 @@ public class AccessChecker {
         if(group.isMember(userId)) {
             return;
         }
-        Subject subject = group.getCourseYear().getCourse();
+        Subject subject = group.getCourseYear().getSubject();
         if(isCourseOwner(subject, userId)) {
             return;
         }
@@ -94,7 +94,7 @@ public class AccessChecker {
         if(group.isMember(user)) {
            return;
         }
-        Subject subject = group.getCourseYear().getCourse();
+        Subject subject = group.getCourseYear().getSubject();
         if(isCourseOwner(subject, user.getId())) {
             return;
         }
@@ -106,7 +106,7 @@ public class AccessChecker {
         if(group.isMember(userId)) {
             return;
         }
-        Subject subject = group.getCourseYear().getCourse();
+        Subject subject = group.getCourseYear().getSubject();
         if(isCourseOwner(subject, userId)) {
             return;
         }
@@ -125,4 +125,5 @@ public class AccessChecker {
     public boolean isUserAdminOrProfessor(User user) {
         return user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN);
     }
+
 }

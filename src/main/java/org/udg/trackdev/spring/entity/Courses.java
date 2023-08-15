@@ -24,7 +24,7 @@ public class Courses extends BaseEntityLong {
     @ManyToOne
     private Subject subject;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "courses", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course", fetch = FetchType.LAZY)
     private Collection<Group> groups;
 
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
@@ -34,9 +34,9 @@ public class Courses extends BaseEntityLong {
     public Integer getStartYear() { return startYear; }
 
     @JsonView({ EntityLevelViews.CourseYearComplete.class, EntityLevelViews.Hierarchy.class })
-    public Subject getCourse() { return this.subject; }
+    public Subject getSubject() { return this.subject; }
 
-    public void setCourse(Subject subject) { this.subject = subject; }
+    public void setSubject(Subject subject) { this.subject = subject; }
 
     @JsonIgnore
     public Collection<Group> getGroups() { return this.groups; }

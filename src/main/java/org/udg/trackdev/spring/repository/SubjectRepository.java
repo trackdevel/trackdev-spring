@@ -7,5 +7,5 @@ import java.util.List;
 
 @Component
 public interface SubjectRepository extends BaseRepositoryLong<Subject> {
-    //List<Subject> findByOwner(String owner);
+    List<Subject> findByOwner(String owner);
 }
