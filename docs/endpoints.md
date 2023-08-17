@@ -40,7 +40,7 @@ GET | /courses | View courses created by the user |
 GET | /courses/{id} | View subject |
 POST | /courses | Create a new subject |
 PUT | /courses/{id} | Update general properties of a subject |
-DELETE | /courses/{id} | Delete subject. Note: only works for courses without groups. |
+DELETE | /courses/{id} | Delete subject. Note: only works for courses without projects. |
 
 Comments:
 - Only professors can create courses
@@ -70,8 +70,8 @@ DELETE | /courses/years/{yearId}/students/{username} | Remove a student from a s
 ### Groups
 Method|Path|Description|Status
 ------|-----|---------|---
-GET | /courses/years/{yearId}/groups | View groups of a subject year | 
-POST | /courses/years/{yearId}/groups | Create new group inside a subject year | 
-GET | /groups/{groupId} | View a group. | ✨ New
-PATCH | /groups/{groupId} | Modify general data of a group | ✨ New
-DELETE | /groups/{groupId} | Delete a group | ✨ New
+GET | /courses/years/{yearId}/projects | View projects of a subject year | 
+POST | /courses/years/{yearId}/projects | Create new project inside a subject year | 
+GET | /projects/{groupId} | View a project. | ✨ New
+PATCH | /projects/{groupId} | Modify general data of a project | ✨ New
+DELETE | /projects/{groupId} | Delete a project | ✨ New
