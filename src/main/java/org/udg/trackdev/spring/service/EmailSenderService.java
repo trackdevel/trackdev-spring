@@ -35,13 +35,11 @@ public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
                 "Si us plau, no responguis aquest missatge, es un enviament automatic.<br><br>Trackdev.", username, username, tempPass),
                 true
         );
-
         javaMailSender.send(message);
 
         Email email = new Email();
         email.setDestination(to);
         email.setTimestamp(LocalDateTime.now());
-
         this.repo.save(email);
     }
 

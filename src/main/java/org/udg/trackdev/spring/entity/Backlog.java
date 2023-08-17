@@ -14,7 +14,7 @@ import java.util.Collection;
 public class Backlog extends BaseEntityLong {
 
     @ManyToOne
-    private Group group;
+    private Project project;
 
     @OneToMany(mappedBy = "backlog", cascade = CascadeType.ALL)
     private Collection<Task> tasks = new ArrayList<>();
@@ -24,12 +24,12 @@ public class Backlog extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Hierarchy.class)
     @JsonSerialize(using = JsonHierarchyViewSerializer.class)
-    public Group getGroup() {
-        return this.group;
+    public Project getGroup() {
+        return this.project;
     }
 
-    public void setGroup(Group group) {
-        this.group = group;
+    public void setGroup(Project project) {
+        this.project = project;
     }
 
     public Collection<Sprint> getSprints() {

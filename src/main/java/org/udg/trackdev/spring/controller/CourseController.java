@@ -11,7 +11,7 @@ import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.CourseService;
-import org.udg.trackdev.spring.service.GroupService;
+import org.udg.trackdev.spring.service.ProjectService;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
@@ -33,7 +33,7 @@ public class CourseController extends BaseController {
     CourseService courseService;
 
     @Autowired
-    GroupService groupService;
+    ProjectService projectService;
 
     @Autowired
     UserService userService;
@@ -96,28 +96,28 @@ public class CourseController extends BaseController {
 
     @GetMapping(path = "/{courseId}/groups")
     @JsonView(EntityLevelViews.Basic.class)
-    public Collection<Group> getGroups(Principal principal,
-                                    @PathVariable("courseId") Long courseId) {
+    public Collection<Project> getProjects(Principal principal,
+                                           @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
         Courses courses = courseService.get(courseId);
-        Collection<Group> groups;
+        Collection<Project> projects;
         if(accessChecker.canViewCourseYearAllGroups(courses, userId)) {
-            groups = courses.getGroups();
+            projects = courses.getProjects();
         } else {
-            groups = courses.getGroups().stream()
+            projects = courses.getProjects().stream()
                     .filter(group -> group.isMember(userId))
                     .collect(Collectors.toCollection(ArrayList::new));
         }
-        return groups;
+        return projects;
     }
 
     @PostMapping(path = "/{courseId}/groups")
-    public IdObjectLong createGroup(Principal principal,
-                                     @PathVariable("courseId") Long courseId,
-                                     @Valid @RequestBody NewGroup groupRequest) {
+    public IdObjectLong createProject(Principal principal,
+                                      @PathVariable("courseId") Long courseId,
+                                      @Valid @RequestBody NewProject projectRequest) {
         String userId = super.getUserId(principal);
-        Group createdGroup = groupService.createGroup(groupRequest.name, groupRequest.members, courseId, userId);
-        return new IdObjectLong(createdGroup.getId());
+        Project createdProject = projectService.createProject(projectRequest.name, projectRequest.members, courseId, userId);
+        return new IdObjectLong(createdProject.getId());
     }
 
     static class NewCourseInvite {
@@ -127,9 +127,9 @@ public class CourseController extends BaseController {
         public String email;
     }
 
-    static class NewGroup {
+    static class NewProject {
         @NotBlank
-        @Size(max = Group.NAME_LENGTH)
+        @Size(max = Project.NAME_LENGTH)
         public String name;
 
         public Collection<String> members;

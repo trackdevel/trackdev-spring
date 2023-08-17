@@ -51,10 +51,10 @@ public class CourseService extends BaseServiceLong<Courses, CourseRepository> {
         Courses courses = get(yearId);
         accessChecker.checkCanManageCourseYear(courses, loggedInUserId);
         User user = userService.getByUsername(username);
-        for(Group group : courses.getGroups()) {
-            if(group.isMember(user)) {
-                group.removeMember(user);
-                user.removeFromGroup(group);
+        for(Project project : courses.getProjects()) {
+            if(project.isMember(user)) {
+                project.removeMember(user);
+                user.removeFromGroup(project);
             }
         }
         courses.removeStudent(user);

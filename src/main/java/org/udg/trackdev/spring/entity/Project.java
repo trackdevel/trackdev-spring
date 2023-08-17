@@ -15,13 +15,13 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "`groups`")
-public class Group extends BaseEntityLong {
+public class Project extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 50;
 
-    public Group() {}
+    public Project() {}
 
-    public Group(String name) {
+    public Project(String name) {
         this.name = name;
     }
 
@@ -35,7 +35,7 @@ public class Group extends BaseEntityLong {
     @ManyToOne
     private Courses course;
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Backlog> backlogs = new ArrayList<>();
 
     @JsonView(EntityLevelViews.Basic.class)

@@ -69,15 +69,15 @@ public class AccessChecker {
         return false;
     }
 
-    public void checkCanManageGroup(Group group, String userId) {
-        checkCanManageCourseYear(group.getCourseYear(), userId);
+    public void checkCanManageGroup(Project project, String userId) {
+        checkCanManageCourseYear(project.getCourseYear(), userId);
     }
 
-    public void checkCanViewGroup(Group group, String userId) {
-        if(group.isMember(userId)) {
+    public void checkCanViewGroup(Project project, String userId) {
+        if(project.isMember(userId)) {
             return;
         }
-        Subject subject = group.getCourseYear().getSubject();
+        Subject subject = project.getCourseYear().getSubject();
         if(isCourseOwner(subject, userId)) {
             return;
         }
@@ -90,11 +90,11 @@ public class AccessChecker {
     }
 
     public void checkCanManageBacklog(Backlog backlog, User user) {
-        Group group = backlog.getGroup();
-        if(group.isMember(user)) {
+        Project project = backlog.getGroup();
+        if(project.isMember(user)) {
            return;
         }
-        Subject subject = group.getCourseYear().getSubject();
+        Subject subject = project.getCourseYear().getSubject();
         if(isCourseOwner(subject, user.getId())) {
             return;
         }
@@ -102,11 +102,11 @@ public class AccessChecker {
     }
 
     public void checkCanViewBacklog(Backlog backlog, String userId) {
-        Group group = backlog.getGroup();
-        if(group.isMember(userId)) {
+        Project project = backlog.getGroup();
+        if(project.isMember(userId)) {
             return;
         }
-        Subject subject = group.getCourseYear().getSubject();
+        Subject subject = project.getCourseYear().getSubject();
         if(isCourseOwner(subject, userId)) {
             return;
         }

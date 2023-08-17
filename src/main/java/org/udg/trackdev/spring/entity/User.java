@@ -20,8 +20,7 @@ public class User extends BaseEntityUUID {
   public static final int USERNAME_LENGTH = 12;
   public static final int EMAIL_LENGTH = 128;
 
-  public User() {
-  }
+  public User() {}
 
   public User(String username, String email, String password) {
     this.username = username;
@@ -42,17 +41,14 @@ public class User extends BaseEntityUUID {
 
   private LocalDateTime lastLogin;
 
-  //@OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
-  //private Collection<Subject> coursesOwns = new ArrayList<>();
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
+  private Collection<Subject> subjectsOwns = new ArrayList<>();
 
   @ManyToMany(mappedBy = "members")
-  private Collection<Group> groups = new ArrayList<>();
+  private Collection<Project> projects = new ArrayList<>();
 
   @ManyToMany(mappedBy = "students")
   private Collection<Courses> courses = new ArrayList<>();
-
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
-  private Collection<Subject> coursesOwns = new ArrayList<>();
 
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
@@ -66,8 +62,10 @@ public class User extends BaseEntityUUID {
 
   private String nicename;
 
+  @NotNull
   private Boolean changePassword;
 
+  @NotNull
   private Boolean enabled;
 
   /**********************************/
@@ -141,15 +139,15 @@ public class User extends BaseEntityUUID {
     this.lastLogin = lastLogin;
   }
 
-  public void addOwnCourse(Subject subject) { coursesOwns.add(subject); }
+  public void addOwnCourse(Subject subject) { subjectsOwns.add(subject); }
 
-  public void addToGroup(Group group) {
-    this.groups.add(group);
+  public void addToGroup(Project project) {
+    this.projects.add(project);
   }
 
-  public void removeFromGroup(Group group) {
-    if(this.groups.contains(group)) {
-      this.groups.remove(group);
+  public void removeFromGroup(Project project) {
+    if(this.projects.contains(project)) {
+      this.projects.remove(project);
     }
   }
 

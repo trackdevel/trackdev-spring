@@ -883,7 +883,7 @@
 					"response": []
 				},
 				{
-					"name": "/subjects/courses{id}/groups",
+					"name": "/subjects/courses{id}/projects",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -894,7 +894,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/1/groups",
+							"raw": "{{baseUrl}}/subjects/courses/1/projects",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -902,7 +902,7 @@
 								"subjects",
 								"courses",
 								"1",
-								"groups"
+								"projects"
 							],
 							"query": [
 								{
@@ -942,7 +942,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/courses/years/1/groups",
+							"raw": "{{baseUrl}}/courses/years/1/projects",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -950,7 +950,7 @@
 								"courses",
 								"years",
 								"1",
-								"groups"
+								"projects"
 							],
 							"query": [
 								{
@@ -965,7 +965,7 @@
 					"response": []
 				},
 				{
-					"name": "/groups/{id}",
+					"name": "/projects/{id}",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -976,12 +976,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/groups/1",
+							"raw": "{{baseUrl}}/projects/1",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"groups",
+								"projects",
 								"1"
 							],
 							"query": [
@@ -997,7 +997,7 @@
 					"response": []
 				},
 				{
-					"name": "/groups/{id}",
+					"name": "/projects/{id}",
 					"request": {
 						"method": "PATCH",
 						"header": [
@@ -1017,12 +1017,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/groups/1",
+							"raw": "{{baseUrl}}/projects/1",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"groups",
+								"projects",
 								"1"
 							],
 							"query": [
@@ -1038,7 +1038,7 @@
 					"response": []
 				},
 				{
-					"name": "/groups/{id}",
+					"name": "/projects/{id}",
 					"request": {
 						"method": "DELETE",
 						"header": [
@@ -1049,12 +1049,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/groups/1",
+							"raw": "{{baseUrl}}/projects/1",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"groups",
+								"projects",
 								"1"
 							],
 							"query": [
@@ -1120,7 +1120,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Create backlog for a single group\"\r\n}",
+							"raw": "{\r\n    \"name\": \"Create backlog for a single project\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

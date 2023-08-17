@@ -32,7 +32,7 @@ public class DemoDataSeeder {
     private CourseService courseService;
 
     @Autowired
-    private GroupService groupService;
+    private ProjectService projectService;
 
     @Autowired
     private SprintService sprintService;
@@ -82,8 +82,8 @@ public class DemoDataSeeder {
         for(User user: users) {
             usernames.add(user.getUsername());
         }
-        Group group = groupService.createGroup(groupName, usernames, courses.getId(), admin.getId());
-        Backlog backlog = group.getBacklogs().iterator().next();
+        Project project = projectService.createProject(groupName, usernames, courses.getId(), admin.getId());
+        Backlog backlog = project.getBacklogs().iterator().next();
 
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);
@@ -110,7 +110,7 @@ public class DemoDataSeeder {
                 taskService.createSubTask(task.getId(), "Style items", reporter.getId());
             }
         }
-        backlog = backlogService.create(group.getId());
+        backlog = backlogService.create(project.getId());
     }
 
     private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {

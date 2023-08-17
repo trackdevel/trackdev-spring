@@ -25,7 +25,7 @@ public class Courses extends BaseEntityLong {
     private Subject subject;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course", fetch = FetchType.LAZY)
-    private Collection<Group> groups;
+    private Collection<Project> projects;
 
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Set<User> students = new HashSet<>();
@@ -39,9 +39,9 @@ public class Courses extends BaseEntityLong {
     public void setSubject(Subject subject) { this.subject = subject; }
 
     @JsonIgnore
-    public Collection<Group> getGroups() { return this.groups; }
+    public Collection<Project> getProjects() { return this.projects; }
 
-    public void addGroup(Group group) { this.groups.add(group); }
+    public void addProject(Project project) { this.projects.add(project); }
 
     @JsonIgnore
     public Set<User> getStudents() {  return this.students; }
