@@ -14,7 +14,7 @@ import java.util.Set;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "`groups`")
+@Table(name = "`projects`")
 public class Project extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 50;
