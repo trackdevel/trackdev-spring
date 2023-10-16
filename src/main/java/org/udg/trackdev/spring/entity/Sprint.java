@@ -27,10 +27,6 @@ public class Sprint extends BaseEntityLong {
     @NonNull
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "backlogId")
-    private Backlog backlog;
-
     @Column(name = "backlogId", insertable = false, updatable = false)
     private Long backlogId;
 
@@ -56,14 +52,6 @@ public class Sprint extends BaseEntityLong {
     public void setName(@NonNull String name, User modifier) {
         this.name = name;
         this.sprintChanges.add(new SprintNameChange(modifier, this, name));
-    }
-
-    public Backlog getBacklog() {
-        return backlog;
-    }
-
-    public void setBacklog(Backlog backlog) {
-        this.backlog = backlog;
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -117,9 +105,9 @@ public class Sprint extends BaseEntityLong {
     }
 
     public void addTask(Task task, User modifier) {
-        if(task.getBacklog() != this.backlog) {
-            throw new EntityException("Cannot add task to sprint as they belong to different backlogs");
-        }
+        //if(task.getBacklog() != this.backlog) {
+        //    throw new EntityException("Cannot add task to sprint as they belong to different backlogs");
+        //}
         this.activeTasks.add(task);
         this.sprintChanges.add(new SprintTaskAdded(modifier, this, task));
         if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.CREATED) {

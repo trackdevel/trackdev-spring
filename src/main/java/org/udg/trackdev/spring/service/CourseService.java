@@ -3,19 +3,18 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.CourseRepository;
 
 import java.util.Collection;
 
 @Service
-public class CourseService extends BaseServiceLong<Courses, CourseRepository> {
+public class CourseService extends BaseServiceLong<Course, CourseRepository> {
 
     @Autowired
     SubjectService subjectService;
-
-    @Autowired
-    InviteCourseBuilder courseInviteBuilder;
 
     @Autowired
     UserService userService;
@@ -24,44 +23,49 @@ public class CourseService extends BaseServiceLong<Courses, CourseRepository> {
     AccessChecker accessChecker;
 
     @Transactional
-    public Courses createCourse(Long courseId, Integer startYear, String loggedInUserId) {
-        Subject subject = subjectService.getSubject(courseId);
-        accessChecker.checkCanManageCourse(subject, loggedInUserId);
-        Courses courses = new Courses(startYear);
-        courses.setSubject(subject);
-        subject.addCourseYear(courses);
-        return courses;
+    public Course createCourse(Long subjectId, Integer startYear, String loggedInUserId) {
+        Subject subject = subjectService.getSubject(subjectId);
+        accessChecker.checkCanManageSubject(subject, loggedInUserId);
+        Course course = new Course(startYear);
+        course.setSubject(subject);
+        subject.addCourse(course);
+        return course;
     }
 
     public void deleteCourse(Long yearId, String loggedInUserId) {
-        Courses courses = get(yearId);
-        accessChecker.checkCanManageCourseYear(courses, loggedInUserId);
-        repo.delete(courses);
-    }
-
-    @Transactional
-    public Invite createInvite(String email, Long yearId, String ownerId) {
-        Courses courses = get(yearId);
-        Invite invite = courseInviteBuilder.Build(email, ownerId, courses);
-        return invite;
+        Course course = get(yearId);
+        accessChecker.checkCanManageCourse(course, loggedInUserId);
+        repo.delete(course);
     }
 
     @Transactional
     public void removeStudent(Long yearId, String username, String loggedInUserId) {
-        Courses courses = get(yearId);
-        accessChecker.checkCanManageCourseYear(courses, loggedInUserId);
+        Course course = get(yearId);
+        accessChecker.checkCanManageCourse(course, loggedInUserId);
         User user = userService.getByUsername(username);
-        for(Project project : courses.getProjects()) {
+        for(Project project : course.getProjects()) {
             if(project.isMember(user)) {
                 project.removeMember(user);
                 user.removeFromGroup(project);
             }
         }
-        courses.removeStudent(user);
-        user.removeFromCourseYear(courses);
+        course.removeStudent(user);
+        user.removeFromCourseYear(course);
     }
 
-    public Collection<Courses> getAll(){
+    @Transactional
+    public void addStudent(Long yearId, String username, String loggedInUserId) {
+        Course course = get(yearId);
+        accessChecker.checkCanManageCourse(course, loggedInUserId);
+        User user = userService.getByUsername(username);
+        if (!user.isUserType(UserType.STUDENT)){
+            throw new ServiceException("User is not a student");
+        }
+        course.enrollStudent(user);
+
+    }
+
+    public Collection<Course> getAll(){
         return repo.findAll();
     }
 }

@@ -2,6 +2,11 @@ package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import io.jsonwebtoken.Jwts;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +36,8 @@ import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 
 // This class is used to process all the authentication related URLs
+
+@Tag(name = "1. Authentication")
 @RequestMapping(path = "/auth")
 @RestController
 public class AuthController extends BaseController {
@@ -44,6 +51,7 @@ public class AuthController extends BaseController {
     @Autowired
     AuthorizationConfiguration authorizationConfiguration;
 
+    @Operation(summary = "Add a new person to the store", description = "")
     @PostMapping(path="/login")
     @JsonView(PrivacyLevelViews.Private.class)
     public ResponseEntity<Map<String, Object>> login(HttpServletRequest request,
@@ -61,6 +69,8 @@ public class AuthController extends BaseController {
         return ResponseEntity.ok().body(Map.of("userdata",user,"token", token));
     }
 
+    @Operation(summary = "Add a new person to the store", description = "", security = {
+            @SecurityRequirement(name = "bearerAuth")})
     @PostMapping(path="/logout")
     @JsonView(PrivacyLevelViews.Private.class)
     public ResponseEntity<Void> logout(HttpServletRequest request,
@@ -70,6 +80,8 @@ public class AuthController extends BaseController {
         return okNoContent();
     }
 
+    @Operation(summary = "Add a new person to the store", description = "", security = {
+            @SecurityRequirement(name = "bearerAuth")})
     @GetMapping(path="/self")
     @JsonView(PrivacyLevelViews.Private.class)
     public User self(Principal principal) {
@@ -78,6 +90,8 @@ public class AuthController extends BaseController {
         return userService.get(userId);
     }
 
+    @Operation(summary = "Add a new person to the store", description = "", security = {
+            @SecurityRequirement(name = "bearerAuth")})
     @GetMapping(path = "/check")
     public ResponseEntity check(Principal principal) {
         super.checkLoggedIn(principal);
@@ -109,6 +123,8 @@ public class AuthController extends BaseController {
     }
 
     //change password
+    @Operation(summary = "Add a new person to the store", description = "", security = {
+            @SecurityRequirement(name = "bearerAuth")})
     @PostMapping(path="/changepassword")
     @JsonView(PrivacyLevelViews.Private.class)
     public ResponseEntity<Map<String, Object>> changePassword(HttpServletRequest request,

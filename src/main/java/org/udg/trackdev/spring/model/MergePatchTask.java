@@ -1,10 +1,12 @@
 package org.udg.trackdev.spring.model;
 
+import org.udg.trackdev.spring.entity.Comment;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.TaskStatus;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -30,4 +32,7 @@ public class MergePatchTask {
     public Optional<Integer> rank;
 
     public Optional<Long> activeSprint;
+
+    public Optional<Comment> comment;
+
 }

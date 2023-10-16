@@ -469,7 +469,7 @@
 								"subjects"
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -524,7 +524,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -564,7 +564,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -605,7 +605,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -637,12 +637,12 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/{id}/courses",
+					"name": "/subjects/{id}/course",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -662,21 +662,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/subjects/1/courses",
+							"raw": "{{baseUrl}}/subjects/1/course",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
 								"1",
-								"courses"
+								"course"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/courses/{id}",
+					"name": "/subjects/course/{id}",
 					"request": {
 						"method": "DELETE",
 						"header": [
@@ -687,13 +687,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/3",
+							"raw": "{{baseUrl}}/subjects/course/3",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses",
+								"course",
 								"3"
 							]
 						}
@@ -706,7 +706,7 @@
 			"name": "Courses",
 			"item": [
 				{
-					"name": "/subjects/courses",
+					"name": "/subjects/course",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -717,13 +717,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses",
+							"raw": "{{baseUrl}}/subjects/course",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses"
+								"course"
 							],
 							"query": [
 								{
@@ -733,12 +733,12 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/courses/{id}",
+					"name": "/subjects/course/{id}",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -749,13 +749,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/{id}",
+							"raw": "{{baseUrl}}/subjects/course/{id}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses",
+								"course",
 								"{id}"
 							],
 							"query": [
@@ -766,12 +766,12 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/courses/{id}/invites",
+					"name": "/subjects/course/{id}/invites",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -791,13 +791,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/1/invites",
+							"raw": "{{baseUrl}}/subjects/course/1/invites",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses",
+								"course",
 								"1",
 								"invites"
 							],
@@ -809,12 +809,12 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/courses/{id}/students",
+					"name": "/subjects/course/{id}/students",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -825,13 +825,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/1/students",
+							"raw": "{{baseUrl}}/subjects/course/1/students",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses",
+								"course",
 								"1",
 								"students"
 							],
@@ -843,12 +843,12 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/courses/{id}/students/{username}",
+					"name": "/subjects/course/{id}/students/{username}",
 					"request": {
 						"method": "DELETE",
 						"header": [
@@ -859,13 +859,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/1/students/{username}",
+							"raw": "{{baseUrl}}/subjects/course/1/students/{username}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses",
+								"course",
 								"1",
 								"students",
 								"{username}"
@@ -878,12 +878,12 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
 				{
-					"name": "/subjects/courses{id}/projects",
+					"name": "/subjects/course{id}/projects",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -894,13 +894,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/subjects/courses/1/projects",
+							"raw": "{{baseUrl}}/subjects/course/1/projects",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"subjects",
-								"courses",
+								"course",
 								"1",
 								"projects"
 							],
@@ -912,7 +912,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				}
@@ -922,7 +922,7 @@
 			"name": "Groups",
 			"item": [
 				{
-					"name": "/courses/years/{id}",
+					"name": "/course/years/{id}",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -942,12 +942,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/courses/years/1/projects",
+							"raw": "{{baseUrl}}/course/years/1/projects",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"courses",
+								"course",
 								"years",
 								"1",
 								"projects"
@@ -960,7 +960,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -992,7 +992,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1033,7 +1033,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1065,7 +1065,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				}
@@ -1103,7 +1103,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1145,7 +1145,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1187,7 +1187,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				}
@@ -1224,7 +1224,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1265,7 +1265,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1298,7 +1298,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				}
@@ -1339,7 +1339,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1371,7 +1371,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1404,7 +1404,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1445,7 +1445,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				},
@@ -1486,7 +1486,7 @@
 								}
 							]
 						},
-						"description": "View created courses / owned."
+						"description": "View created course / owned."
 					},
 					"response": []
 				}

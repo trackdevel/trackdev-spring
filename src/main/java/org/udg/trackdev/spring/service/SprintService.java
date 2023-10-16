@@ -20,22 +20,19 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     AccessChecker accessChecker;
 
     @Autowired
-    BacklogService backlogService;
-
-    @Autowired
     UserService userService;
 
     @Transactional
     public Sprint create(Long backlogId, String name, LocalDate startDate, LocalDate endDate, String userId) {
-        Backlog backlog = backlogService.get(backlogId);
+        //Backlog backlog = backlogService.get(backlogId);
         User user = userService.get(userId);
-        accessChecker.checkCanManageBacklog(backlog, user);
+        //accessChecker.checkCanManageBacklog(backlog, user);
 
         Sprint sprint = new Sprint(name);
         sprint.setStartDate(startDate, user);
         sprint.setEndDate(endDate, user);
-        sprint.setBacklog(backlog);
-        backlog.addSprint(sprint);
+        //sprint.setBacklog(backlog);
+        //backlog.addSprint(sprint);
         this.repo().save(sprint);
 
         return sprint;
@@ -45,7 +42,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     public Sprint editSprint(Long sprintId, MergePatchSprint editSprint, String userId) {
         Sprint sprint = get(sprintId);
         User user = userService.get(userId);
-        accessChecker.checkCanManageBacklog(sprint.getBacklog(), user);
+        //accessChecker.checkCanManageBacklog(sprint.getBacklog(), user);
         List<SprintChange> changes = new ArrayList<>();
         if(editSprint.name != null) {
             String name = editSprint.name.orElseThrow(

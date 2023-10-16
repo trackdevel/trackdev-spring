@@ -11,11 +11,11 @@ import java.util.Set;
 
 @Entity
 @Table(name = "courses")
-public class Courses extends BaseEntityLong {
+public class Course extends BaseEntityLong {
 
-    public Courses() {}
+    public Course() {}
 
-    public Courses(Integer startYear) {
+    public Course(Integer startYear) {
         this.startYear = startYear;
     }
 
@@ -33,7 +33,7 @@ public class Courses extends BaseEntityLong {
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public Integer getStartYear() { return startYear; }
 
-    @JsonView({ EntityLevelViews.CourseYearComplete.class, EntityLevelViews.Hierarchy.class })
+    @JsonView({ EntityLevelViews.CourseComplete.class, EntityLevelViews.Hierarchy.class })
     public Subject getSubject() { return this.subject; }
 
     public void setSubject(Subject subject) { this.subject = subject; }

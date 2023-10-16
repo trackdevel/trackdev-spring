@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
-import org.udg.trackdev.spring.entity.Backlog;
-import org.udg.trackdev.spring.entity.Courses;
+import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.Project;
+import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.GroupRepository;
 
@@ -29,20 +29,16 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     @Transactional
     public Project createProject(String name, Collection<String> usernames, Long courseId,
                                  String loggedInUserId) {
-        Courses course = courseService.get(courseId);
-        accessChecker.checkCanManageCourseYear(course, loggedInUserId);
+        Course course = courseService.get(courseId);
+        accessChecker.checkCanManageCourse(course, loggedInUserId);
         Project project = new Project(name);
         course.addProject(project);
-        project.setCourseYear(course);
+        project.setCourse(course);
 
-        if(usernames != null && usernames.size() > 0) {
+        if(usernames != null && !usernames.isEmpty()) {
             addMembers(course, project, usernames);
         }
-
-        Backlog backlog = new Backlog();
-        backlog.setGroup(project);
-        project.addBacklog(backlog);
-
+        repo.save(project);
         return project;
     }
 
@@ -50,12 +46,12 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     public Project editProject(Long projectId, String name, Collection<String> usernames,
                                String loggedInUserId) {
         Project project = get(projectId);
-        accessChecker.checkCanManageGroup(project, loggedInUserId);
+        accessChecker.checkCanManageProject(project, loggedInUserId);
         if(name != null) {
             project.setName(name);
         }
         if(usernames != null) {
-            if(usernames.size() == 0 && project.getMembers().size() != 0) {
+            if(usernames.isEmpty() && !project.getMembers().isEmpty()) {
                 throw new ServiceException("Cannot remove all members of a project");
             }
             editMembers(usernames, project);
@@ -67,18 +63,18 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     public void deleteProject(Long groupId, String userId) {
         Project project = get(groupId);
-        accessChecker.checkCanManageGroup(project, userId);
+        accessChecker.checkCanManageProject(project, userId);
         repo.delete(project);
     }
 
-    private void addMembers(Courses course, Project project, Collection<String> usernames) {
+    private void addMembers(Course course, Project project, Collection<String> usernames) {
         for(String username: usernames) {
             User user = userService.getByUsername(username);
             addMember(course, project, user);
         }
     }
 
-    private void addMember(Courses course, Project project, User user) {
+    private void addMember(Course course, Project project, User user) {
         if(!course.isEnrolled(user)) {
             String message = String.format("User with name = %s is not enrolled to this course", user.getUsername());
             throw new ServiceException(message);
@@ -91,7 +87,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         for(String username: usernames) {
             User user = userService.getByUsername(username);
             if(!project.isMember(user)) {
-                addMember(project.getCourseYear(), project, user);
+                addMember(project.getCourse(), project, user);
             }
         }
         List<User> toRemove = new ArrayList<>();
@@ -105,4 +101,5 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
             user.removeFromGroup(project);
         }
     }
+
 }

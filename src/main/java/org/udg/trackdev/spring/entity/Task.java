@@ -15,6 +15,7 @@ import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "tasks")
@@ -26,25 +27,13 @@ public class Task extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 100;
 
-    public Task() {}
-
-    public Task(String name, User reporter) {
-        this.name = name;
-        this.createdAt = new Date();
-        this.reporter = reporter;
-        this.status = TaskStatus.CREATED;
-    }
-
     @NonNull
     @Column(length = NAME_LENGTH)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "backlogId")
-    private Backlog backlog;
-
-    @Column(name = "backlogId", insertable = false, updatable = false)
-    private Long backlogId;
+    @JoinColumn(name = "projectId")
+    private Project project;
 
     @ManyToOne
     private User reporter;
@@ -85,6 +74,18 @@ public class Task extends BaseEntityLong {
     @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
     private Collection<TaskChange> taskChanges;
 
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Collection<Comment> discussion = new HashSet<>();
+
+    public Task() {}
+
+    public Task(String name, User reporter) {
+        this.name = name;
+        this.createdAt = new Date();
+        this.reporter = reporter;
+        this.status = TaskStatus.CREATED;
+    }
+
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)
     public String getName() {
@@ -104,12 +105,12 @@ public class Task extends BaseEntityLong {
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class } )
     @JsonSerialize(using = JsonHierarchyViewSerializer.class)
-    public Backlog getBacklog() {
-        return backlog;
+    public Project getProject() {
+        return project;
     }
 
-    public void setBacklog(Backlog backlog) {
-        this.backlog = backlog;
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -158,6 +159,16 @@ public class Task extends BaseEntityLong {
         this.parentTask = parentTask;
     }
 
+    @JsonView(EntityLevelViews.TaskComplete.class)
+    public Collection<Comment> getDiscussion() {
+        return discussion;
+    }
+
+    public void addComment(Comment comment) {
+        this.discussion.add(comment);
+        comment.setTask(this);
+    }
+
     public Collection<PullRequest> getPullRequests() {
         return pullRequests;
     }
@@ -167,9 +178,9 @@ public class Task extends BaseEntityLong {
     }
 
     public void setActiveSprint(Sprint activeSprint) {
-        if(activeSprint != null && activeSprint.getBacklog() != this.backlog) {
-            throw new EntityException("Cannot active sprint to task because they belong to different backlogs");
-        }
+        //if(activeSprint != null && activeSprint.getBacklog() != this.backlog) {
+        //    throw new EntityException("Cannot active sprint to task because they belong to different backlogs");
+        //}
         this.activeSprint = activeSprint;
     }
 

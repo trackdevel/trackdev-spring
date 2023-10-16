@@ -1,6 +1,8 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,8 @@ import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
 
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "5. Projects")
 @RestController
 @RequestMapping("/projects")
 public class ProjectController extends BaseController {
@@ -28,7 +32,7 @@ public class ProjectController extends BaseController {
     public Project getProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         Project project = service.get(projectId);
-        accessChecker.checkCanViewGroup(project, userId);
+        accessChecker.checkCanViewProject(project, userId);
         return project;
     }
 

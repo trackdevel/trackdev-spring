@@ -26,7 +26,7 @@ public class Subject extends BaseEntityLong {
     private String ownerId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "subject")
-    private Collection<Courses> courses;
+    private Collection<Course> courses;
 
     @NonNull
     private String acronym;
@@ -63,11 +63,11 @@ public class Subject extends BaseEntityLong {
         this.acronym = acronym;
     }
 
-    @JsonView(EntityLevelViews.CourseComplete.class)
-    public Collection<Courses> getCourses() {
+    @JsonView(EntityLevelViews.SubjectComplete.class)
+    public Collection<Course> getCourses() {
         return this.courses;
     }
 
 
-    public void addCourseYear(Courses courseYear) { this.courses.add(courseYear); }
+    public void addCourse(Course course) { this.courses.add(course); }
 }

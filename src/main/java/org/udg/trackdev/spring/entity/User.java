@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
+import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
@@ -39,7 +40,9 @@ public class User extends BaseEntityUUID {
   @NotNull
   private String password;
 
-  private LocalDateTime lastLogin;
+  @JsonView(EntityLevelViews.Basic.class)
+  @JsonSerialize(using = JsonDateSerializer.class)
+  private Date lastLogin;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Subject> subjectsOwns = new ArrayList<>();
@@ -48,13 +51,10 @@ public class User extends BaseEntityUUID {
   private Collection<Project> projects = new ArrayList<>();
 
   @ManyToMany(mappedBy = "students")
-  private Collection<Courses> courses = new ArrayList<>();
+  private Collection<Course> cours = new ArrayList<>();
 
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
-
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "owner")
-  private Collection<Invite> invites = new ArrayList<>();
 
   private String githubName;
 
@@ -84,6 +84,11 @@ public class User extends BaseEntityUUID {
   public String getUsername() {
     return username;
   }
+
+  @JsonView(PrivacyLevelViews.Public.class)
+  public String getNicename() { return nicename; }
+
+  public void setNicename() { this.nicename = nicename; }
 
   @JsonIgnore
   public String getPassword() {
@@ -132,10 +137,10 @@ public class User extends BaseEntityUUID {
     return inRole;
   }
 
-  @JsonIgnore
-  public LocalDateTime getLastLogin(){ return lastLogin; }
+  @JsonView(PrivacyLevelViews.Public.class)
+  public Date getLastLogin(){ return lastLogin; }
 
-  public void setLastLogin(LocalDateTime lastLogin) {
+  public void setLastLogin(Date lastLogin) {
     this.lastLogin = lastLogin;
   }
 
@@ -151,12 +156,10 @@ public class User extends BaseEntityUUID {
     }
   }
 
-  public void enrollToCourseYear(Courses courses) { this.courses.add(courses); }
+  public void enrollToCourseYear(Course course) { this.cours.add(course); }
 
-  public void removeFromCourseYear(Courses courses) { this.courses.remove(courses); }
-
-  public void addInvite(Invite invite) { this.invites.add(invite); }
+  public void removeFromCourseYear(Course course) { this.cours.remove(course); }
 
   @JsonIgnore
-  public Collection<Courses> getEnrolledCourseYears() { return this.courses; }
+  public Collection<Course> getEnrolledCourseYears() { return this.cours; }
 }

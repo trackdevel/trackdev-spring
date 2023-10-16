@@ -1,6 +1,8 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +27,10 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "4. Courses")
 @RestController
-@RequestMapping(path = "/subjects/courses")
+@RequestMapping(path = "/courses")
 public class CourseController extends BaseController {
 
     @Autowired
@@ -42,8 +46,8 @@ public class CourseController extends BaseController {
     AccessChecker accessChecker;
 
     @GetMapping
-    @JsonView(EntityLevelViews.CourseYearComplete.class)
-    public Collection<Courses> getCourses(Principal principal) {
+    @JsonView(EntityLevelViews.CourseComplete.class)
+    public Collection<Course> getCourses(Principal principal) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         /**NOU BLOC**/
@@ -58,21 +62,12 @@ public class CourseController extends BaseController {
     }
 
     @GetMapping(path = "/{courseId}")
-    @JsonView(EntityLevelViews.CourseYearComplete.class)
-    public Courses getCourse(Principal principal, @PathVariable("courseId") Long courseId) {
+    @JsonView(EntityLevelViews.CourseComplete.class)
+    public Course getCourse(Principal principal, @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Courses courses = courseService.get(courseId);
-        accessChecker.checkCanViewCourseYear(courses, userId);
-        return courses;
-    }
-
-    @PostMapping(path = "/{courseId}/invites")
-    public IdObjectLong createInvite(Principal principal,
-                                     @PathVariable("courseId") Long yearId,
-                                     @Valid @RequestBody NewCourseInvite inviteRequest) {
-        String userId = super.getUserId(principal);
-        Invite createdInvite = courseService.createInvite(inviteRequest.email, yearId, userId);
-        return new IdObjectLong(createdInvite.getId());
+        Course course = courseService.get(courseId);
+        accessChecker.checkCanViewCourse(course, userId);
+        return course;
     }
 
     @GetMapping(path = "/{yearId}/students")
@@ -80,9 +75,9 @@ public class CourseController extends BaseController {
     public Set<User> getStudents(Principal principal,
                                  @PathVariable("yearId") Long yearId) {
         String userId = super.getUserId(principal);
-        Courses courses = courseService.get(yearId);
-        accessChecker.checkCanViewCourseYearAllStudents(courses, userId);
-        return courses.getStudents();
+        Course course = courseService.get(yearId);
+        accessChecker.checkCanViewCourseAllMembers(course, userId);
+        return course.getStudents();
     }
 
     @DeleteMapping(path = "/{courseId}/students/{username}")
@@ -94,37 +89,30 @@ public class CourseController extends BaseController {
         return okNoContent();
     }
 
-    @GetMapping(path = "/{courseId}/groups")
+    @GetMapping(path = "/{courseId}/projects")
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Project> getProjects(Principal principal,
                                            @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Courses courses = courseService.get(courseId);
+        Course course = courseService.get(courseId);
         Collection<Project> projects;
-        if(accessChecker.canViewCourseYearAllGroups(courses, userId)) {
-            projects = courses.getProjects();
+        if(accessChecker.canViewCourseAllProjects(course, userId)) {
+            projects = course.getProjects();
         } else {
-            projects = courses.getProjects().stream()
+            projects = course.getProjects().stream()
                     .filter(group -> group.isMember(userId))
                     .collect(Collectors.toCollection(ArrayList::new));
         }
         return projects;
     }
 
-    @PostMapping(path = "/{courseId}/groups")
+    @PostMapping(path = "/{courseId}/projects")
     public IdObjectLong createProject(Principal principal,
                                       @PathVariable("courseId") Long courseId,
                                       @Valid @RequestBody NewProject projectRequest) {
         String userId = super.getUserId(principal);
         Project createdProject = projectService.createProject(projectRequest.name, projectRequest.members, courseId, userId);
         return new IdObjectLong(createdProject.getId());
-    }
-
-    static class NewCourseInvite {
-        @NotNull
-        @Email
-        @Size(max = User.EMAIL_LENGTH)
-        public String email;
     }
 
     static class NewProject {

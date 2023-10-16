@@ -6,18 +6,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
-import org.udg.trackdev.spring.entity.Invite;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.UserRepository;
 
-import javax.persistence.EntityManager;
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,9 +23,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private InviteService inviteService;
 
     @Autowired
     private EmailSenderService emailSenderService;
@@ -50,24 +44,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new ServiceException("Password does not match");
     }
 
-    @Transactional
-    public User register(String username, String email, String password) {
-        checkIfExists(username, email);
-
-        List<Invite> invites = inviteService.searchByEmail(email);
-        if (invites.size() == 0) throw new ServiceException("This email does not have any invite");
-
-        User user = new User(username, email, global.getPasswordEncoder().encode(password));
-        for (Invite invite: invites) {
-            inviteService.useInvite(invite, user);
-        }
-        repo().save(user);
-        return user;
-    }
-
     /** COSA NOVA **/
     @Transactional
-    public User registerv2(String username, String email) {
+    public User register(String username, String email) {
         try{
             checkIfExists(username, email);
 
@@ -152,9 +131,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public void setLastLogin(User user) {
-        ZonedDateTime currentDateTimeSpain = ZonedDateTime.now(ZoneId.of("Europe/Madrid"));
-        LocalDateTime localDateTimeSpain = currentDateTimeSpain.toLocalDateTime();
-        user.setLastLogin(localDateTimeSpain);
+        user.setLastLogin(new Date());
         repo.save(user);
     }
 

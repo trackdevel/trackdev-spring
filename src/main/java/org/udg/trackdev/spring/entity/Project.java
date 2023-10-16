@@ -14,16 +14,10 @@ import java.util.Set;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "`projects`")
+@Table(name = "projects")
 public class Project extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 50;
-
-    public Project() {}
-
-    public Project(String name) {
-        this.name = name;
-    }
 
     @NotNull
     @Column(length = NAME_LENGTH)
@@ -33,10 +27,17 @@ public class Project extends BaseEntityLong {
     private Set<User> members = new HashSet<>();
 
     @ManyToOne
-    private Courses course;
+    @JoinColumn(name = "courseId")
+    private Course course;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Collection<Backlog> backlogs = new ArrayList<>();
+    private Collection<Task> tasks = new ArrayList<>();
+
+    public Project() {}
+
+    public Project(String name) {
+        this.name = name;
+    }
 
     @JsonView(EntityLevelViews.Basic.class)
     public String getName() { return this.name; }
@@ -62,25 +63,23 @@ public class Project extends BaseEntityLong {
     }
 
     public void removeMember(User user) {
-        if(this.members.contains(user)) {
-            this.members.remove(user);
-        }
+        this.members.remove(user);
     }
 
     @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     @JsonSerialize(using = JsonHierarchyViewSerializer.class)
-    public Courses getCourseYear() {
+    public Course getCourse() {
         return this.course;
     }
 
-    public void setCourseYear(Courses courses) {
-        this.course = courses;
+    public void setCourse(Course course) {
+        this.course = course;
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public Collection<Backlog> getBacklogs() { return this.backlogs; }
+    public Collection<Task> getTasks() { return this.tasks; }
 
-    public void addBacklog(Backlog backlog) {
-        this.backlogs.add(backlog);
+    public void addTask(Task task) {
+        this.tasks.add(task);
     }
 }

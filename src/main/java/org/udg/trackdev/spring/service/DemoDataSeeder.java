@@ -38,12 +38,6 @@ public class DemoDataSeeder {
     private SprintService sprintService;
 
     @Autowired
-    private BacklogService backlogService;
-
-    @Autowired
-    private InviteService inviteService;
-
-    @Autowired
     private TaskService taskService;
 
     public void seedDemoData() {
@@ -61,44 +55,40 @@ public class DemoDataSeeder {
         List<User> enrolledStudents = createDemoStudents();
         enrolledStudents.add(student1);
         enrolledStudents.add(student2);
-        // invites to application
-        Invite inviteStudent = inviteService.createInvite("student3@trackdev.com", List.of(UserType.STUDENT), admin.getId());
-        Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
-        // courses
-        Subject subject = subjectService.createSubject("Test subject","TST" ,admin.getId());
-        Courses courses = courseService.createCourse(subject.getId(), 2021, admin.getId());
-        for(int i = 3; i <= 10; i++) {
-           Invite inviteCourse = courseService.createInvite("student" + i + "@trackdev.com", courses.getId(), admin.getId());
-        }
-        inviteAndEnroll(courses, enrolledStudents, admin);
+
+        // course
+        Subject subject = subjectService.createSubject("PDS2024","PDS" ,admin.getId());
+        Course course = courseService.createCourse(subject.getId(), 2021, admin.getId());
+
         // one subject set up
-        populateGroup(admin, courses, "Movie reviews", Arrays.asList(student1, student2));
-        populateGroup(admin, courses, "Calendar", enrolledStudents.subList(0,4));
+        populateGroup(admin, course, "Movie reviews", Arrays.asList(student1, student2));
+        populateGroup(admin, course, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
     }
 
-    private void populateGroup(User admin, Courses courses, String groupName, List<User> users) {
+    private void populateGroup(User admin, Course course, String groupName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
+            courseService.addStudent(course.getId(), user.getUsername(), admin.getId());
         }
-        Project project = projectService.createProject(groupName, usernames, courses.getId(), admin.getId());
-        Backlog backlog = project.getBacklogs().iterator().next();
+
+        Project project = projectService.createProject(groupName, usernames, course.getId(), admin.getId());
 
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);
         LocalDate end = start.plusDays(14);
-        populatePastSprint(backlog.getId(), "First iteration", start, end, users, true);
+        //populatePastSprint(backlog.getId(), "First iteration", start, end, users, true);
         start = end;
         end = start.plusDays(14);
-        populatePastSprint(backlog.getId(), "Second iteration", start, end, users, true);
+        //populatePastSprint(backlog.getId(), "Second iteration", start, end, users, true);
         start = end;
         end = start.plusDays(14);
-        populatePastSprint(backlog.getId(), "Third iteration", start, end, users, false);
+        //populatePastSprint(backlog.getId(), "Third iteration", start, end, users, false);
 
         for(int i = 0; i <= 15; i++) {
             User reporter = users.get(random.nextInt(users.size()));
-            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
+            Task task = taskService.createTask(project.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
 
             if(random.nextBoolean()) {
                 MergePatchTask editTask = buildBacklogEditTask(users, random);
@@ -110,7 +100,6 @@ public class DemoDataSeeder {
                 taskService.createSubTask(task.getId(), "Style items", reporter.getId());
             }
         }
-        backlog = backlogService.create(project.getId());
     }
 
     private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
@@ -220,10 +209,4 @@ public class DemoDataSeeder {
         return users;
     }
 
-    private void inviteAndEnroll(Courses courses, List<User> users, User admin) {
-        for(User user: users) {
-            Invite inviteCourse = courseService.createInvite(user.getEmail(), courses.getId(), admin.getId());
-            inviteService.acceptInvite(inviteCourse.getId(), user.getId());
-        }
-    }
 }

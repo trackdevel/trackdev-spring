@@ -1,12 +1,14 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.Subject;
-import org.udg.trackdev.spring.entity.Courses;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -23,6 +25,8 @@ import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "3. Subjects")
 @RestController
 @RequestMapping(path = "/subjects")
 public class SubjectController extends CrudController<Subject, SubjectService> {
@@ -37,7 +41,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     UserService userService;
 
     @GetMapping
-    @JsonView(EntityLevelViews.CourseComplete.class)
+    @JsonView(EntityLevelViews.SubjectComplete.class)
     public List<Subject> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
@@ -51,11 +55,11 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     }
 
     @GetMapping(path = "/{id}")
-    @JsonView(EntityLevelViews.CourseComplete.class)
+    @JsonView(EntityLevelViews.SubjectComplete.class)
     public Subject getSubject(Principal principal, @PathVariable("id") Long id) {
         Subject subject = service.getSubject(id);
         String userId = super.getUserId(principal);
-        accessChecker.checkCanViewCourse(subject, userId);
+        accessChecker.checkCanViewSubject(subject, userId);
         return subject;
     }
 
@@ -68,7 +72,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     }
 
     @PutMapping(path = "/{id}")
-    @JsonView(EntityLevelViews.CourseComplete.class)
+    @JsonView(EntityLevelViews.SubjectComplete.class)
     public Subject editSubject(Principal principal,
                                @PathVariable("id") Long id,
                                @Valid @RequestBody EditSubject subjectRequest) {
@@ -91,7 +95,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
                                      @PathVariable("subjectId") Long subjectId,
                                      @Valid @RequestBody NewCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Courses createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, userId);
+        Course createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, userId);
         return new IdObjectLong(createdCourse.getId());
     }
 

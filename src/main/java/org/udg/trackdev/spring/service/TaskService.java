@@ -13,12 +13,13 @@ import org.udg.trackdev.spring.repository.TaskRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     @Autowired
-    BacklogService backlogService;
+    ProjectService projectService;
 
     @Autowired
     UserService userService;
@@ -30,22 +31,21 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     SprintService sprintService;
 
     @Autowired
+    CommentService commentService;
+
+    @Autowired
     AccessChecker accessChecker;
 
     @Transactional
-    public Task createTask(Long backlogId, String name, String userId) {
-        Backlog backlog = backlogService.get(backlogId);
+    public Task createTask(Long projectId, String name, String userId) {
+        Project project = projectService.get(projectId);
         User user = userService.get(userId);
-        accessChecker.checkCanManageBacklog(backlog, user);
+        accessChecker.checkCanViewProject(project, userId);
         Task task = new Task(name, user);
-        task.setBacklog(backlog);
-        List<Task> lastRankedTasks = repo().findLastRankedOfBacklog(backlogId, PageRequest.of(0,1));
-        Integer rank = 1;
-        if(lastRankedTasks.size() > 0) {
-            rank = lastRankedTasks.get(0).getRank() + 1;
-        }
-        task.setRank(rank);
+        task.setProject(project);
+        project.addTask(task);
         this.repo.save(task);
+
         return task;
     }
 
@@ -53,9 +53,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task createSubTask(Long taskId, String name, String userId) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
-        accessChecker.checkCanManageBacklog(parentTask.getBacklog(), user);
+        accessChecker.checkCanViewProject(parentTask.getProject(), userId);
         Task subtask = new Task(name, user);
-        subtask.setBacklog(parentTask.getBacklog());
+        subtask.setProject(parentTask.getProject());
         subtask.setParentTask(parentTask);
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
@@ -67,7 +67,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task editTask(Long id, MergePatchTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
-        accessChecker.checkCanManageBacklog(task.getBacklog(), user);
+        accessChecker.checkCanViewProject(task.getProject(), userId);
 
         List<TaskChange> changes = new ArrayList<>();
         if(editTask.name != null) {
@@ -80,7 +80,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             User assigneeUser = null;
             if(editTask.assignee.isPresent()) {
                 assigneeUser = userService.getByUsername(editTask.assignee.get());
-                if(!task.getBacklog().getGroup().isMember(assigneeUser)) {
+                if(!task.getProject().isMember(assigneeUser)) {
                     throw new ServiceException("Assignee is not in the list of possible assignees");
                 }
                 task.setAssignee(assigneeUser);
@@ -102,7 +102,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.rank != null) {
             Integer newRank = editTask.rank.orElseThrow(
                     () -> new ServiceException("Not possible to set rank to null"));
-            Long backlogId = task.getBacklog().getId();
+            Long backlogId = 1L; // TODO
             Integer currentRank = task.getRank();
             if(newRank != currentRank) {
                 Collection<TaskChange> otherChanges = updateOtherTasksRank(backlogId, user, newRank, currentRank);
@@ -132,6 +132,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
             changes.add(new TaskActiveSprintChange(user, task, newSprint));
         }
+        if (editTask.comment != null) {
+            Comment comment = editTask.comment.orElseThrow(
+                    () -> new ServiceException("Not possible to set discussion to null"));
+            task.addComment(commentService.addComment(comment.getContent(), comment.getAuthor(), task));
+        }
         repo.save(task);
         for(TaskChange change: changes) {
             taskChangeService.store(change);
@@ -139,15 +144,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         return task;
     }
 
+
+    public Collection<Comment> getComments(Long taskId) {
+        return commentService.getComments(taskId);
+    }
+
     private Collection<TaskChange> updateOtherTasksRank(Long backlogId, User user, Integer newRank, Integer currentRank) {
         List<TaskChange> changes = new ArrayList<>();
         List<Task> tasks = new ArrayList<>();
         int increase = 0;
         if(newRank > currentRank) {
-            tasks = repo().findAllBetweenRanksOfBacklog(backlogId, currentRank +1, newRank);
+            //tasks = repo().findAllBetweenRanksOfBacklog(backlogId, currentRank +1, newRank);
             increase = -1;
         } else if (newRank < currentRank){
-            tasks = repo().findAllBetweenRanksOfBacklog(backlogId, newRank, currentRank -1);
+            //tasks = repo().findAllBetweenRanksOfBacklog(backlogId, newRank, currentRank -1);
             increase = 1;
         }
         for(Task otherTask : tasks) {

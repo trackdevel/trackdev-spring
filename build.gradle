@@ -41,7 +41,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3'
 
     //Swagger
-    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 
     implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'

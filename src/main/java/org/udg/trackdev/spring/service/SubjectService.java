@@ -31,16 +31,17 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     @Transactional
     public Subject createSubject(String name, String acronym, String loggedInUserId) {
         User owner = userService.get(loggedInUserId);
-        accessChecker.checkCanCreateCourse(owner);
+        accessChecker.checkCanCreateSubject(owner);
         Subject  subject = new Subject(name,acronym);
         owner.addOwnCourse(subject);
         subject.setOwner(owner);
+        repo.save(subject);
         return subject;
     }
 
     public Subject editSubjectDetails(Long id, String name, String loggedInUserId) {
         Subject subject = getSubject(id);
-        accessChecker.checkCanManageCourse(subject, loggedInUserId);
+        accessChecker.checkCanManageSubject(subject, loggedInUserId);
         subject.setName(name);
         repo.save(subject);
         return subject;
@@ -48,7 +49,7 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
 
     public void deleteSubject(Long id, String loggedInUserId) {
         Subject subject = getSubject(id);
-        accessChecker.checkCanManageCourse(subject, loggedInUserId);
+        accessChecker.checkCanManageSubject(subject, loggedInUserId);
         repo.delete(subject);
     }
 
