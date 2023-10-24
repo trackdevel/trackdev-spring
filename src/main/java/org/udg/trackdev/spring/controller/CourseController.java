@@ -70,12 +70,12 @@ public class CourseController extends BaseController {
         return course;
     }
 
-    @GetMapping(path = "/{yearId}/students")
+    @GetMapping(path = "/{courseId}/students")
     @JsonView(PrivacyLevelViews.Public.class)
     public Set<User> getStudents(Principal principal,
-                                 @PathVariable("yearId") Long yearId) {
+                                 @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Course course = courseService.get(yearId);
+        Course course = courseService.get(courseId);
         accessChecker.checkCanViewCourseAllMembers(course, userId);
         return course.getStudents();
     }

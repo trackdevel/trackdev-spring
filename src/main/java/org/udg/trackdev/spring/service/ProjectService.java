@@ -10,9 +10,11 @@ import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.GroupRepository;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
@@ -42,8 +44,9 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         return project;
     }
 
+    //TODO: Modificar a Optionals
     @Transactional
-    public Project editProject(Long projectId, String name, Collection<String> usernames,
+    public Project editProject(Long projectId, String name, Collection<String> usernames, Optional<Boolean> current,
                                String loggedInUserId) {
         Project project = get(projectId);
         accessChecker.checkCanManageProject(project, loggedInUserId);
@@ -55,6 +58,9 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
                 throw new ServiceException("Cannot remove all members of a project");
             }
             editMembers(usernames, project);
+        }
+        if(current != null){
+            project.setCurrent(current.get());
         }
         repo.save(project);
         

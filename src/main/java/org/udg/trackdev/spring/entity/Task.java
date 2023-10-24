@@ -83,7 +83,7 @@ public class Task extends BaseEntityLong {
         this.name = name;
         this.createdAt = new Date();
         this.reporter = reporter;
-        this.status = TaskStatus.CREATED;
+        this.status = TaskStatus.BACKLOG;
     }
 
     @NonNull

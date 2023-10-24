@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Optional;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "5. Projects")
@@ -27,8 +28,16 @@ public class ProjectController extends BaseController {
     @Autowired
     AccessChecker accessChecker;
 
-    @GetMapping(path = "/{projectId}")
+    @GetMapping
     @JsonView(EntityLevelViews.Basic.class)
+    public Collection<Project> getProjects(Principal principal) {
+        String userId = super.getUserId(principal);
+        accessChecker.checkCanViewAllProjects(userId);
+        return service.findAll();
+    }
+
+    @GetMapping(path = "/{projectId}")
+    @JsonView(EntityLevelViews.ProjectComplete.class)
     public Project getProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         Project project = service.get(projectId);
@@ -40,9 +49,9 @@ public class ProjectController extends BaseController {
     @JsonView(EntityLevelViews.Basic.class)
     public Project editProject(Principal principal,
                                @PathVariable(name = "projectId") Long projectId,
-                               @Valid @RequestBody EditProject groupRequest) {
+                               @Valid @RequestBody EditProject projectRequest) {
         String userId = super.getUserId(principal);
-        Project modifiedProject = service.editProject(projectId, groupRequest.name, groupRequest.members, userId);
+        Project modifiedProject = service.editProject(projectId, projectRequest.name, projectRequest.members,  projectRequest.current, userId);
         return modifiedProject;
     }
 
@@ -55,10 +64,11 @@ public class ProjectController extends BaseController {
         return okNoContent();
     }
 
+    //TODO: Modificar a Optionals
     static class EditProject {
         @Size(min = 1, max = Project.NAME_LENGTH)
         public String name;
-
+        public Optional<Boolean> current;
         public Collection<String> members;
     }
 }

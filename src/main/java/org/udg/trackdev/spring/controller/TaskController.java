@@ -38,11 +38,10 @@ public class TaskController extends CrudController<Task, TaskService> {
     @GetMapping
     @JsonView(EntityLevelViews.Basic.class)
     public List<Task> search(Principal principal,
-                         @RequestParam(value = "backlogId", required = false) Long backlogId,
                          @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
-        String refinedSearch = buildRefinedSearch(backlogId, search, userId);
-        return super.search(refinedSearch);
+        accessChecker.checkCanViewAllTasks(userId);
+        return super.search(search);
     }
 
     @GetMapping(path = "/{id}")
@@ -50,6 +49,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     public Task getTask(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         Task task = service.get(id);
+        accessChecker.checkCanViewProject(task.getProject(), userId);
         return task;
     }
 
@@ -59,6 +59,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     public Collection<Comment> getComments(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         Task task = service.get(id);
+        accessChecker.checkCanViewProject(task.getProject(), userId);
         return service.getComments(id);
     }
     /***/
@@ -94,16 +95,6 @@ public class TaskController extends CrudController<Task, TaskService> {
         Task subtask = service.createSubTask(id, request.name, userId);
 
         return new IdObjectLong(subtask.getId());
-    }
-
-    private String buildRefinedSearch(Long backlogId, String search, String userId) {
-        String refinedSearch = search;
-        if(backlogId != null) {
-            refinedSearch = super.scopedSearch("backlogId:"+ backlogId, search);
-        } else {
-            accessChecker.checkCanViewAllTasks(userId);
-        }
-        return refinedSearch;
     }
 
     static class NewSubTask {

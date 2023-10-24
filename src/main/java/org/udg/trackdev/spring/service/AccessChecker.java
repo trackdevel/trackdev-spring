@@ -21,6 +21,8 @@ public class AccessChecker {
     @Autowired
     UserService userService;
 
+    // SUBJECTS
+
     public void checkCanCreateSubject(User user) {
         boolean isProfessor = user.isUserType(UserType.PROFESSOR);
         if(!isProfessor) {
@@ -40,6 +42,8 @@ public class AccessChecker {
         }
         throw new ServiceException(defaultNoAccessMessage);
     }
+
+    // COURSES
 
     public void checkCanManageCourse(Course course, String userId) {
         checkCanManageSubject(course.getSubject(), userId);
@@ -69,6 +73,8 @@ public class AccessChecker {
         return false;
     }
 
+    // PROJECTS
+
     public void checkCanManageProject(Project project, String userId) {
         checkCanManageCourse(project.getCourse(), userId);
     }
@@ -85,8 +91,17 @@ public class AccessChecker {
     }
 
     public void checkCanViewAllTasks(String userId) {
-        // Consider allowing Admin in the future.
+        if(userService.get(userId).isUserType(UserType.ADMIN)) {
+            return;
+        }
         throw new ServiceException("User cannot see all tasks");
+    }
+
+    public void checkCanViewAllProjects(String userId) {
+        if(userService.get(userId).isUserType(UserType.ADMIN)) {
+            return;
+        }
+        throw new ServiceException("User cannot see all projects");
     }
 
     private boolean isSubjectOwner(Subject subject, String userId) {

@@ -99,6 +99,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return new IdObjectLong(createdCourse.getId());
     }
 
+    /**
     @DeleteMapping(path = "/courses/{courseId}")
     public ResponseEntity deleteCourse(Principal principal,
                                        @PathVariable("courseId") Long courseId) {
@@ -106,6 +107,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         courseService.deleteCourse(courseId, userId);
         return okNoContent();
     }
+                                       **/
 
     static class NewSubject {
         @NotBlank
