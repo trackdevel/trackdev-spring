@@ -33,6 +33,8 @@ public class Course extends BaseEntityLong {
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public Integer getStartYear() { return startYear; }
 
+    public void setStartYear(Integer startYear) { this.startYear = startYear; }
+
     @JsonView({ EntityLevelViews.CourseComplete.class, EntityLevelViews.Hierarchy.class })
     public Subject getSubject() { return this.subject; }
 

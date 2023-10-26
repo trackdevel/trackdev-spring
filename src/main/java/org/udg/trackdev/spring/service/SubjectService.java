@@ -39,10 +39,11 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
         return subject;
     }
 
-    public Subject editSubjectDetails(Long id, String name, String loggedInUserId) {
+    public Subject editSubjectDetails(Long id, String name, String acronym, String loggedInUserId) {
         Subject subject = getSubject(id);
         accessChecker.checkCanManageSubject(subject, loggedInUserId);
         subject.setName(name);
+        subject.setAcronym(acronym);
         repo.save(subject);
         return subject;
     }

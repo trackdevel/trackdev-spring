@@ -12,6 +12,9 @@ import java.util.Collection;
 public class Subject extends BaseEntityLong {
 
     public static final int NAME_LENGTH = 50;
+    public static final int MIN_ACRONYM_LENGTH = 2;
+
+    public static final int MAX_ACRONYM_LENGTH = 5;
 
     @NonNull
     @Column(length = NAME_LENGTH)

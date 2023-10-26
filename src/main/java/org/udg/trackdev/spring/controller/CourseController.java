@@ -17,11 +17,11 @@ import org.udg.trackdev.spring.service.ProjectService;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,6 +66,25 @@ public class CourseController extends BaseController {
         Course course = service.get(courseId);
         accessChecker.checkCanViewCourse(course, userId);
         return course;
+    }
+
+
+    @PatchMapping(path = "/{courseId}")
+    @JsonView(EntityLevelViews.CourseComplete.class)
+    public Course editCourse(Principal principal,
+                             @PathVariable("courseId") Long courseId,
+                             @Valid @RequestBody EditCourse courseRequest) {
+        String userId = super.getUserId(principal);
+        Course modifiedCourse = service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId, userId);
+        return modifiedCourse;
+    }
+
+    @DeleteMapping(path = "/{courseId}")
+    public ResponseEntity deleteCourse(Principal principal,
+                                       @PathVariable("courseId") Long courseId) {
+        String userId = super.getUserId(principal);
+        service.deleteCourse(courseId, userId);
+        return okNoContent();
     }
 
     @GetMapping(path = "/{courseId}/students")
@@ -113,13 +132,6 @@ public class CourseController extends BaseController {
         return new IdObjectLong(createdProject.getId());
     }
 
-    @DeleteMapping(path = "/{courseId}")
-    public ResponseEntity deleteCourse(Principal principal,
-                                       @PathVariable("courseId") Long courseId) {
-        String userId = super.getUserId(principal);
-        service.deleteCourse(courseId, userId);
-        return okNoContent();
-    }
 
     static class NewProject {
         @NotBlank
@@ -127,5 +139,13 @@ public class CourseController extends BaseController {
         public String name;
 
         public Collection<String> members;
+    }
+
+    static class EditCourse {
+        @Min(value = 2020)
+        @Max(value = 3000)
+        public Integer startYear;
+
+        public Long subjectId;
     }
 }

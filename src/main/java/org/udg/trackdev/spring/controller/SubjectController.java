@@ -24,6 +24,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "3. Subjects")
@@ -71,13 +72,13 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return new IdObjectLong(createdSubject.getId());
     }
 
-    @PutMapping(path = "/{id}")
+    @PatchMapping(path = "/{id}")
     @JsonView(EntityLevelViews.SubjectComplete.class)
     public Subject editSubject(Principal principal,
                                @PathVariable("id") Long id,
                                @Valid @RequestBody EditSubject subjectRequest) {
         String userId = super.getUserId(principal);
-        Subject modifiedSubject = service.editSubjectDetails(id, subjectRequest.name, userId);
+        Subject modifiedSubject = service.editSubjectDetails(id, subjectRequest.name, subjectRequest.acronym, userId);
 
         return modifiedSubject;
     }
@@ -99,27 +100,20 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return new IdObjectLong(createdCourse.getId());
     }
 
-    /**
-    @DeleteMapping(path = "/courses/{courseId}")
-    public ResponseEntity deleteCourse(Principal principal,
-                                       @PathVariable("courseId") Long courseId) {
-        String userId = super.getUserId(principal);
-        courseService.deleteCourse(courseId, userId);
-        return okNoContent();
-    }
-                                       **/
-
     static class NewSubject {
         @NotBlank
         @Size(max = Subject.NAME_LENGTH)
         public String name;
+        @NotBlank
+        @Size(min = Subject.MIN_ACRONYM_LENGTH, max = Subject.MAX_ACRONYM_LENGTH)
         public String acronym;
     }
 
     static class EditSubject {
-        @NotBlank
         @Size(max = Subject.NAME_LENGTH)
         public String name;
+        @Size(min = Subject.MIN_ACRONYM_LENGTH, max = Subject.MAX_ACRONYM_LENGTH)
+        public String acronym;
     }
 
     static class NewCourse {

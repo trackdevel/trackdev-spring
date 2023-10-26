@@ -22,6 +22,10 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
     @Autowired
     AccessChecker accessChecker;
 
+    public Collection<Course> getAll(){
+        return repo.findAll();
+    }
+
     @Transactional
     public Course createCourse(Long subjectId, Integer startYear, String loggedInUserId) {
         Subject subject = subjectService.getSubject(subjectId);
@@ -32,8 +36,19 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         return course;
     }
 
-    public void deleteCourse(Long yearId, String loggedInUserId) {
-        Course course = get(yearId);
+    @Transactional
+    public Course editCourse(Long courseId, Integer startYear, Long subjectId, String userId){
+        Course course = get(courseId);
+        accessChecker.checkCanManageCourse(course, userId);
+        course.setStartYear(startYear);
+        Subject subject = subjectService.getSubject(subjectId);
+        course.setSubject(subject);
+        repo.save(course);
+        return course;
+    }
+
+    public void deleteCourse(Long courseId, String loggedInUserId) {
+        Course course = get(courseId);
         accessChecker.checkCanManageCourse(course, loggedInUserId);
         repo.delete(course);
     }
@@ -63,10 +78,6 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         }
         course.enrollStudent(user);
 
-    }
-
-    public Collection<Course> getAll(){
-        return repo.findAll();
     }
 
 }
