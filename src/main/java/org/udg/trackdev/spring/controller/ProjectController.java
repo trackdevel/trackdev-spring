@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Project;
+import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.ProjectService;
+import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
@@ -26,8 +28,12 @@ public class ProjectController extends BaseController {
     ProjectService service;
 
     @Autowired
+    UserService userService;
+
+    @Autowired
     AccessChecker accessChecker;
 
+    //TODO: Get enrolled projects
     @GetMapping
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Project> getProjects(Principal principal) {
@@ -42,6 +48,7 @@ public class ProjectController extends BaseController {
         String userId = super.getUserId(principal);
         Project project = service.get(projectId);
         accessChecker.checkCanViewProject(project, userId);
+        userService.setCurrentProject(userService.get(userId), project);
         return project;
     }
 
@@ -51,7 +58,7 @@ public class ProjectController extends BaseController {
                                @PathVariable(name = "projectId") Long projectId,
                                @Valid @RequestBody EditProject projectRequest) {
         String userId = super.getUserId(principal);
-        Project modifiedProject = service.editProject(projectId, projectRequest.name, projectRequest.members,  projectRequest.current, userId);
+        Project modifiedProject = service.editProject(projectId, projectRequest.name, projectRequest.members, userId);
         return modifiedProject;
     }
 
@@ -62,6 +69,16 @@ public class ProjectController extends BaseController {
         String userId = super.getUserId(principal);
         service.deleteProject(projectId, userId);
         return okNoContent();
+    }
+
+    @GetMapping(path = "/{projectId}/tasks")
+    @JsonView(EntityLevelViews.Basic.class)
+    public Collection<Task> getProjectTasks(Principal principal,
+                                            @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        Project project = service.get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+        return service.getProjectTasks(project);
     }
 
     //TODO: Modificar a Optionals

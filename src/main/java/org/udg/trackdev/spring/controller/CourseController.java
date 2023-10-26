@@ -17,9 +17,7 @@ import org.udg.trackdev.spring.service.ProjectService;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -34,7 +32,7 @@ import java.util.stream.Collectors;
 public class CourseController extends BaseController {
 
     @Autowired
-    CourseService courseService;
+    CourseService service;
 
     @Autowired
     ProjectService projectService;
@@ -52,7 +50,7 @@ public class CourseController extends BaseController {
         User user = userService.get(userId);
         /**NOU BLOC**/
         if (user.isUserType(UserType.ADMIN))
-            return courseService.getAll();
+            return service.getAll();
         else if (user.isUserType(UserType.STUDENT) || user.isUserType(UserType.PROFESSOR))
             return user.getEnrolledCourseYears();
         else
@@ -65,7 +63,7 @@ public class CourseController extends BaseController {
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Course getCourse(Principal principal, @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Course course = courseService.get(courseId);
+        Course course = service.get(courseId);
         accessChecker.checkCanViewCourse(course, userId);
         return course;
     }
@@ -75,7 +73,7 @@ public class CourseController extends BaseController {
     public Set<User> getStudents(Principal principal,
                                  @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Course course = courseService.get(courseId);
+        Course course = service.get(courseId);
         accessChecker.checkCanViewCourseAllMembers(course, userId);
         return course.getStudents();
     }
@@ -85,7 +83,7 @@ public class CourseController extends BaseController {
                                       @PathVariable("courseId") Long courseId,
                                       @PathVariable("username") String username) {
         String principalUserId = super.getUserId(principal);
-        courseService.removeStudent(courseId, username, principalUserId);
+        service.removeStudent(courseId, username, principalUserId);
         return okNoContent();
     }
 
@@ -94,7 +92,7 @@ public class CourseController extends BaseController {
     public Collection<Project> getProjects(Principal principal,
                                            @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
-        Course course = courseService.get(courseId);
+        Course course = service.get(courseId);
         Collection<Project> projects;
         if(accessChecker.canViewCourseAllProjects(course, userId)) {
             projects = course.getProjects();
@@ -113,6 +111,14 @@ public class CourseController extends BaseController {
         String userId = super.getUserId(principal);
         Project createdProject = projectService.createProject(projectRequest.name, projectRequest.members, courseId, userId);
         return new IdObjectLong(createdProject.getId());
+    }
+
+    @DeleteMapping(path = "/{courseId}")
+    public ResponseEntity deleteCourse(Principal principal,
+                                       @PathVariable("courseId") Long courseId) {
+        String userId = super.getUserId(principal);
+        service.deleteCourse(courseId, userId);
+        return okNoContent();
     }
 
     static class NewProject {

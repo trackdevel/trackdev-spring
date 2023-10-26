@@ -11,7 +11,6 @@ import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -51,7 +50,7 @@ public class User extends BaseEntityUUID {
   private Collection<Project> projects = new ArrayList<>();
 
   @ManyToMany(mappedBy = "students")
-  private Collection<Course> cours = new ArrayList<>();
+  private Collection<Course> course = new ArrayList<>();
 
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
@@ -59,6 +58,10 @@ public class User extends BaseEntityUUID {
   private String githubName;
 
   /**APARTIR D'AQUI SON MODIFICACIONS PER EL TFG**/
+
+  @ManyToOne
+  @JoinColumn(name = "currentProjectId")
+  private Project currentProject;
 
   private String nicename;
 
@@ -84,6 +87,11 @@ public class User extends BaseEntityUUID {
   public String getUsername() {
     return username;
   }
+
+  @JsonView(PrivacyLevelViews.Public.class)
+  public Project getCurrentProject() { return currentProject; }
+
+  public void setCurrentProject(Project currentProject) { this.currentProject = currentProject; }
 
   @JsonView(PrivacyLevelViews.Public.class)
   public String getNicename() { return nicename; }
@@ -156,10 +164,10 @@ public class User extends BaseEntityUUID {
     }
   }
 
-  public void enrollToCourseYear(Course course) { this.cours.add(course); }
+  public void enrollToCourseYear(Course course) { this.course.add(course); }
 
-  public void removeFromCourseYear(Course course) { this.cours.remove(course); }
+  public void removeFromCourseYear(Course course) { this.course.remove(course); }
 
   @JsonIgnore
-  public Collection<Course> getEnrolledCourseYears() { return this.cours; }
+  public Collection<Course> getEnrolledCourseYears() { return this.course; }
 }

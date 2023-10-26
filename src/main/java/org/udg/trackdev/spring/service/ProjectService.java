@@ -46,7 +46,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     //TODO: Modificar a Optionals
     @Transactional
-    public Project editProject(Long projectId, String name, Collection<String> usernames, Optional<Boolean> current,
+    public Project editProject(Long projectId, String name, Collection<String> usernames,
                                String loggedInUserId) {
         Project project = get(projectId);
         accessChecker.checkCanManageProject(project, loggedInUserId);
@@ -59,9 +59,6 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
             }
             editMembers(usernames, project);
         }
-        if(current != null){
-            project.setCurrent(current.get());
-        }
         repo.save(project);
         
         return project;
@@ -71,6 +68,10 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         Project project = get(groupId);
         accessChecker.checkCanManageProject(project, userId);
         repo.delete(project);
+    }
+
+    public Collection<Task> getProjectTasks(Project project) {
+        return project.getTasks();
     }
 
     private void addMembers(Course course, Project project, Collection<String> usernames) {

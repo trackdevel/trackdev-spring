@@ -86,6 +86,8 @@ public class Task extends BaseEntityLong {
         this.status = TaskStatus.BACKLOG;
     }
 
+    // -- GETTERS AND SETTERS
+
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)
     public String getName() {
@@ -103,7 +105,7 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public User getReporter() { return reporter; }
 
-    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class } )
+    @JsonView({ EntityLevelViews.ProjectComplete.class, EntityLevelViews.Hierarchy.class } )
     @JsonSerialize(using = JsonHierarchyViewSerializer.class)
     public Project getProject() {
         return project;

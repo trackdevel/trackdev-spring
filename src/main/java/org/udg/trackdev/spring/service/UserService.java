@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
+import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.configuration.UserType;
@@ -132,6 +133,12 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public void setLastLogin(User user) {
         user.setLastLogin(new Date());
+        repo.save(user);
+    }
+
+    @Transactional
+    public void setCurrentProject(User user, Project project) {
+        user.setCurrentProject(project);
         repo.save(user);
     }
 

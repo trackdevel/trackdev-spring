@@ -68,4 +68,5 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
     public Collection<Course> getAll(){
         return repo.findAll();
     }
+
 }
