@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Project;
+import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
@@ -16,7 +17,9 @@ import org.udg.trackdev.spring.service.UserService;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Optional;
 
 @SecurityRequirement(name = "bearerAuth")
@@ -81,11 +84,28 @@ public class ProjectController extends BaseController {
         return service.getProjectTasks(project);
     }
 
+    @PostMapping(path = "/{projectId}/sprints")
+    @JsonView(EntityLevelViews.Basic.class)
+    public ResponseEntity createProjectSprint(Principal principal,
+                                       @PathVariable(name = "projectId") Long projectId,
+                                       @Valid @RequestBody CreateSprint sprintRequest) {
+        String userId = super.getUserId(principal);
+        Project project = service.get(projectId);
+        service.createSprint(project, sprintRequest.name, sprintRequest.startDate, sprintRequest.endDate, userId);
+        return okNoContent();
+    }
+
     //TODO: Modificar a Optionals
     static class EditProject {
         @Size(min = 1, max = Project.NAME_LENGTH)
         public String name;
-        public Optional<Boolean> current;
         public Collection<String> members;
+    }
+
+    static class CreateSprint {
+        @Size(min = 1, max = Sprint.NAME_LENGTH)
+        public String name;
+        public Date startDate;
+        public Date endDate;
     }
 }

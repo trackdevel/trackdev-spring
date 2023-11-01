@@ -105,7 +105,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         User user = new User(username, email, password);
         user.setChangePassword(true);
         user.setEnabled(true);
-        user.setNicename("Test User Dos");
         /**************/
 
         for (UserType ut: roles) {
@@ -147,6 +146,21 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         user.setPassword(global.getPasswordEncoder().encode(newpassword));
         user.setChangePassword(false);
         repo().save(user);
+    }
+
+    @Transactional
+    public User editMyUser(User user, Optional<String> email, Optional<String> githubName, Optional<String> color,
+                         Optional<String> capitalLetters, Optional<String> nicename, Optional<Boolean> changePassword,
+                         Optional<String> githubToken) {
+        if(email != null) email.ifPresent(user::setEmail);
+        if(githubName != null) githubName.ifPresent(user::setGithubName);
+        if(color != null) color.ifPresent(user::setColor);
+        if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
+        if(nicename != null) nicename.ifPresent(user::setNicename);
+        if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
+        if(githubToken != null) githubToken.ifPresent(user::setGithubToken);
+        repo().save(user);
+        return user;
     }
 
 }

@@ -65,7 +65,7 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
             }
         }
         course.removeStudent(user);
-        user.removeFromCourseYear(course);
+        user.removeFromCourse(course);
     }
 
     @Transactional

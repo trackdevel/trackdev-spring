@@ -11,6 +11,8 @@ import org.udg.trackdev.spring.repository.SprintRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -23,16 +25,12 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     UserService userService;
 
     @Transactional
-    public Sprint create(Long backlogId, String name, LocalDate startDate, LocalDate endDate, String userId) {
-        //Backlog backlog = backlogService.get(backlogId);
+    public Sprint create(Project project, String name, Date startDate, Date endDate, String userId) {
         User user = userService.get(userId);
-        //accessChecker.checkCanManageBacklog(backlog, user);
-
         Sprint sprint = new Sprint(name);
         sprint.setStartDate(startDate, user);
         sprint.setEndDate(endDate, user);
-        //sprint.setBacklog(backlog);
-        //backlog.addSprint(sprint);
+        sprint.setProject(project);
         this.repo().save(sprint);
 
         return sprint;
@@ -52,14 +50,14 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             }
         }
         if(editSprint.startDate != null) {
-            LocalDate startDate = editSprint.startDate.orElseThrow(
+            Date startDate = editSprint.startDate.orElseThrow(
                     () -> new ServiceException("Not possible to set startDate to null"));
             if(!startDate.equals(sprint.getStartDate())) {
                 sprint.setStartDate(startDate, user);
             }
         }
         if(editSprint.endDate != null) {
-            LocalDate endDate = editSprint.endDate.orElseThrow(
+            Date endDate = editSprint.endDate.orElseThrow(
                     () -> new ServiceException("Not possible to set endDate to null"));
             if(!endDate.equals(sprint.getEndDate())) {
                 sprint.setEndDate(endDate, user);
@@ -74,5 +72,9 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         }
         repo().save(sprint);
         return sprint;
+    }
+
+    public Collection<Sprint> getSpritnsByIds(Collection<Long> sprintIds) {
+        return repo.findAllById(sprintIds);
     }
 }

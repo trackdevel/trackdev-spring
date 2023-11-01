@@ -109,7 +109,7 @@ public class AccessChecker {
     }
 
     public boolean isUserAdminOrProfessor(User user) {
-        return user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN);
+        return user.isUserType(UserType.ADMIN) || user.isUserType(UserType.PROFESSOR);
     }
 
 }

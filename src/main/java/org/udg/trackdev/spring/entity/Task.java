@@ -13,6 +13,7 @@ import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -61,15 +62,8 @@ public class Task extends BaseEntityLong {
     @Column(name = "parentTaskId", insertable = false, updatable = false)
     private Long parentTaskId;
 
-    @OneToMany(mappedBy = "task")
-    private Collection<PullRequest> pullRequests;
-
-    @ManyToOne
-    @JoinColumn(name = "activeSprintId")
-    private Sprint activeSprint;
-
-    @Column(name = "activeSprintId", insertable = false, updatable = false)
-    private Long activeSprintId;
+    @ManyToMany(mappedBy = "activeTasks")
+    private Collection<Sprint> activeSprints = new ArrayList<>();
 
     @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
     private Collection<TaskChange> taskChanges;
@@ -171,19 +165,14 @@ public class Task extends BaseEntityLong {
         comment.setTask(this);
     }
 
-    public Collection<PullRequest> getPullRequests() {
-        return pullRequests;
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public Collection<Sprint> getActiveSprints() {
+        return activeSprints;
     }
 
-    public Sprint getActiveSprint() {
-        return activeSprint;
-    }
-
-    public void setActiveSprint(Sprint activeSprint) {
-        //if(activeSprint != null && activeSprint.getBacklog() != this.backlog) {
-        //    throw new EntityException("Cannot active sprint to task because they belong to different backlogs");
-        //}
-        this.activeSprint = activeSprint;
+    public void setActiveSprints(Collection<Sprint> activeSprints) {
+        this.activeSprints = activeSprints;
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {

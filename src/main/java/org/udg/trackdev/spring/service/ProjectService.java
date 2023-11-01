@@ -4,17 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
-import org.udg.trackdev.spring.entity.Course;
-import org.udg.trackdev.spring.entity.Project;
-import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.GroupRepository;
 
 import javax.swing.text.html.Option;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
@@ -24,6 +19,9 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     @Autowired
     CourseService courseService;
+
+    @Autowired
+    SprintService sprintService;
 
     @Autowired
     AccessChecker accessChecker;
@@ -72,6 +70,13 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     public Collection<Task> getProjectTasks(Project project) {
         return project.getTasks();
+    }
+
+    public void createSprint(Project project, String name, Date startDate, Date endDate, String userId) {
+        accessChecker.checkCanViewProject(project, userId);
+        Sprint sprint = sprintService.create(project, name, startDate, endDate, userId);
+        project.addSprint(sprint);
+        repo.save(project);
     }
 
     private void addMembers(Course course, Project project, Collection<String> usernames) {

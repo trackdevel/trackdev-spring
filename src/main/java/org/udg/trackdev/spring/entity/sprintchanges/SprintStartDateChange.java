@@ -10,6 +10,7 @@ import org.udg.trackdev.spring.service.Global;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @DiscriminatorValue(value = SprintStartDateChange.CHANGE_TYPE_NAME)
@@ -18,12 +19,12 @@ public class SprintStartDateChange extends SprintChange {
 
     public SprintStartDateChange() {}
 
-    public SprintStartDateChange(User author, Sprint sprint, LocalDate value) {
+    public SprintStartDateChange(User author, Sprint sprint, Date value) {
         super(author, sprint);
         this.startDate = value;
     }
 
-    private LocalDate startDate;
+    private Date startDate;
 
     @Override
     public String getType() {
@@ -32,7 +33,7 @@ public class SprintStartDateChange extends SprintChange {
 
     @JsonView(EntityLevelViews.Basic.class)
     @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
-    public LocalDate getStartDate() {
+    public Date getStartDate() {
         return this.startDate;
     }
 }

@@ -29,11 +29,20 @@ public class SprintController extends CrudController<Sprint, SprintService> {
     @Autowired
     SprintChangeService sprintChangeService;
 
+    @GetMapping
+    @JsonView(EntityLevelViews.Basic.class)
+    public List<Sprint> getSprints(Principal principal) {
+        String userId = super.getUserId(principal);
+        accessChecker.checkCanViewAllProjects(userId);
+        return service.findAll();
+    }
+
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.Basic.class)
     public Sprint getSprint(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         Sprint sprint = service.get(id);
+        accessChecker.checkCanViewProject(sprint.getProject(), userId);
         return sprint;
     }
 

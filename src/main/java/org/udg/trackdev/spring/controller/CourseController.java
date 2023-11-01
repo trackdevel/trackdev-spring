@@ -21,7 +21,6 @@ import javax.validation.constraints.*;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,7 @@ public class CourseController extends BaseController {
         if (user.isUserType(UserType.ADMIN))
             return service.getAll();
         else if (user.isUserType(UserType.STUDENT) || user.isUserType(UserType.PROFESSOR))
-            return user.getEnrolledCourseYears();
+            return user.getEnrolledCourse();
         else
             throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
         /***/

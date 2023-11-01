@@ -17,29 +17,36 @@ import javax.validation.constraints.NotNull;
 @Table(name = "projects")
 public class Project extends BaseEntityLong {
 
-    public static final int NAME_LENGTH = 50;
+    //-- ATTRIBUTES
 
-    public static final boolean DEFAULT_CURRENT = false;
+    public static final int NAME_LENGTH = 50;
 
     @NotNull
     @Column(length = NAME_LENGTH)
     private String name;
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
-    private Set<User> members = new HashSet<>();
-
     @ManyToOne
     @JoinColumn(name = "courseId")
     private Course course;
 
+    @ManyToMany(cascade = CascadeType.PERSIST)
+    private Set<User> members = new HashSet<>();
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Task> tasks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Collection<Sprint> sprints = new ArrayList<>();
+
+    //--- CONSTRUCTOR
 
     public Project() {}
 
     public Project(String name) {
         this.name = name;
     }
+
+    //--- GETTERS AND SETTERS
 
     @JsonView({EntityLevelViews.Basic.class})
     public String getName() { return this.name; }
@@ -48,6 +55,30 @@ public class Project extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Basic.class)
     public Set<User> getMembers() { return this.members; }
+
+    @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
+    @JsonSerialize(using = JsonHierarchyViewSerializer.class)
+    public Course getCourse() {
+        return this.course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    @JsonView({EntityLevelViews.ProjectComplete.class})
+    public Collection<Task> getTasks() {
+        Collection<Task> mainTasks = new ArrayList<>();
+        this.tasks.stream().filter(task -> task.getParentTask() == null).forEach(mainTasks::add);
+        return mainTasks;
+    }
+
+    @JsonView({EntityLevelViews.ProjectComplete.class})
+    public Collection<Sprint> getSprints() {
+        return this.sprints;
+    }
+
+    //--- METHODS
 
     public void addMember(User member) { this.members.add(member); }
 
@@ -68,20 +99,12 @@ public class Project extends BaseEntityLong {
         this.members.remove(user);
     }
 
-    @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
-    @JsonSerialize(using = JsonHierarchyViewSerializer.class)
-    public Course getCourse() {
-        return this.course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    @JsonView({EntityLevelViews.ProjectComplete.class})
-    public Collection<Task> getTasks() { return this.tasks; }
-
     public void addTask(Task task) {
         this.tasks.add(task);
     }
+
+    public void addSprint(Sprint sprint) {
+        this.sprints.add(sprint);
+    }
+
 }

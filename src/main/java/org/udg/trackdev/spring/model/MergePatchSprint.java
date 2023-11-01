@@ -3,6 +3,7 @@ package org.udg.trackdev.spring.model;
 import org.udg.trackdev.spring.entity.SprintStatus;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -12,9 +13,9 @@ import java.util.Optional;
 public class MergePatchSprint {
     public Optional<String> name;
 
-    public Optional<LocalDate> startDate;
+    public Optional<Date> startDate;
 
-    public Optional<LocalDate> endDate;
+    public Optional<Date> endDate;
 
     public Optional<SprintStatus> status;
 }

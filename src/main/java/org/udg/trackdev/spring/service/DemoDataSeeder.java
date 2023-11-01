@@ -102,10 +102,10 @@ public class DemoDataSeeder {
         }
     }
 
-    private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
+    /**private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
         Random random = new Random();
         User sprintCreator = users.get(random.nextInt(users.size()));
-        Sprint sprint = sprintService.create(backlogId, name, start, end, sprintCreator.getId());
+        //Sprint sprint = sprintService.create(name, start, end, sprintCreator.getId());
 
         List<Task> tasks = createTasks(backlogId, 5, users, random);
         User editor = users.get(random.nextInt(users.size()));
@@ -113,7 +113,9 @@ public class DemoDataSeeder {
         for(Task task : tasks) {
             // Add to sprint
             MergePatchTask change = new MergePatchTask();
-            change.activeSprint = Optional.of(sprint.getId());
+            Collection<Long> sprints = new ArrayList<>();
+            sprints.add(sprint.getId());
+            change.activeSprints = Optional.of(sprints);
             change.rank = Optional.of(rank);
             taskService.editTask(task.getId(), change, editor.getId());
 
@@ -143,7 +145,7 @@ public class DemoDataSeeder {
                 }
             }
         }
-    }
+    }**/
 
     private void saveOpenSprint(User sprintCreator, Sprint sprint) {
         MergePatchSprint sprintChange = new MergePatchSprint();

@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.model;
 
 import org.udg.trackdev.spring.entity.Comment;
+import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.TaskStatus;
 
@@ -31,7 +32,7 @@ public class MergePatchTask {
 
     public Optional<Integer> rank;
 
-    public Optional<Long> activeSprint;
+    public Optional<Collection<Long>> activeSprints;
 
     public Optional<Comment> comment;
 

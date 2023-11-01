@@ -11,6 +11,7 @@ import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 @Entity
@@ -20,12 +21,15 @@ public class User extends BaseEntityUUID {
   public static final int USERNAME_LENGTH = 12;
   public static final int EMAIL_LENGTH = 128;
 
+  public static final int CAPITAL_LETTERS_LENGTH = 2;
+
   public User() {}
 
   public User(String username, String email, String password) {
     this.username = username;
     this.email = email;
     this.password = password;
+    this.color = randomColorGenerator();
   }
 
   @NotNull
@@ -57,7 +61,12 @@ public class User extends BaseEntityUUID {
 
   private String githubName;
 
-  /**APARTIR D'AQUI SON MODIFICACIONS PER EL TFG**/
+  private String githubToken;
+
+  private String color;
+
+  @Size(min = CAPITAL_LETTERS_LENGTH, max = CAPITAL_LETTERS_LENGTH)
+  private String capitalLetters;
 
   @ManyToOne
   @JoinColumn(name = "currentProjectId")
@@ -71,7 +80,7 @@ public class User extends BaseEntityUUID {
   @NotNull
   private Boolean enabled;
 
-  /**********************************/
+ // -- GETTERS AND SETTERS
 
   @JsonView(PrivacyLevelViews.Private.class)
   public String getId() {
@@ -81,6 +90,10 @@ public class User extends BaseEntityUUID {
   @JsonView(PrivacyLevelViews.Private.class)
   public String getEmail() {
     return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
@@ -96,7 +109,20 @@ public class User extends BaseEntityUUID {
   @JsonView(PrivacyLevelViews.Public.class)
   public String getNicename() { return nicename; }
 
-  public void setNicename() { this.nicename = nicename; }
+  public void setNicename(String nicename) { this.nicename = nicename;
+    String[] names = nicename.split(" ");
+    String firstLetter;
+    String secondLetter;
+    if(names.length > 1){
+      firstLetter = names[0].substring(0, 1);
+      secondLetter = names[1].substring(0, 1);
+    }
+    else{
+      firstLetter = names[0].substring(0, 1);
+      secondLetter = names[0].substring(1, 2);
+    }
+    this.capitalLetters = (firstLetter + secondLetter).toUpperCase();
+  }
 
   @JsonIgnore
   public String getPassword() {
@@ -111,12 +137,24 @@ public class User extends BaseEntityUUID {
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
 
-  /** COSES NOVES **/
+  public String getGithubName() { return githubName; }
+
+  public String setGithubName(String githubName) { return this.githubName = githubName; }
+
+  public String getGithubToken() { return githubToken; }
+
+  public String setGithubToken(String githubToken) { return this.githubToken = githubToken; }
+
+  public String getColor() { return color; }
+
+  public String setColor(String color) { return this.color = color; }
+
+  public String getCapitalLetters() { return capitalLetters; }
+
+  public String setCapitalLetters(String capitalLetters) { return this.capitalLetters = capitalLetters; }
 
   @JsonView(PrivacyLevelViews.Public.class)
   public String nicename() { return nicename; }
-
-  public void setNicename(String nicename) { this.nicename = nicename; }
 
   @JsonView(PrivacyLevelViews.Public.class)
   public Boolean getChangePassword() { return changePassword; }
@@ -127,8 +165,6 @@ public class User extends BaseEntityUUID {
   public Boolean getEnabled() { return enabled; }
 
   public void setEnabled(Boolean enabled) { this.enabled = enabled; }
-
-  /***********/
 
   public void addRole(Role role) {
     roles.add(role);
@@ -164,10 +200,19 @@ public class User extends BaseEntityUUID {
     }
   }
 
-  public void enrollToCourseYear(Course course) { this.course.add(course); }
+  public void enrollToCourse(Course course) { this.course.add(course); }
 
-  public void removeFromCourseYear(Course course) { this.course.remove(course); }
+  public void removeFromCourse(Course course) { this.course.remove(course); }
 
   @JsonIgnore
-  public Collection<Course> getEnrolledCourseYears() { return this.course; }
+  public Collection<Course> getEnrolledCourse() { return this.course; }
+
+  private static String randomColorGenerator(){
+    Random random = new Random();
+    int red = random.nextInt(256);
+    int green = random.nextInt(256);
+    int blue = random.nextInt(256);
+    return String.format("#%02x%02x%02x", red, green, blue);
+  }
+
 }

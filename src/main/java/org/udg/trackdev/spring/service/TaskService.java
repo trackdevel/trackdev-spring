@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService extends BaseServiceLong<Task, TaskRepository> {
@@ -111,13 +112,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 changes.addAll(otherChanges);
             }
         }
-        if(editTask.activeSprint != null) {
+        /**if(editTask.activeSprint != null) {
             if(editTask.rank == null || !editTask.rank.isPresent()) {
                 throw new ServiceException("Is not allowed to change sprint without specifying rank");
             }
             Sprint newSprint = null;
             if(editTask.activeSprint.isPresent()) {
-                Sprint oldSprint = task.getActiveSprint();
+                Sprint oldSprint = task.getActiveSprints();
                 if(oldSprint != null) {
                     oldSprint.removeTask(task, user);
                 }
@@ -130,7 +131,18 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 task.setActiveSprint(null);
                 oldSprint.removeTask(task, user);
             }
-            changes.add(new TaskActiveSprintChange(user, task, newSprint));
+
+            changes.add(new TaskActiveSprintsChange(user, task, newSprint));
+        }**/
+        if(editTask.activeSprints != null){
+            Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
+                    () -> new ServiceException("Not possible to set activeSprints to null"));
+            String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
+            Collection<Sprint> sprints = sprintService.getSpritnsByIds(sprintsIds);
+            String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
+            task.setActiveSprints(sprints);
+            sprints.stream().forEach(sprint -> sprint.addTask(task, user));
+            changes.add(new TaskActiveSprintsChange(user, task, oldValues, newValues));
         }
         if (editTask.comment != null) {
             Comment comment = editTask.comment.orElseThrow(

@@ -2,20 +2,54 @@ package org.udg.trackdev.spring.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
 import org.udg.trackdev.spring.entity.sprintchanges.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 
 @Entity
 @Table(name = "sprints")
 public class Sprint extends BaseEntityLong {
+
+    //-- ATTRIBUTES
+
+    public static final int NAME_LENGTH = 50;
+
+    @NonNull
+    private String name;
+
+    @JsonView(EntityLevelViews.Basic.class)
+    @JsonSerialize(using = JsonDateSerializer.class)
+    private Date startDate;
+
+    @JsonView(EntityLevelViews.Basic.class)
+    @JsonSerialize(using = JsonDateSerializer.class)
+    private Date endDate;
+
+    @Column(name = "`status`")
+    private SprintStatus status;
+
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private Collection<Task> activeTasks = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "projectId")
+    private Project project;
+
+    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
+    private Collection<SprintChange> sprintChanges;
+
+    //--- CONSTRUCTOR
 
     public Sprint() {}
 
@@ -24,24 +58,7 @@ public class Sprint extends BaseEntityLong {
         this.status = SprintStatus.DRAFT;
     }
 
-    @NonNull
-    private String name;
-
-    @Column(name = "backlogId", insertable = false, updatable = false)
-    private Long backlogId;
-
-    private LocalDate startDate;
-
-    private LocalDate endDate;
-
-    @Column(name = "`status`")
-    private SprintStatus status;
-
-    @OneToMany(mappedBy = "activeSprint")
-    private Collection<Task> activeTasks;
-
-    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
-    private Collection<SprintChange> sprintChanges;
+    //--- GETTERS AND SETTERS
 
     @NonNull
     @JsonView(EntityLevelViews.Basic.class)
@@ -56,12 +73,12 @@ public class Sprint extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Basic.class)
     @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
-    public LocalDate getStartDate() {
+    public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate, User modifier) {
-        LocalDate oldValue = this.startDate;
+    public void setStartDate(Date startDate, User modifier) {
+        Date oldValue = this.startDate;
         this.startDate = startDate;
         if(oldValue != null) {
             sprintChanges.add(new SprintStartDateChange(modifier, this, startDate));
@@ -70,12 +87,12 @@ public class Sprint extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Basic.class)
     @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
-    public LocalDate getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDate endDate, User modifier) {
-        LocalDate oldValue = this.endDate;
+    public void setEndDate(Date endDate, User modifier) {
+        Date oldValue = this.endDate;
         this.endDate = endDate;
         if(oldValue != null) {
             sprintChanges.add(new SprintEndDateChange(modifier, this, endDate));
@@ -100,14 +117,26 @@ public class Sprint extends BaseEntityLong {
         this.sprintChanges.add(new SprintStatusChange(modifier, this, status));
     }
 
+    @JsonView(EntityLevelViews.Basic.class)
     public Collection<Task> getActiveTasks() {
-        return Collections.unmodifiableCollection(this.activeTasks);
+        return this.activeTasks;
     }
 
+    public void setActiveTasks(Collection<Task> tasks) {
+        this.activeTasks = tasks;
+    }
+
+    public Project getProject() {
+        return this.project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    //--- METHODS
+
     public void addTask(Task task, User modifier) {
-        //if(task.getBacklog() != this.backlog) {
-        //    throw new EntityException("Cannot add task to sprint as they belong to different backlogs");
-        //}
         this.activeTasks.add(task);
         this.sprintChanges.add(new SprintTaskAdded(modifier, this, task));
         if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.CREATED) {
