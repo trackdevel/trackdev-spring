@@ -1,6 +1,8 @@
 package org.udg.trackdev.spring.service;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             return user;
         else
             throw new ServiceException("Password does not match");
+    }
+
+    public boolean matchRecoveryCode(User user, String code) {
+        return global.getPasswordEncoder().matches(code, user.getRecoveryCode());
     }
 
     /** COSA NOVA **/
@@ -161,6 +167,19 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if(githubToken != null) githubToken.ifPresent(user::setGithubToken);
         repo().save(user);
         return user;
+    }
+
+    @Transactional
+    public String generateRecoveryCode(User user) {
+        String code = RandomStringUtils.randomAlphanumeric(8);
+        user.setRecoveryCode(global.getPasswordEncoder().encode(code));
+        repo().save(user);
+        return code;
+    }
+
+    public void cleanRecoveryCode(User user) {
+        user.setRecoveryCode(null);
+        repo().save(user);
     }
 
 }

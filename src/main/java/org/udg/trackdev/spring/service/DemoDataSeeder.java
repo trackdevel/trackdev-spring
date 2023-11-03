@@ -47,10 +47,9 @@ public class DemoDataSeeder {
         User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
         User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
         User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.PROFESSOR));
-
-        /** coses noves **/
         User test_nou = userService.addUserInternal("test_nou", "test_nou@gmail.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.STUDENT));
         User test_random_pass = userService.addUserInternal("test1","test.randompass@gmail.com",global.getPasswordEncoder().encode(RandomStringUtils.randomAscii(8)), List.of(UserType.STUDENT));
+        User gerard = userService.addUserInternal("gerard", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
 
         List<User> enrolledStudents = createDemoStudents();
         enrolledStudents.add(student1);

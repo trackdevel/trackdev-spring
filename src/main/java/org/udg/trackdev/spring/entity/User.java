@@ -20,8 +20,8 @@ public class User extends BaseEntityUUID {
 
   public static final int USERNAME_LENGTH = 12;
   public static final int EMAIL_LENGTH = 128;
-
   public static final int CAPITAL_LETTERS_LENGTH = 2;
+  public static final int RECOVERY_CODE_LENGTH = 8;
 
   public User() {}
 
@@ -80,6 +80,8 @@ public class User extends BaseEntityUUID {
   @NotNull
   private Boolean enabled;
 
+  private String recoveryCode;
+
  // -- GETTERS AND SETTERS
 
   @JsonView(PrivacyLevelViews.Private.class)
@@ -132,6 +134,11 @@ public class User extends BaseEntityUUID {
   public void setPassword(String password) {
     this.password = password;
   }
+
+  @JsonIgnore
+  public String getRecoveryCode() { return recoveryCode; }
+
+  public void setRecoveryCode(String recoveryCode) { this.recoveryCode = recoveryCode; }
 
   @JsonView(PrivacyLevelViews.Private.class)
   @JsonSerialize(using= JsonRolesSerializer.class)

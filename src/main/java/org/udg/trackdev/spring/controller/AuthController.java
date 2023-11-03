@@ -12,19 +12,26 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.AuthorizationConfiguration;
 import org.udg.trackdev.spring.configuration.CookieManager;
+import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
+import org.udg.trackdev.spring.service.EmailSenderService;
+import org.udg.trackdev.spring.service.Global;
 import org.udg.trackdev.spring.service.UserService;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Tag(name = "1. Authentication")
@@ -40,6 +47,9 @@ public class AuthController extends BaseController {
 
     @Autowired
     AuthorizationConfiguration authorizationConfiguration;
+
+    @Autowired
+    EmailSenderService emailSenderService;
 
     @Operation(summary = "Login user", description = "Login user with username and password")
     @PostMapping(path="/login")
@@ -96,14 +106,40 @@ public class AuthController extends BaseController {
             description = "Change the password of the user for a new one",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @PostMapping(path="/password")
-    @JsonView(PrivacyLevelViews.Private.class)
-    public ResponseEntity<Map<String, Object>> changePassword(Principal principal,
+    public ResponseEntity changePassword(Principal principal,
                                                      @Valid @RequestBody ChangePasswordT userBody) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         userService.matchPassword(user.getUsername(), userBody.oldPassword);
         userService.changePassword(user, userBody.newPassword);
 
+        return okNoContent();
+    }
+
+    @Operation(summary = "Get recovery code", description = "Get recovery code for user")
+    @PostMapping(path="/recovery")
+    public ResponseEntity recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) throws MessagingException {
+        User user = userService.getByEmail(userBody.email);
+        if(user == null) {
+            throw new ServiceException("User with this email does not exist");
+        }
+        String tempCode = userService.generateRecoveryCode(user);
+        emailSenderService.sendRecoveryEmail(userBody.email, tempCode);
+        return okNoContent();
+    }
+
+    @Operation(summary = "Recovery password", description = "Recover password with recovery code")
+    @PostMapping(path="/recovery/{email}")
+    public ResponseEntity recoveryPassword(@PathVariable("email") String email,  @Valid @RequestBody RecoveryPasswordT userBody) {
+        User user = userService.getByEmail(email);
+        if(user == null) {
+            throw new ServiceException("User with this email does not exist");
+        }
+        if(!userService.matchRecoveryCode(user,userBody.code)) {
+            throw new ServiceException("Code does not match");
+        }
+        userService.changePassword(user, userBody.newPassword);
+        userService.cleanRecoveryCode(user);
         return okNoContent();
     }
 
@@ -141,6 +177,20 @@ public class AuthController extends BaseController {
         @NotNull
         public String oldPassword;
         @NotNull
+        public String newPassword;
+    }
+
+    static class RecoveryPasswordR {
+        @NotBlank
+        public String email;
+    }
+
+    static class RecoveryPasswordT {
+        @NotBlank
+        @Size(min = User.RECOVERY_CODE_LENGTH, max = User.RECOVERY_CODE_LENGTH)
+        public String code;
+
+        @NotBlank
         public String newPassword;
     }
 
