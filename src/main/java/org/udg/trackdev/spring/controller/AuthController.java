@@ -128,6 +128,19 @@ public class AuthController extends BaseController {
         return okNoContent();
     }
 
+    @Operation(summary = "Check recovery code", description = "Check recovery code for user")
+    @PostMapping(path="/recovery/{email}/check")
+    public ResponseEntity checkRecoveryCode(@PathVariable("email") String email, @Valid @RequestBody CodeValidationR codeValidation) {
+        User user = userService.getByEmail(email);
+        if(user == null) {
+            throw new ServiceException("User with this mail does not exist");
+        }
+        if(!userService.matchRecoveryCode(user, codeValidation.code)) {
+            throw new ServiceException("Code does not match");
+        }
+        return okNoContent();
+    }
+
     @Operation(summary = "Recovery password", description = "Recover password with recovery code")
     @PostMapping(path="/recovery/{email}")
     public ResponseEntity recoveryPassword(@PathVariable("email") String email,  @Valid @RequestBody RecoveryPasswordT userBody) {
@@ -185,11 +198,16 @@ public class AuthController extends BaseController {
         public String email;
     }
 
+    static class CodeValidationR {
+        @NotBlank
+        @Size(min = User.RECOVERY_CODE_LENGTH, max = User.RECOVERY_CODE_LENGTH)
+        public String code;
+    }
+
     static class RecoveryPasswordT {
         @NotBlank
         @Size(min = User.RECOVERY_CODE_LENGTH, max = User.RECOVERY_CODE_LENGTH)
         public String code;
-
         @NotBlank
         public String newPassword;
     }
