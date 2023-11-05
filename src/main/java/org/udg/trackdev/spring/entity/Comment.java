@@ -19,8 +19,10 @@ public class Comment extends BaseEntityLong {
     @Column(length = MAX_LENGTH)
     private String content;
 
+    @ManyToOne
+    @JoinColumn(name = "authorId")
     @JsonView(EntityLevelViews.Basic.class)
-    private String author;
+    private User author;
 
     @ManyToOne
     @JoinColumn(name = "taskId")
@@ -32,7 +34,7 @@ public class Comment extends BaseEntityLong {
 
     public Comment() {}
 
-    public Comment(String content, String author, Task task) {
+    public Comment(String content, User author, Task task) {
         this.content = content;
         this.author = author;
         this.task = task;
@@ -47,11 +49,11 @@ public class Comment extends BaseEntityLong {
         this.content = content;
     }
 
-    public String getAuthor() {
+    public User getAuthor() {
         return author;
     }
 
-    public void setAuthor(String authorId) {
+    public void setAuthor(User authorId) {
         this.author = authorId;
     }
 

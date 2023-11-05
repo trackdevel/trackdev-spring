@@ -79,6 +79,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         if(editTask.assignee != null) {
             User assigneeUser = null;
+            String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
             if(editTask.assignee.isPresent()) {
                 assigneeUser = userService.getByUsername(editTask.assignee.get());
                 if(!task.getProject().isMember(assigneeUser)) {
@@ -88,7 +89,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             } else {
                 task.setAssignee(null);
             }
-            changes.add(new TaskAssigneeChange(user, task, assigneeUser));
+            changes.add(new TaskAssigneeChange(user, task, oldValue, task.getAssignee().getUsername()));
         }
         if(editTask.estimationPoints != null) {
             Integer points = editTask.estimationPoints.orElse(null);
@@ -147,7 +148,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if (editTask.comment != null) {
             Comment comment = editTask.comment.orElseThrow(
                     () -> new ServiceException("Not possible to set discussion to null"));
-            task.addComment(commentService.addComment(comment.getContent(), comment.getAuthor(), task));
+            task.addComment(commentService.addComment(comment.getContent(), userService.get(userId), task));
         }
         repo.save(task);
         for(TaskChange change: changes) {

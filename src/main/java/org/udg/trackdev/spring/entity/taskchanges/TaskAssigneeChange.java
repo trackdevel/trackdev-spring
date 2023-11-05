@@ -14,15 +14,16 @@ import javax.persistence.ManyToOne;
 public class TaskAssigneeChange extends TaskChange {
     public static final String CHANGE_TYPE_NAME = "assignee_change";
 
+    private String oldValues;
+    private String newValue;
+
     public TaskAssigneeChange() {}
 
-    public TaskAssigneeChange(User author, Task task, User assignee) {
+    public TaskAssigneeChange(User author, Task task, String oldValues, String newValues) {
         super(author, task);
-        this.assignee = assignee;
+        this.oldValues = oldValues;
+        this.newValue = newValues;
     }
-
-    @ManyToOne
-    private User assignee;
 
     @Override
     public String getType() {
@@ -30,5 +31,8 @@ public class TaskAssigneeChange extends TaskChange {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public User getAssignee() { return this.assignee; }
+    public String getOldValues() { return this.oldValues; }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getNewValue() { return this.newValue; }
 }

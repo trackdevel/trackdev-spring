@@ -13,6 +13,9 @@ import javax.persistence.Entity;
 public class TaskActiveSprintsChange extends TaskChange {
     public static final String CHANGE_TYPE_NAME = "active_sprints_change";
 
+    private String oldValues;
+    private String newValue;
+
     public TaskActiveSprintsChange() {}
 
     public TaskActiveSprintsChange(User author, Task task, String oldValues, String newValues) {
@@ -20,9 +23,6 @@ public class TaskActiveSprintsChange extends TaskChange {
         this.oldValues = oldValues;
         this.newValue = newValues;
     }
-
-    private String oldValues;
-    private String newValue;
 
     @Override
     public String getType() {

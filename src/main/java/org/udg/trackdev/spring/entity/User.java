@@ -72,6 +72,9 @@ public class User extends BaseEntityUUID {
   @JoinColumn(name = "currentProjectId")
   private Project currentProject;
 
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "author", fetch = FetchType.LAZY)
+  private Collection<Comment> comments = new ArrayList<>();
+
   private String nicename;
 
   @NotNull
@@ -148,14 +151,17 @@ public class User extends BaseEntityUUID {
 
   public String setGithubName(String githubName) { return this.githubName = githubName; }
 
+  @JsonView(PrivacyLevelViews.Private.class)
   public String getGithubToken() { return githubToken; }
 
   public String setGithubToken(String githubToken) { return this.githubToken = githubToken; }
 
+  @JsonView(PrivacyLevelViews.Private.class)
   public String getColor() { return color; }
 
   public String setColor(String color) { return this.color = color; }
 
+  @JsonView(PrivacyLevelViews.Private.class)
   public String getCapitalLetters() { return capitalLetters; }
 
   public String setCapitalLetters(String capitalLetters) { return this.capitalLetters = capitalLetters; }
