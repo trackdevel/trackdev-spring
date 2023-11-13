@@ -72,10 +72,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
         List<TaskChange> changes = new ArrayList<>();
         if(editTask.name != null) {
+            String oldName = task.getName();
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException("Not possible to set name to null"));
             task.setName(name);
-            changes.add(new TaskNameChange(user, task, name));
+            changes.add(new TaskNameChange(user, task, oldName, name));
         }
         if(editTask.assignee != null) {
             User assigneeUser = null;
@@ -92,9 +93,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             changes.add(new TaskAssigneeChange(user, task, oldValue, task.getAssignee().getUsername()));
         }
         if(editTask.estimationPoints != null) {
+            Integer oldPoints = task.getEstimationPoints();
             Integer points = editTask.estimationPoints.orElse(null);
             task.setEstimationPoints(points);
-            changes.add(new TaskEstimationPointsChange(user, task, points));
+            changes.add(new TaskEstimationPointsChange(user, task, oldPoints, points));
         }
         if(editTask.status != null) {
             TaskStatus status = editTask.status.orElseThrow(

@@ -13,14 +13,14 @@ import javax.persistence.Entity;
 public class TaskActiveSprintsChange extends TaskChange {
     public static final String CHANGE_TYPE_NAME = "active_sprints_change";
 
-    private String oldValues;
+    private String oldValue;
     private String newValue;
 
     public TaskActiveSprintsChange() {}
 
-    public TaskActiveSprintsChange(User author, Task task, String oldValues, String newValues) {
+    public TaskActiveSprintsChange(User author, Task task, String oldValue, String newValues) {
         super(author, task);
-        this.oldValues = oldValues;
+        this.oldValue = oldValue;
         this.newValue = newValues;
     }
 
@@ -30,7 +30,7 @@ public class TaskActiveSprintsChange extends TaskChange {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public String getOldValues() { return this.oldValues; }
+    public String getOldValue() { return this.oldValue; }
 
     @JsonView(EntityLevelViews.Basic.class)
     public String getNewValue() { return this.newValue; }

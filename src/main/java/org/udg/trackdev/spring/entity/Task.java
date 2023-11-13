@@ -120,9 +120,10 @@ public class Task extends BaseEntityLong {
     public TaskStatus getStatus() { return status; }
 
     public void setStatus(TaskStatus status, User modifier) {
+        TaskStatus oldValue = this.status;
         checkCanMoveToStatus(status);
         this.status = status;
-        this.taskChanges.add(new TaskStatusChange(modifier, this, status));
+        this.taskChanges.add(new TaskStatusChange(modifier, this, oldValue, status));
     }
 
     @JsonView(EntityLevelViews.Basic.class)

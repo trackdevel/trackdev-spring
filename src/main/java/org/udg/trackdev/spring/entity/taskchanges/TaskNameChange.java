@@ -15,12 +15,15 @@ public class TaskNameChange extends TaskChange {
 
     public TaskNameChange() {}
 
-    public TaskNameChange(User author, Task task, String name) {
+    public TaskNameChange(User author, Task task, String oldValue, String newValue) {
         super(author, task);
-        this.name = name;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
     }
 
-    private String name;
+    private String oldValue;
+
+    private String newValue;
 
     @Override
     public String getType() {
@@ -28,5 +31,8 @@ public class TaskNameChange extends TaskChange {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public String getName() { return this.name; }
+    public String getOldValue() { return this.oldValue; }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getNewValue() { return this.newValue; }
 }

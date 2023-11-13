@@ -7,21 +7,20 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 
 @Entity
 @DiscriminatorValue(value = TaskAssigneeChange.CHANGE_TYPE_NAME)
 public class TaskAssigneeChange extends TaskChange {
     public static final String CHANGE_TYPE_NAME = "assignee_change";
 
-    private String oldValues;
+    private String oldValue;
     private String newValue;
 
     public TaskAssigneeChange() {}
 
-    public TaskAssigneeChange(User author, Task task, String oldValues, String newValues) {
+    public TaskAssigneeChange(User author, Task task, String oldValue, String newValues) {
         super(author, task);
-        this.oldValues = oldValues;
+        this.oldValue = oldValue;
         this.newValue = newValues;
     }
 
@@ -31,7 +30,7 @@ public class TaskAssigneeChange extends TaskChange {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public String getOldValues() { return this.oldValues; }
+    public String getOldValue() { return this.oldValue; }
 
     @JsonView(EntityLevelViews.Basic.class)
     public String getNewValue() { return this.newValue; }
