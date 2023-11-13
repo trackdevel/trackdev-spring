@@ -30,6 +30,7 @@ public class User extends BaseEntityUUID {
     this.email = email;
     this.password = password;
     this.color = randomColorGenerator();
+    this.githubInfo = new GithubInfo();
   }
 
   @NotNull
@@ -59,10 +60,6 @@ public class User extends BaseEntityUUID {
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
 
-  private String githubName;
-
-  private String githubToken;
-
   private String color;
 
   @Size(min = CAPITAL_LETTERS_LENGTH, max = CAPITAL_LETTERS_LENGTH)
@@ -73,7 +70,7 @@ public class User extends BaseEntityUUID {
   private Project currentProject;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "author", fetch = FetchType.LAZY)
-  private Collection<Comment> comments = new ArrayList<>();
+  private final Collection<Comment> comments = new ArrayList<>();
 
   private String nicename;
 
@@ -84,6 +81,10 @@ public class User extends BaseEntityUUID {
   private Boolean enabled;
 
   private String recoveryCode;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "githubInfoId", referencedColumnName = "id")
+  private GithubInfo githubInfo;
 
  // -- GETTERS AND SETTERS
 
@@ -147,15 +148,6 @@ public class User extends BaseEntityUUID {
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
 
-  public String getGithubName() { return githubName; }
-
-  public String setGithubName(String githubName) { return this.githubName = githubName; }
-
-  @JsonView(PrivacyLevelViews.Private.class)
-  public String getGithubToken() { return githubToken; }
-
-  public String setGithubToken(String githubToken) { return this.githubToken = githubToken; }
-
   @JsonView(PrivacyLevelViews.Private.class)
   public String getColor() { return color; }
 
@@ -163,6 +155,17 @@ public class User extends BaseEntityUUID {
 
   @JsonView(PrivacyLevelViews.Private.class)
   public String getCapitalLetters() { return capitalLetters; }
+
+  @JsonView(PrivacyLevelViews.Public.class)
+  public GithubInfo getGithubInfo() { return githubInfo; }
+
+  public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
+
+  public void setGithubName(String login) { githubInfo.setLogin(login); }
+
+  public void setGithubAvatar(String githubAvatar) { githubInfo.setAvatar_url(githubAvatar); }
+
+  public void setGithubHtmlUrl(String githubHtmlUrl) { githubInfo.setHtml_url(githubHtmlUrl); }
 
   public String setCapitalLetters(String capitalLetters) { return this.capitalLetters = capitalLetters; }
 

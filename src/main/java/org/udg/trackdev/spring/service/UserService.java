@@ -1,22 +1,19 @@
 package org.udg.trackdev.spring.service;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
+import org.udg.trackdev.spring.entity.GithubInfo;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.UserRepository;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +26,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
     private EmailSenderService emailSenderService;
+
+    @Autowired
+    private GithubService githubService;
 
     @Autowired
     private AccessChecker accessChecker;
@@ -130,11 +130,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new ServiceException("Username already exists");
     }
 
-    public User getByGithubName(String githubName) {
-        return this.repo().findByGithubName(githubName).orElseThrow(
-                () -> new ServiceException(String.format("User with githb name = %s does not exists", githubName)));
-    }
-
     @Transactional
     public void setLastLogin(User user) {
         user.setLastLogin(new Date());
@@ -155,16 +150,33 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User editMyUser(User user, Optional<String> email, Optional<String> githubName, Optional<String> color,
+    public User editMyUser(User user, Optional<String> email, Optional<String> color,
                          Optional<String> capitalLetters, Optional<String> nicename, Optional<Boolean> changePassword,
                          Optional<String> githubToken) {
         if(email != null) email.ifPresent(user::setEmail);
-        if(githubName != null) githubName.ifPresent(user::setGithubName);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(nicename != null) nicename.ifPresent(user::setNicename);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
-        if(githubToken != null) githubToken.ifPresent(user::setGithubToken);
+        if(githubToken != null) {
+            githubToken.ifPresent(user::setGithubToken);
+            ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
+            if(githubInfo.getStatusCode().is2xxSuccessful()) {
+                user.setGithubName(githubInfo.getBody().getLogin());
+                user.setGithubAvatar(githubInfo.getBody().getAvatar_url());
+                user.setGithubHtmlUrl(githubInfo.getBody().getHtml_url());
+            }
+            else if(githubInfo.getStatusCode().is4xxClientError()) {
+                user.setGithubToken("ERROR: NOT VALID TOKEN");
+                user.setGithubName(null);
+                user.setGithubAvatar(null);
+            }
+            else {
+                user.setGithubToken("ERROR: GITHUB API ERROR");
+                user.setGithubName(null);
+                user.setGithubAvatar(null);
+            }
+        }
         repo().save(user);
         return user;
     }

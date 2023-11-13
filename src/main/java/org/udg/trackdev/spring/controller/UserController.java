@@ -67,7 +67,7 @@ public class UserController extends BaseController {
                          @Valid @RequestBody EditU userRequest) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        User modifiedUser = userService.editMyUser(user, userRequest.email, userRequest.githubName, userRequest.color,
+        User modifiedUser = userService.editMyUser(user, userRequest.email, userRequest.color,
                 userRequest.capitalLetters, userRequest.nicename, userRequest.changePassword, userRequest.githubToken);
         return modifiedUser;
     }
@@ -88,8 +88,6 @@ public class UserController extends BaseController {
     static class EditU {
 
         public Optional<String> email;
-
-        public Optional<String> githubName;
 
         public Optional<String> color;
 
