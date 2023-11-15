@@ -26,22 +26,16 @@ public class DemoDataSeeder {
     private UserService userService;
 
     @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
     private CourseService courseService;
 
     @Autowired
-    private CourseYearService courseYearService;
-
-    @Autowired
-    private GroupService groupService;
+    private ProjectService projectService;
 
     @Autowired
     private SprintService sprintService;
-
-    @Autowired
-    private BacklogService backlogService;
-
-    @Autowired
-    private InviteService inviteService;
 
     @Autowired
     private TaskService taskService;
@@ -52,53 +46,48 @@ public class DemoDataSeeder {
         User admin = userService.addUserInternal("professor1", "professor1@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
         User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
         User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
-        User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.PROFESSOR));
-
-        /** coses noves **/
+        User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.PROFESSOR));
         User test_nou = userService.addUserInternal("test_nou", "test_nou@gmail.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.STUDENT));
         User test_random_pass = userService.addUserInternal("test1","test.randompass@gmail.com",global.getPasswordEncoder().encode(RandomStringUtils.randomAscii(8)), List.of(UserType.STUDENT));
+        User gerard = userService.addUserInternal("gerard", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
 
         List<User> enrolledStudents = createDemoStudents();
         enrolledStudents.add(student1);
         enrolledStudents.add(student2);
-        // invites to application
-        Invite inviteStudent = inviteService.createInvite("student3@trackdev.com", List.of(UserType.STUDENT), admin.getId());
-        Invite inviteUpgradeToAdmin = inviteService.createInvite(professor2.getEmail(), List.of(UserType.ADMIN), admin.getId());
-        // courses
-        Course course = courseService.createCourse("Test course", admin.getId());
-        CourseYear courseYear = courseYearService.createCourseYear(course.getId(), 2021, admin.getId());
-        for(int i = 3; i <= 10; i++) {
-            Invite inviteCourse = courseYearService.createInvite("student" + i + "@trackdev.com", courseYear.getId(), admin.getId());
-        }
-        inviteAndEnroll(courseYear, enrolledStudents, admin);
-        // one course set up
-        populateGroup(admin, courseYear, "Movie reviews", Arrays.asList(student1, student2));
-        populateGroup(admin, courseYear, "Calendar", enrolledStudents.subList(0,4));
+
+        // course
+        Subject subject = subjectService.createSubject("PDS2024","PDS" ,admin.getId());
+        Course course = courseService.createCourse(subject.getId(), 2021, admin.getId());
+
+        // one subject set up
+        populateGroup(admin, course, "Movie reviews", Arrays.asList(student1, student2));
+        populateGroup(admin, course, "Calendar", enrolledStudents.subList(0,4));
         logger.info("Done populating database");
     }
 
-    private void populateGroup(User admin, CourseYear courseYear, String groupName, List<User> users) {
+    private void populateGroup(User admin, Course course, String groupName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
+            courseService.addStudent(course.getId(), user.getUsername(), admin.getId());
         }
-        Group group = groupService.createGroup(groupName, usernames, courseYear.getId(), admin.getId());
-        Backlog backlog = group.getBacklogs().iterator().next();
+
+        Project project = projectService.createProject(groupName, usernames, course.getId(), admin.getId());
 
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);
         LocalDate end = start.plusDays(14);
-        populatePastSprint(backlog.getId(), "First iteration", start, end, users, true);
+        //populatePastSprint(backlog.getId(), "First iteration", start, end, users, true);
         start = end;
         end = start.plusDays(14);
-        populatePastSprint(backlog.getId(), "Second iteration", start, end, users, true);
+        //populatePastSprint(backlog.getId(), "Second iteration", start, end, users, true);
         start = end;
         end = start.plusDays(14);
-        populatePastSprint(backlog.getId(), "Third iteration", start, end, users, false);
+        //populatePastSprint(backlog.getId(), "Third iteration", start, end, users, false);
 
         for(int i = 0; i <= 15; i++) {
             User reporter = users.get(random.nextInt(users.size()));
-            Task task = taskService.createTask(backlog.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
+            Task task = taskService.createTask(project.getId(), "Lorem ipsum dolor sit amet", reporter.getId());
 
             if(random.nextBoolean()) {
                 MergePatchTask editTask = buildBacklogEditTask(users, random);
@@ -110,13 +99,12 @@ public class DemoDataSeeder {
                 taskService.createSubTask(task.getId(), "Style items", reporter.getId());
             }
         }
-        backlog = backlogService.create(group.getId());
     }
 
-    private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
+    /**private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
         Random random = new Random();
         User sprintCreator = users.get(random.nextInt(users.size()));
-        Sprint sprint = sprintService.create(backlogId, name, start, end, sprintCreator.getId());
+        //Sprint sprint = sprintService.create(name, start, end, sprintCreator.getId());
 
         List<Task> tasks = createTasks(backlogId, 5, users, random);
         User editor = users.get(random.nextInt(users.size()));
@@ -124,7 +112,9 @@ public class DemoDataSeeder {
         for(Task task : tasks) {
             // Add to sprint
             MergePatchTask change = new MergePatchTask();
-            change.activeSprint = Optional.of(sprint.getId());
+            Collection<Long> sprints = new ArrayList<>();
+            sprints.add(sprint.getId());
+            change.activeSprints = Optional.of(sprints);
             change.rank = Optional.of(rank);
             taskService.editTask(task.getId(), change, editor.getId());
 
@@ -154,7 +144,7 @@ public class DemoDataSeeder {
                 }
             }
         }
-    }
+    }**/
 
     private void saveOpenSprint(User sprintCreator, Sprint sprint) {
         MergePatchSprint sprintChange = new MergePatchSprint();
@@ -220,10 +210,4 @@ public class DemoDataSeeder {
         return users;
     }
 
-    private void inviteAndEnroll(CourseYear courseYear, List<User> users, User admin) {
-        for(User user: users) {
-            Invite inviteCourse = courseYearService.createInvite(user.getEmail(), courseYear.getId(), admin.getId());
-            inviteService.acceptInvite(inviteCourse.getId(), user.getId());
-        }
-    }
 }

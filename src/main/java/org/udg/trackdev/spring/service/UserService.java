@@ -2,22 +2,19 @@ package org.udg.trackdev.spring.service;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
-import org.udg.trackdev.spring.entity.Invite;
+import org.udg.trackdev.spring.entity.GithubInfo;
+import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.UserRepository;
 
-import javax.persistence.EntityManager;
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,16 +22,13 @@ import java.util.Optional;
 public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
-    private EntityManager em;
-
-    @Autowired
     private RoleService roleService;
 
     @Autowired
-    private InviteService inviteService;
+    private EmailSenderService emailSenderService;
 
     @Autowired
-    private EmailSenderService emailSenderService;
+    private GithubService githubService;
 
     @Autowired
     private AccessChecker accessChecker;
@@ -53,24 +47,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new ServiceException("Password does not match");
     }
 
-    @Transactional
-    public User register(String username, String email, String password) {
-        checkIfExists(username, email);
-
-        List<Invite> invites = inviteService.searchByEmail(email);
-        if (invites.size() == 0) throw new ServiceException("This email does not have any invite");
-
-        User user = new User(username, email, global.getPasswordEncoder().encode(password));
-        for (Invite invite: invites) {
-            inviteService.useInvite(invite, user);
-        }
-        repo().save(user);
-        return user;
+    public boolean matchRecoveryCode(User user, String code) {
+        return global.getPasswordEncoder().matches(code, user.getRecoveryCode());
     }
 
     /** COSA NOVA **/
     @Transactional
-    public User registerv2(String username, String email) {
+    public User register(String username, String email) {
         try{
             checkIfExists(username, email);
 
@@ -128,7 +111,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         User user = new User(username, email, password);
         user.setChangePassword(true);
         user.setEnabled(true);
-        user.setNicename("Test User Dos");
         /**************/
 
         for (UserType ut: roles) {
@@ -148,23 +130,68 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new ServiceException("Username already exists");
     }
 
-    public User getByGithubName(String githubName) {
-        return this.repo().findByGithubName(githubName).orElseThrow(
-                () -> new ServiceException(String.format("User with githb name = %s does not exists", githubName)));
+    @Transactional
+    public void setLastLogin(User user) {
+        user.setLastLogin(new Date());
+        repo.save(user);
     }
 
     @Transactional
-    public void setLastLogin(User user) {
-        ZonedDateTime currentDateTimeSpain = ZonedDateTime.now(ZoneId.of("Europe/Madrid"));
-        LocalDateTime localDateTimeSpain = currentDateTimeSpain.toLocalDateTime();
-        user.setLastLogin(localDateTimeSpain);
-        em.persist(user);
+    public void setCurrentProject(User user, Project project) {
+        user.setCurrentProject(project);
+        repo.save(user);
     }
 
     @Transactional
     public void changePassword(User user, String newpassword) {
         user.setPassword(global.getPasswordEncoder().encode(newpassword));
-        em.persist(user);
+        user.setChangePassword(false);
+        repo().save(user);
+    }
+
+    @Transactional
+    public User editMyUser(User user, Optional<String> email, Optional<String> color,
+                         Optional<String> capitalLetters, Optional<String> nicename, Optional<Boolean> changePassword,
+                         Optional<String> githubToken) {
+        if(email != null) email.ifPresent(user::setEmail);
+        if(color != null) color.ifPresent(user::setColor);
+        if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
+        if(nicename != null) nicename.ifPresent(user::setNicename);
+        if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
+        if(githubToken != null) {
+            githubToken.ifPresent(user::setGithubToken);
+            ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
+            if(githubInfo.getStatusCode().is2xxSuccessful()) {
+                user.setGithubName(githubInfo.getBody().getLogin());
+                user.setGithubAvatar(githubInfo.getBody().getAvatar_url());
+                user.setGithubHtmlUrl(githubInfo.getBody().getHtml_url());
+            }
+            else if(githubInfo.getStatusCode().is4xxClientError()) {
+                user.setGithubToken("ERROR: NOT VALID TOKEN");
+                user.setGithubName(null);
+                user.setGithubAvatar(null);
+            }
+            else {
+                user.setGithubToken("ERROR: GITHUB API ERROR");
+                user.setGithubName(null);
+                user.setGithubAvatar(null);
+            }
+        }
+        repo().save(user);
+        return user;
+    }
+
+    @Transactional
+    public String generateRecoveryCode(User user) {
+        String code = RandomStringUtils.randomAlphanumeric(8);
+        user.setRecoveryCode(global.getPasswordEncoder().encode(code));
+        repo().save(user);
+        return code;
+    }
+
+    public void cleanRecoveryCode(User user) {
+        user.setRecoveryCode(null);
+        repo().save(user);
     }
 
 }

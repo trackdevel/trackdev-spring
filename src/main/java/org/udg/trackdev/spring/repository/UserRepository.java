@@ -17,5 +17,4 @@ public interface UserRepository extends BaseRepositoryUUID<User> {
 
     boolean existsByUsername(@Param("username") String username);
 
-    Optional<User> findByGithubName(String githubName);
 }

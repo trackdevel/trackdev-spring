@@ -1,59 +1,62 @@
 package org.udg.trackdev.spring.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "courses")
 public class Course extends BaseEntityLong {
 
-    public static final int NAME_LENGTH = 50;
-
     public Course() {}
 
-    public Course(String name) {
-        this.name = name;
+    public Course(Integer startYear) {
+        this.startYear = startYear;
     }
 
-    @NonNull
-    @Column(length = NAME_LENGTH)
-    private String name;
+    private Integer startYear;
 
-    @NonNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ownerId")
-    private User owner;
+    @ManyToOne
+    private Subject subject;
 
-    @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
-    private String ownerId;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course", fetch = FetchType.LAZY)
+    private Collection<Project> projects;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
-    private Collection<CourseYear> courseYears;
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private Set<User> students = new HashSet<>();
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
-    public String getName() {
-        return name;
+    public Integer getStartYear() { return startYear; }
+
+    public void setStartYear(Integer startYear) { this.startYear = startYear; }
+
+    @JsonView({ EntityLevelViews.CourseComplete.class, EntityLevelViews.Hierarchy.class })
+    public Subject getSubject() { return this.subject; }
+
+    public void setSubject(Subject subject) { this.subject = subject; }
+
+    @JsonIgnore
+    public Collection<Project> getProjects() { return this.projects; }
+
+    public void addProject(Project project) { this.projects.add(project); }
+
+    @JsonIgnore
+    public Set<User> getStudents() {  return this.students; }
+
+    public void enrollStudent(User user) {
+        this.students.add(user);
     }
 
-    public void setName(String name) { this.name = name; }
-
-    @JsonView(EntityLevelViews.Basic.class)
-    public String getOwnerId() {
-        return ownerId;
+    public void removeStudent(User user) {
+        this.students.remove(user);
     }
 
-    public void setOwner(@NonNull User owner) {
-        this.owner = owner;
+    public boolean isEnrolled(User user) {
+        return this.students.contains(user);
     }
-
-    @JsonView(EntityLevelViews.CourseComplete.class)
-    public Collection<CourseYear> getCourseYears() {
-        return this.courseYears;
-    }
-
-    public void addCourseYear(CourseYear courseYear) { this.courseYears.add(courseYear); }
 }

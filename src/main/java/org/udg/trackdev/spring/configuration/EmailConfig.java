@@ -26,11 +26,10 @@ public class EmailConfig {
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        // Set up Gmail config
+
+        // Set up mail config
         mailSender.setHost(host);
         mailSender.setPort(port);
-
-        // Set up email config
         mailSender.setUsername(user);
         mailSender.setPassword(password);
 

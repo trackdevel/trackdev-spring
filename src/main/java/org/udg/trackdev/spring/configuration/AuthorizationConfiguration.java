@@ -10,7 +10,7 @@ import java.security.Key;
 @ConfigurationProperties("trackdev.auth")
 public class AuthorizationConfiguration {
 
-    public static final int DEFAULT_TOKEN_LIFETIME_IN_MINUTES = 10;
+    public static final int DEFAULT_TOKEN_LIFETIME_IN_MINUTES = 60*24;
 
     private Integer tokenLifetimeInMinutes;
     private Key key;

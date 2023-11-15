@@ -9,21 +9,20 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 @Entity
-@DiscriminatorValue(value = TaskNameChange.CHANGE_TYPE_NAME)
-public class TaskNameChange extends TaskChange {
-    public static final String CHANGE_TYPE_NAME = "name_change";
-
-    public TaskNameChange() {}
-
-    public TaskNameChange(User author, Task task, String oldValue, String newValue) {
-        super(author, task);
-        this.oldValue = oldValue;
-        this.newValue = newValue;
-    }
+@DiscriminatorValue(value = TaskActiveSprintsChange.CHANGE_TYPE_NAME)
+public class TaskActiveSprintsChange extends TaskChange {
+    public static final String CHANGE_TYPE_NAME = "active_sprints_change";
 
     private String oldValue;
-
     private String newValue;
+
+    public TaskActiveSprintsChange() {}
+
+    public TaskActiveSprintsChange(User author, Task task, String oldValue, String newValues) {
+        super(author, task);
+        this.oldValue = oldValue;
+        this.newValue = newValues;
+    }
 
     @Override
     public String getType() {

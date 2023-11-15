@@ -36,42 +36,42 @@ POST | /register | Sign up into the application using an invite |
 
 Method|Path|Description|Status
 ------|-----|---------|--- 
-GET | /courses | View courses created by the user |
-GET | /courses/{id} | View course |
-POST | /courses | Create a new course |
-PUT | /courses/{id} | Update general properties of a course |
-DELETE | /courses/{id} | Delete course. Note: only works for courses without groups. |
+GET | /course | View course created by the user |
+GET | /course/{id} | View subject |
+POST | /course | Create a new subject |
+PUT | /course/{id} | Update general properties of a subject |
+DELETE | /course/{id} | Delete subject. Note: only works for course without projects. |
 
 Comments:
-- Only professors can create courses
+- Only professors can create course
 - Only creators can manage them
 
 ## Course year
 
 Method|Path|Description|Status
 ------|-----|---------|---
-GET | /courses/years | View enrolled course years as student | ✨ New
-GET | /courses/years/{yearId} | View one course year | ✨ New
-POST | /courses/{courseId}/years | Create new academic year for a course |
-DELETE | /courses/years/{yearId} | Delete an academic year of a course |
+GET | /course/years | View enrolled subject years as student | ✨ New
+GET | /course/years/{yearId} | View one subject year | ✨ New
+POST | /course/{courseId}/years | Create new academic year for a subject |
+DELETE | /course/years/{yearId} | Delete an academic year of a subject |
 
-### Invites to course year
+### Invites to subject year
 
 Method|Path|Description|Status
 ------|-----|---------|---
-POST | /courses/years/{yearId}/invites | Invite user by email to a course year | 
+POST | /course/years/{yearId}/invites | Invite user by email to a subject year | 
 
 ### Students
 Method|Path|Description|Status
 ------|-----|---------|---
-GET | /courses/years/{yearId}/students | View enrolled students of a course year |
-DELETE | /courses/years/{yearId}/students/{username} | Remove a student from a course year |
+GET | /course/years/{yearId}/students | View enrolled students of a subject year |
+DELETE | /course/years/{yearId}/students/{username} | Remove a student from a subject year |
 
 ### Groups
 Method|Path|Description|Status
 ------|-----|---------|---
-GET | /courses/years/{yearId}/groups | View groups of a course year | 
-POST | /courses/years/{yearId}/groups | Create new group inside a course year | 
-GET | /groups/{groupId} | View a group. | ✨ New
-PATCH | /groups/{groupId} | Modify general data of a group | ✨ New
-DELETE | /groups/{groupId} | Delete a group | ✨ New
+GET | /course/years/{yearId}/projects | View projects of a subject year | 
+POST | /course/years/{yearId}/projects | Create new project inside a subject year | 
+GET | /projects/{groupId} | View a project. | ✨ New
+PATCH | /projects/{groupId} | Modify general data of a project | ✨ New
+DELETE | /projects/{groupId} | Delete a project | ✨ New

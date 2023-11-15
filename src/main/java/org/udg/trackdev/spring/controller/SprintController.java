@@ -1,6 +1,8 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "7. Sprints")
 @RestController
 @RequestMapping(path = "/sprints")
 public class SprintController extends CrudController<Sprint, SprintService> {
@@ -25,12 +29,20 @@ public class SprintController extends CrudController<Sprint, SprintService> {
     @Autowired
     SprintChangeService sprintChangeService;
 
+    @GetMapping
+    @JsonView(EntityLevelViews.Basic.class)
+    public List<Sprint> getSprints(Principal principal) {
+        String userId = super.getUserId(principal);
+        accessChecker.checkCanViewAllProjects(userId);
+        return service.findAll();
+    }
+
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.Basic.class)
     public Sprint getSprint(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         Sprint sprint = service.get(id);
-        accessChecker.checkCanViewBacklog(sprint.getBacklog(), userId);
+        accessChecker.checkCanViewProject(sprint.getProject(), userId);
         return sprint;
     }
 
@@ -50,7 +62,6 @@ public class SprintController extends CrudController<Sprint, SprintService> {
                                          @RequestParam(value = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         Sprint sprint = service.get(id);
-        accessChecker.checkCanViewBacklog(sprint.getBacklog(), userId);
 
         String refinedSearch = super.scopedSearch("entityId:"+ id, search);
         Specification<SprintChange> specification = super.buildSpecificationFromSearch(refinedSearch);

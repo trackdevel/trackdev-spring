@@ -16,15 +16,25 @@ public class TaskEstimationPointsChange extends TaskChange {
 
     public TaskEstimationPointsChange() { }
 
-    public TaskEstimationPointsChange(User user, Task task, Integer points) {
+    public TaskEstimationPointsChange(User user, Task task, Integer oldValue, Integer newValue) {
         super(user, task);
-        estimationPoints = points;
+        this.oldValue = oldValue == null ? null : oldValue.toString();
+        this.newValue = newValue == null ? null : newValue.toString();
     }
 
-    private Integer estimationPoints;
+    private String oldValue;
+
+    private String newValue;
 
     @JsonView(EntityLevelViews.Basic.class)
-    public Integer getEstimationPoints() { return estimationPoints; }
+    public String getOldValue() {
+        return oldValue;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getNewValue() {
+        return newValue;
+    }
 
     @Override
     public String getType() {

@@ -17,13 +17,15 @@ public class TaskStatusChange extends TaskChange {
 
     public TaskStatusChange() {}
 
-    public TaskStatusChange(User author, Task task, TaskStatus status) {
+    public TaskStatusChange(User author, Task task, TaskStatus oldValue, TaskStatus newValue) {
         super(author, task);
-        this.status = status;
+        this.oldValue = oldValue.name();
+        this.newValue = newValue.name();
     }
 
-    @Column(name = "`status`")
-    private TaskStatus status;
+    private String oldValue;
+
+    private String newValue;
 
     @Override
     public String getType() {
@@ -31,7 +33,12 @@ public class TaskStatusChange extends TaskChange {
     }
 
     @JsonView(EntityLevelViews.Basic.class)
-    public TaskStatus getStatus() {
-        return status;
+    public String getOldValue() {
+        return this.oldValue;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getNewValue() {
+        return this.newValue;
     }
 }

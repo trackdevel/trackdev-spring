@@ -6,7 +6,7 @@ The TrackDev project is an application built for educational purposes with the g
 This is an ongoing project.
 
 Current features:
-* Courses, students and groups management
+* Courses, students and projects management
 * Backlogs, tasks and sprints management
 
 ## About the API

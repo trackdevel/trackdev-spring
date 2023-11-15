@@ -10,11 +10,11 @@ import java.util.List;
 
 @Repository
 public interface TaskRepository extends BaseRepositoryLong<Task> {
-    @Query("SELECT t FROM Task t JOIN t.backlog b WHERE b.id = :backlogId ORDER BY t.rank DESC")
-    List<Task> findLastRankedOfBacklog(@Param("backlogId") Long backlogId, Pageable page);
+    //@Query("SELECT t FROM Task t JOIN t.backlog b WHERE b.id = :backlogId ORDER BY t.rank DESC")
+    //List<Task> findLastRankedOfBacklog(@Param("backlogId") Long backlogId, Pageable page);
 
-    @Query("SELECT t FROM Task t JOIN t.backlog b WHERE b.id = :backlogId AND ( t.rank BETWEEN :fromRank AND :untilRank ) ORDER BY t.rank ASC")
-    List<Task> findAllBetweenRanksOfBacklog(@Param("backlogId") Long backlogId,
-                                            @Param("fromRank") Integer fromRank,
-                                            @Param("untilRank") Integer untilRank);
+    //@Query("SELECT t FROM Task t JOIN t.backlog b WHERE b.id = :backlogId AND ( t.rank BETWEEN :fromRank AND :untilRank ) ORDER BY t.rank ASC")
+    //List<Task> findAllBetweenRanksOfBacklog(@Param("backlogId") Long backlogId,
+                                            //@Param("fromRank") Integer fromRank,
+                                            //@Param("untilRank") Integer untilRank);
 }
