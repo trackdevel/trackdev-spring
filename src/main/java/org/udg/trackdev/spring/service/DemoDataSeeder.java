@@ -1,6 +1,5 @@
 package org.udg.trackdev.spring.service;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,36 +42,42 @@ public class DemoDataSeeder {
     public void seedDemoData() {
         logger.info("Starting populating database ...");
         // users
-        User admin = userService.addUserInternal("professor1", "professor1@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
-        User student1 = userService.addUserInternal("student1", "student1@trackdev.com", global.getPasswordEncoder().encode("0000"), List.of(UserType.STUDENT));
-        User student2 = userService.addUserInternal("student2", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
-        User professor2 = userService.addUserInternal("professor2", "professor2@trackdev.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.PROFESSOR));
-        User test_nou = userService.addUserInternal("test_nou", "test_nou@gmail.com", global.getPasswordEncoder().encode("123456"), List.of(UserType.STUDENT));
-        User test_random_pass = userService.addUserInternal("test1","test.randompass@gmail.com",global.getPasswordEncoder().encode(RandomStringUtils.randomAscii(8)), List.of(UserType.STUDENT));
-        User gerard = userService.addUserInternal("gerard", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
-
         List<User> enrolledStudents = createDemoStudents();
+        User nacho = userService.addUserInternal("Ignacio Martín", "ignacio.martin@udg.edu ", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
+        User gerard = userService.addUserInternal("Gerard Rovellat", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
+        User marc = userService.addUserInternal("Marc Got", "gotcritgmarc@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
+        User admin = userService.addUserInternal("Admin user", "admin@trackdev.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN, UserType.PROFESSOR));
+        User professor = userService.addUserInternal("Professor user", "professor@trackdev.com", global.getPasswordEncoder().encode("professor"), List.of(UserType.PROFESSOR));
+
+        User student1 = userService.addUserInternal("Steve Jobs", "student1@trackdev.com", global.getPasswordEncoder().encode("1111"), List.of(UserType.STUDENT));
+        User student2 = userService.addUserInternal("Mark Zuckerberg", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
+        User student3 = userService.addUserInternal("Jeff Bezos", "student3@trackdev.com", global.getPasswordEncoder().encode("3333"), List.of(UserType.STUDENT));
+        User student4 = userService.addUserInternal("Elon Musk", "student4@trackdev.com", global.getPasswordEncoder().encode("4444"), List.of(UserType.STUDENT));
         enrolledStudents.add(student1);
         enrolledStudents.add(student2);
+        enrolledStudents.add(student3);
+        enrolledStudents.add(student4);
 
-        // course
+        // Subject
         Subject subject = subjectService.createSubject("PDS2024","PDS" ,admin.getId());
-        Course course = courseService.createCourse(subject.getId(), 2021, admin.getId());
+
+        // Course
+        Course course = courseService.createCourse(subject.getId(), 2024, admin.getId());
 
         // one subject set up
-        populateGroup(admin, course, "Movie reviews", Arrays.asList(student1, student2));
-        populateGroup(admin, course, "Calendar", enrolledStudents.subList(0,4));
+        populateProject(admin, course, "Movie reviews", enrolledStudents.subList(2,3));
+        populateProject(admin, course, "Calendar", enrolledStudents.subList(0,1));
         logger.info("Done populating database");
     }
 
-    private void populateGroup(User admin, Course course, String groupName, List<User> users) {
+    private void populateProject(User admin, Course course, String projectName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
             courseService.addStudent(course.getId(), user.getUsername(), admin.getId());
         }
 
-        Project project = projectService.createProject(groupName, usernames, course.getId(), admin.getId());
+        Project project = projectService.createProject(projectName, usernames, course.getId(), admin.getId());
 
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);

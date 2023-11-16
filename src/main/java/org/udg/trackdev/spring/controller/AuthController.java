@@ -16,7 +16,6 @@ import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.EmailSenderService;
-import org.udg.trackdev.spring.service.Global;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.mail.MessagingException;
@@ -31,7 +30,6 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Tag(name = "1. Authentication")
@@ -58,7 +56,7 @@ public class AuthController extends BaseController {
                                                      HttpServletResponse response,
                                                      @Valid @RequestBody LoginT userBody) {
 
-        User user = userService.matchPassword(userBody.username, userBody.password);
+        User user = userService.matchPassword(userBody.email, userBody.password);
         String token = getJWTToken(user);
 
         String cookieTokenValue = Base64.getEncoder().withoutPadding().encodeToString(token.getBytes());
@@ -181,7 +179,7 @@ public class AuthController extends BaseController {
 
     static class LoginT {
         @NotNull
-        public String username;
+        public String email;
         @NotNull
         public String password;
     }

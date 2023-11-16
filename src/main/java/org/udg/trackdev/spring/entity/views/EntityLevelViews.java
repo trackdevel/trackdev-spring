@@ -9,4 +9,5 @@ public class EntityLevelViews {
   static public class CourseComplete extends Basic { }
   static public class ProjectComplete extends Basic { }
   static public class TaskComplete extends Basic { }
+  static public class UserComplete extends Basic { }
 }

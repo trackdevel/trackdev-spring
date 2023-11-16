@@ -68,7 +68,7 @@ public class UserController extends BaseController {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         User modifiedUser = userService.editMyUser(user, userRequest.email, userRequest.color,
-                userRequest.capitalLetters, userRequest.nicename, userRequest.changePassword, userRequest.githubToken);
+                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
         return modifiedUser;
     }
 
@@ -92,8 +92,6 @@ public class UserController extends BaseController {
         public Optional<String> color;
 
         public Optional<String> capitalLetters;
-
-        public Optional<String> nicename;
 
         public Optional<Boolean> changePassword;
 
