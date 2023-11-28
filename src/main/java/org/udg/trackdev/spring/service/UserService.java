@@ -55,7 +55,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User register(String username, String email) {
         try{
-            checkIfExists(username, email);
+            checkIfExists(email);
 
             String tempPassword = RandomStringUtils.randomAlphanumeric(8);
 
@@ -105,7 +105,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public User addUserInternal(String username, String email, String password, List<UserType> roles) {
-        checkIfExists(username, email);
+        checkIfExists(email);
 
         /** COSES NOVES **/
         User user = new User(username, email, password);
@@ -122,12 +122,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         return user;
     }
 
-    private void checkIfExists(String username, String email) {
+    private void checkIfExists(String email) {
         if (repo().existsByEmail(email))
             throw new ServiceException("User with this email already exist");
-
-        if (repo().existsByUsername(username))
-            throw new ServiceException("Username already exists");
     }
 
     @Transactional
