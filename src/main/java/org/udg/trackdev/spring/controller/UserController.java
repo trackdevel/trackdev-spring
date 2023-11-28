@@ -34,14 +34,14 @@ public class UserController extends BaseController {
     /**
      * Returns the public profile of any user.
      * @param principal The current authenticated entity
-     * @param username The username of the user to request.
+     * @param email The email of the user to request.
      * @return The User identified by username
      */
-    @GetMapping(path = "/{username}")
+    @GetMapping(path = "/{email}")
     @JsonView(PrivacyLevelViews.Public.class)
-    public User getPublic(Principal principal, @PathVariable("username") String username) {
+    public User getPublic(Principal principal, @PathVariable("email") String email) {
         super.checkLoggedIn(principal);
-        return userService.getByUsername(username);
+        return userService.getByEmail(email);
     }
 
     @GetMapping
@@ -67,9 +67,20 @@ public class UserController extends BaseController {
                          @Valid @RequestBody EditU userRequest) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        User modifiedUser = userService.editMyUser(user, userRequest.email, userRequest.color,
+        User modifiedUser = userService.editMyUser(user, userRequest.username, userRequest.color,
                 userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
         return modifiedUser;
+    }
+
+    @GetMapping(path = "/checker/admin")
+    public ResponseEntity<Void> imAdminUser(Principal principal) {
+        String userId = super.getUserId(principal);
+        User user = userService.get(userId);
+        if (accessChecker.isUserAdminOrProfessor(user)) {
+            return okNoContent();
+        } else {
+            throw new SecurityException("You are not admin");
+        }
     }
 
     static class RegisterU {
@@ -87,7 +98,7 @@ public class UserController extends BaseController {
 
     static class EditU {
 
-        public Optional<String> email;
+        public Optional<String> username;
 
         public Optional<String> color;
 

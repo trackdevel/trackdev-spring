@@ -150,10 +150,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User editMyUser(User user, Optional<String> email, Optional<String> color,
+    public User editMyUser(User user, Optional<String> username, Optional<String> color,
                          Optional<String> capitalLetters, Optional<Boolean> changePassword,
                          Optional<String> githubToken) {
-        if(email != null) email.ifPresent(user::setEmail);
+        if(username != null) username.ifPresent(user::setUsername);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);

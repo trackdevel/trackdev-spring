@@ -106,6 +106,11 @@ public class User extends BaseEntityUUID {
     return username;
   }
 
+  public void setUsername(String username) {
+    this.username = username;
+    this.capitalLetters = generateCapitalLetters(username);
+  }
+
   @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectComplete.class})
   public Project getCurrentProject() { return currentProject; }
 
