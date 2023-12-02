@@ -17,10 +17,8 @@ import org.udg.trackdev.spring.service.UserService;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Optional;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "5. Projects")
@@ -38,7 +36,7 @@ public class ProjectController extends BaseController {
 
     //TODO: Get enrolled projects
     @GetMapping
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Collection<Project> getProjects(Principal principal) {
         String userId = super.getUserId(principal);
         accessChecker.checkCanViewAllProjects(userId);

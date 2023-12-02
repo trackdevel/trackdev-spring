@@ -87,12 +87,12 @@ public class User extends BaseEntityUUID {
 
  // -- GETTERS AND SETTERS
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   public String getId() {
     return super.getId();
   }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   public String getEmail() {
     return email;
   }
@@ -111,7 +111,7 @@ public class User extends BaseEntityUUID {
     this.capitalLetters = generateCapitalLetters(username);
   }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public Project getCurrentProject() { return currentProject; }
 
   public void setCurrentProject(Project currentProject) { this.currentProject = currentProject; }
@@ -130,16 +130,16 @@ public class User extends BaseEntityUUID {
 
   public void setRecoveryCode(String recoveryCode) { this.recoveryCode = recoveryCode; }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   public String getColor() { return color; }
 
   public String setColor(String color) { return this.color = color; }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   public String getCapitalLetters() { return capitalLetters; }
 
   @JsonView(PrivacyLevelViews.Public.class)
@@ -155,12 +155,12 @@ public class User extends BaseEntityUUID {
 
   public String setCapitalLetters(String capitalLetters) { return this.capitalLetters = capitalLetters; }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public Boolean getChangePassword() { return changePassword; }
 
   public void setChangePassword(Boolean changePassword) { this.changePassword = changePassword; }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public Boolean getEnabled() { return enabled; }
 
   public void setEnabled(Boolean enabled) { this.enabled = enabled; }
@@ -180,7 +180,7 @@ public class User extends BaseEntityUUID {
     return inRole;
   }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectComplete.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public Date getLastLogin(){ return lastLogin; }
 
   public void setLastLogin(Date lastLogin) {

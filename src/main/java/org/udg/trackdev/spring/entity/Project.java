@@ -53,7 +53,7 @@ public class Project extends BaseEntityLong {
 
     public void setName(String name) { this.name = name; }
 
-    @JsonView(EntityLevelViews.ProjectComplete.class)
+    @JsonView({EntityLevelViews.ProjectWithUser.class})
     public Set<User> getMembers() { return this.members; }
 
     @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
