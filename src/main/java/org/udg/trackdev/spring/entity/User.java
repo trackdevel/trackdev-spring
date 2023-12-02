@@ -142,7 +142,7 @@ public class User extends BaseEntityUUID {
   @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   public String getCapitalLetters() { return capitalLetters; }
 
-  @JsonView(PrivacyLevelViews.Public.class)
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public GithubInfo getGithubInfo() { return githubInfo; }
 
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
