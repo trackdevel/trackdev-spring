@@ -74,7 +74,7 @@ public class CourseController extends BaseController {
                              @PathVariable("courseId") Long courseId,
                              @Valid @RequestBody EditCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Course modifiedCourse = service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId, userId);
+        Course modifiedCourse = service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId, courseRequest.githubOrganization, userId);
         return modifiedCourse;
     }
 
@@ -136,7 +136,6 @@ public class CourseController extends BaseController {
         @NotBlank
         @Size(max = Project.NAME_LENGTH)
         public String name;
-
         public Collection<String> members;
     }
 
@@ -144,7 +143,7 @@ public class CourseController extends BaseController {
         @Min(value = 2020)
         @Max(value = 3000)
         public Integer startYear;
-
         public Long subjectId;
+        public String githubOrganization;
     }
 }

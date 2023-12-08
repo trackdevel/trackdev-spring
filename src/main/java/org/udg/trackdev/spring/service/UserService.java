@@ -174,6 +174,11 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
                 user.setGithubAvatar(null);
                 user.setGithubHtmlUrl(null);
             }
+        } else {
+            user.setGithubToken(null);
+            user.setGithubName(null);
+            user.setGithubAvatar(null);
+            user.setGithubHtmlUrl(null);
         }
         repo().save(user);
         return user;

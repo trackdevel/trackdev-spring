@@ -21,6 +21,8 @@ public class Course extends BaseEntityLong {
 
     private Integer startYear;
 
+    private String githubOrganization;
+
     @ManyToOne
     private Subject subject;
 
@@ -59,4 +61,10 @@ public class Course extends BaseEntityLong {
     public boolean isEnrolled(User user) {
         return this.students.contains(user);
     }
+
+    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
+    public String getGithubOrganization() { return this.githubOrganization; }
+
+    public void setGithubOrganization(String githubOrganization) { this.githubOrganization = githubOrganization; }
+
 }

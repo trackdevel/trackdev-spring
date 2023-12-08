@@ -62,7 +62,7 @@ public class DemoDataSeeder {
         Subject subject = subjectService.createSubject("PDS2024","PDS" ,admin.getId());
 
         // Course
-        Course course = courseService.createCourse(subject.getId(), 2024, admin.getId());
+        Course course = courseService.createCourse(subject.getId(), 2024,null, admin.getId());
 
         // one subject set up
         populateProject(admin, course, "Movie reviews", enrolledStudents.subList(2,3));

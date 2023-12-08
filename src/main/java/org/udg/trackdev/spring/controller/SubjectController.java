@@ -96,7 +96,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
                                      @PathVariable("subjectId") Long subjectId,
                                      @Valid @RequestBody NewCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Course createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, userId);
+        Course createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, courseRequest.githubOrganization, userId);
         return new IdObjectLong(createdCourse.getId());
     }
 
@@ -120,5 +120,6 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         @Min(value = 2020)
         @Max(value = 3000)
         public Integer startYear;
+        public String githubOrganization;
     }
 }
