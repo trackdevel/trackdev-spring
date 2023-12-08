@@ -44,18 +44,22 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     //TODO: Modificar a Optionals
     @Transactional
-    public Project editProject(Long projectId, String name, Collection<String> usernames,
+    public Project editProject(Long projectId, String name, Collection<String> mails, Long courseId,
                                String loggedInUserId) {
         Project project = get(projectId);
         accessChecker.checkCanManageProject(project, loggedInUserId);
         if(name != null) {
             project.setName(name);
         }
-        if(usernames != null) {
-            if(usernames.isEmpty() && !project.getMembers().isEmpty()) {
+        if(mails != null) {
+            if(mails.isEmpty() && !project.getMembers().isEmpty()) {
                 throw new ServiceException("Cannot remove all members of a project");
             }
-            editMembers(usernames, project);
+            editMembers(mails, project);
+        }
+        if(courseId != null) {
+            Course course = courseService.get(courseId);
+            project.setCourse(course);
         }
         repo.save(project);
         
@@ -95,16 +99,16 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         user.addToGroup(project);
     }
 
-    private void editMembers(Collection<String> usernames, Project project) {
-        for(String username: usernames) {
-            User user = userService.getByUsername(username);
+    private void editMembers(Collection<String> mails, Project project) {
+        for(String mail: mails) {
+            User user = userService.getByEmail(mail);
             if(!project.isMember(user)) {
                 addMember(project.getCourse(), project, user);
             }
         }
         List<User> toRemove = new ArrayList<>();
         for(User user: project.getMembers()) {
-            if(!usernames.contains(user.getUsername())) {
+            if(!mails.contains(user.getEmail())) {
                 toRemove.add(user);
             }
         }

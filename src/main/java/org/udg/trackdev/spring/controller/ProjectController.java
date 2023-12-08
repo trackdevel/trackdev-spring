@@ -59,7 +59,7 @@ public class ProjectController extends BaseController {
                                @PathVariable(name = "projectId") Long projectId,
                                @Valid @RequestBody EditProject projectRequest) {
         String userId = super.getUserId(principal);
-        Project modifiedProject = service.editProject(projectId, projectRequest.name, projectRequest.members, userId);
+        Project modifiedProject = service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, userId);
         return modifiedProject;
     }
 
@@ -98,6 +98,7 @@ public class ProjectController extends BaseController {
         @Size(min = 1, max = Project.NAME_LENGTH)
         public String name;
         public Collection<String> members;
+        public Long courseId;
     }
 
     static class CreateSprint {
