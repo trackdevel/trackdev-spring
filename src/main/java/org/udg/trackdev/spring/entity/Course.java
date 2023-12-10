@@ -29,9 +29,6 @@ public class Course extends BaseEntityLong {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course", fetch = FetchType.LAZY)
     private Collection<Project> projects;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private Set<User> students = new HashSet<>();
-
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public Integer getStartYear() { return startYear; }
 
@@ -46,21 +43,6 @@ public class Course extends BaseEntityLong {
     public Collection<Project> getProjects() { return this.projects; }
 
     public void addProject(Project project) { this.projects.add(project); }
-
-    @JsonIgnore
-    public Set<User> getStudents() {  return this.students; }
-
-    public void enrollStudent(User user) {
-        this.students.add(user);
-    }
-
-    public void removeStudent(User user) {
-        this.students.remove(user);
-    }
-
-    public boolean isEnrolled(User user) {
-        return this.students.contains(user);
-    }
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public String getGithubOrganization() { return this.githubOrganization; }

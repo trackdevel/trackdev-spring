@@ -55,6 +55,7 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         repo.delete(course);
     }
 
+    /**
     @Transactional
     public void removeStudent(Long yearId, String username, String loggedInUserId) {
         Course course = get(yearId);
@@ -80,6 +81,6 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         }
         course.enrollStudent(user);
 
-    }
+    }**/
 
 }

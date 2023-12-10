@@ -46,7 +46,7 @@ public class UserController extends BaseController {
 
     @GetMapping
     public List<User> getAll(Principal principal) {
-        if (!accessChecker.isUserAdminOrProfessor(userService.get(principal.getName()))){
+        if (!accessChecker.isUserAdmin(userService.get(principal.getName()))){
             throw new SecurityException("Only admins can list all users");
         }
         return userService.findAll();
@@ -55,7 +55,7 @@ public class UserController extends BaseController {
     @PostMapping(path = "/register")
     public ResponseEntity register(Principal principal, @Valid @RequestBody RegisterU ru) {
         checkLoggedIn(principal);
-        if (!accessChecker.isUserAdminOrProfessor(userService.get(principal.getName()))) {
+        if (!accessChecker.isUserAdmin(userService.get(principal.getName()))) {
             throw new SecurityException("Only admins can register users");
         }
         userService.register(ru.username, ru.email);
@@ -78,7 +78,7 @@ public class UserController extends BaseController {
                             @PathVariable("email") String email) {
         String userId = super.getUserId(principal);
         User modifier = userService.get(userId);
-        if (!accessChecker.isUserAdminOrProfessor(modifier)){
+        if (!accessChecker.isUserAdmin(modifier)){
             throw new SecurityException("You are not authorized");
         }
         else {
@@ -93,7 +93,7 @@ public class UserController extends BaseController {
     public ResponseEntity<Void> imAdminUser(Principal principal) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        if (accessChecker.isUserAdminOrProfessor(user)) {
+        if (accessChecker.isUserAdmin(user)) {
             return okNoContent();
         } else {
             throw new SecurityException("You are not admin");

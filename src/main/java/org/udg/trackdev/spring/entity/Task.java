@@ -78,6 +78,7 @@ public class Task extends BaseEntityLong {
         this.createdAt = new Date();
         this.reporter = reporter;
         this.status = TaskStatus.BACKLOG;
+        this.rank = 0;
     }
 
     // -- GETTERS AND SETTERS

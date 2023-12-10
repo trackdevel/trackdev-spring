@@ -106,13 +106,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.rank != null) {
             Integer newRank = editTask.rank.orElseThrow(
                     () -> new ServiceException("Not possible to set rank to null"));
-            Long backlogId = 1L; // TODO
             Integer currentRank = task.getRank();
             if(newRank != currentRank) {
-                Collection<TaskChange> otherChanges = updateOtherTasksRank(backlogId, user, newRank, currentRank);
+                //Collection<TaskChange> otherChanges = updateOtherTasksRank(user, newRank, currentRank);
+                changes.add(new TaskRankChange(user, task, task.getRank(), newRank));
                 task.setRank(newRank);
-                changes.add(new TaskRankChange(user, task, newRank));
-                changes.addAll(otherChanges);
+                //changes.addAll(otherChanges);
             }
         }
         /**if(editTask.activeSprint != null) {
@@ -164,7 +163,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         return commentService.getComments(taskId);
     }
 
-    private Collection<TaskChange> updateOtherTasksRank(Long backlogId, User user, Integer newRank, Integer currentRank) {
+    private Collection<TaskChange> updateOtherTasksRank(User user, Integer newRank, Integer currentRank) {
         List<TaskChange> changes = new ArrayList<>();
         List<Task> tasks = new ArrayList<>();
         int increase = 0;
@@ -178,7 +177,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         for(Task otherTask : tasks) {
             Integer otherNewRank = otherTask.getRank() + increase;
             otherTask.setRank(otherNewRank);
-            changes.add(new TaskRankChange(user, otherTask, otherNewRank));
+            //changes.add(new TaskRankChange(user, otherTask, otherNewRank));
         }
 
         return changes;

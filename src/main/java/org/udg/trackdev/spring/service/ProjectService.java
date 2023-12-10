@@ -27,7 +27,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     AccessChecker accessChecker;
 
     @Transactional
-    public Project createProject(String name, Collection<String> usernames, Long courseId,
+    public Project createProject(String name, Collection<String> emails, Long courseId,
                                  String loggedInUserId) {
         Course course = courseService.get(courseId);
         accessChecker.checkCanManageCourse(course, loggedInUserId);
@@ -35,14 +35,13 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         course.addProject(project);
         project.setCourse(course);
 
-        if(usernames != null && !usernames.isEmpty()) {
-            addMembers(course, project, usernames);
+        if(emails != null && !emails.isEmpty()) {
+            addMembers(course, project, emails);
         }
         repo.save(project);
         return project;
     }
 
-    //TODO: Modificar a Optionals
     @Transactional
     public Project editProject(Long projectId, String name, Collection<String> mails, Long courseId,
                                String loggedInUserId) {
@@ -90,11 +89,8 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         }
     }
 
+
     private void addMember(Course course, Project project, User user) {
-        if(!course.isEnrolled(user)) {
-            String message = String.format("User with name = %s is not enrolled to this course", user.getUsername());
-            throw new ServiceException(message);
-        }
         project.addMember(user);
         user.addToGroup(project);
     }

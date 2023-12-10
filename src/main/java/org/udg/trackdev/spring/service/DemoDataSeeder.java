@@ -10,6 +10,7 @@ import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.model.MergePatchTask;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -60,21 +61,29 @@ public class DemoDataSeeder {
 
         // Subject
         Subject subject = subjectService.createSubject("PDS2024","PDS" ,admin.getId());
+        Subject subject1 = subjectService.createSubject("Projecte web","PW" ,admin.getId());
+        Subject subject2 = subjectService.createSubject("Sistema de Computadors I","SO1" ,admin.getId());
+        Subject subject3 = subjectService.createSubject("Sistema de Computadors II","SO2" ,admin.getId());
 
         // Course
         Course course = courseService.createCourse(subject.getId(), 2024,null, admin.getId());
+        Course course4 = courseService.createCourse(subject.getId(), 2025,null, admin.getId());
+        Course course1 = courseService.createCourse(subject1.getId(), 2024,null, admin.getId());
+        Course course2 = courseService.createCourse(subject2.getId(), 2024,null, admin.getId());
+        Course course3 = courseService.createCourse(subject3.getId(), 2024,null, admin.getId());
 
         // one subject set up
-        populateProject(admin, course, "Movie reviews", enrolledStudents.subList(2,3));
-        populateProject(admin, course, "Calendar", enrolledStudents.subList(0,1));
+        populateProject(admin, course, "Movie reviews", enrolledStudents.subList(0,12));
+        populateProject(admin, course, "Calendar", enrolledStudents.subList(12,22));
+        populateProject(admin, course, "FaceNotes", enrolledStudents.subList(22,26));
         logger.info("Done populating database");
     }
+
 
     private void populateProject(User admin, Course course, String projectName, List<User> users) {
         List<String> usernames = new ArrayList<>();
         for(User user: users) {
             usernames.add(user.getUsername());
-            courseService.addStudent(course.getId(), user.getUsername(), admin.getId());
         }
 
         Project project = projectService.createProject(projectName, usernames, course.getId(), admin.getId());
@@ -82,7 +91,7 @@ public class DemoDataSeeder {
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);
         LocalDate end = start.plusDays(14);
-        //populatePastSprint(backlog.getId(), "First iteration", start, end, users, true);
+        populatePastSprint(project, "First iteration", start, end, users, true);
         start = end;
         end = start.plusDays(14);
         //populatePastSprint(backlog.getId(), "Second iteration", start, end, users, true);
@@ -106,14 +115,14 @@ public class DemoDataSeeder {
         }
     }
 
-    /**private void populatePastSprint(Long backlogId, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
+    private void populatePastSprint(Project project, String name, LocalDate start, LocalDate end, List<User> users, boolean close) {
         Random random = new Random();
         User sprintCreator = users.get(random.nextInt(users.size()));
-        //Sprint sprint = sprintService.create(name, start, end, sprintCreator.getId());
+        Sprint sprint = sprintService.create(project, name, Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant()), sprintCreator.getId());
 
-        List<Task> tasks = createTasks(backlogId, 5, users, random);
+        List<Task> tasks = createTasks(project.getId(), 5, users, random);
         User editor = users.get(random.nextInt(users.size()));
-        int rank = 1;
+        Integer rank = 1;
         for(Task task : tasks) {
             // Add to sprint
             MergePatchTask change = new MergePatchTask();
@@ -149,7 +158,7 @@ public class DemoDataSeeder {
                 }
             }
         }
-    }**/
+    }
 
     private void saveOpenSprint(User sprintCreator, Sprint sprint) {
         MergePatchSprint sprintChange = new MergePatchSprint();
@@ -163,11 +172,11 @@ public class DemoDataSeeder {
         sprintService.editSprint(sprint.getId(), sprintChange, sprintCreator.getId());
     }
 
-    private List<Task> createTasks(Long backlogId, int amount, List<User> users, Random random) {
+    private List<Task> createTasks(Long projectId, int amount, List<User> users, Random random) {
         List<Task> tasks = new ArrayList<>();
         for(int i = 0; i <= amount; i++) {
             User reporter = users.get(random.nextInt(users.size()));
-            Task task = taskService.createTask(backlogId, "Lorem ipsum dolor sit amet", reporter.getId());
+            Task task = taskService.createTask(projectId, "Lorem ipsum dolor sit amet", reporter.getId());
             tasks.add(task);
         }
         return tasks;

@@ -55,9 +55,6 @@ public class User extends BaseEntityUUID {
   @ManyToMany(mappedBy = "members")
   private Collection<Project> projects = new ArrayList<>();
 
-  @ManyToMany(mappedBy = "students")
-  private Collection<Course> course = new ArrayList<>();
-
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
 
@@ -142,6 +139,11 @@ public class User extends BaseEntityUUID {
   @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.ProjectWithUser.class})
   public String getCapitalLetters() { return capitalLetters; }
 
+  @JsonView(PrivacyLevelViews.Private.class)
+  public Collection<Project> getProjects() {
+    return projects;
+  }
+
   @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public GithubInfo getGithubInfo() { return githubInfo; }
 
@@ -199,12 +201,15 @@ public class User extends BaseEntityUUID {
     }
   }
 
+  /**
   public void enrollToCourse(Course course) { this.course.add(course); }
 
   public void removeFromCourse(Course course) { this.course.remove(course); }
 
+
   @JsonIgnore
   public Collection<Course> getEnrolledCourse() { return this.course; }
+   **/
 
   private static String randomColorGenerator(){
     Random random = new Random();

@@ -50,8 +50,6 @@ public class CourseController extends BaseController {
         /**NOU BLOC**/
         if (user.isUserType(UserType.ADMIN))
             return service.getAll();
-        else if (user.isUserType(UserType.STUDENT) || user.isUserType(UserType.PROFESSOR))
-            return user.getEnrolledCourse();
         else
             throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
         /***/
@@ -86,6 +84,7 @@ public class CourseController extends BaseController {
         return okNoContent();
     }
 
+    /**
     @GetMapping(path = "/{courseId}/students")
     @JsonView(PrivacyLevelViews.Public.class)
     public Set<User> getStudents(Principal principal,
@@ -94,8 +93,9 @@ public class CourseController extends BaseController {
         Course course = service.get(courseId);
         accessChecker.checkCanViewCourseAllMembers(course, userId);
         return course.getStudents();
-    }
+    }**/
 
+    /**
     @DeleteMapping(path = "/{courseId}/students/{username}")
     public ResponseEntity getStudents(Principal principal,
                                       @PathVariable("courseId") Long courseId,
@@ -103,7 +103,7 @@ public class CourseController extends BaseController {
         String principalUserId = super.getUserId(principal);
         service.removeStudent(courseId, username, principalUserId);
         return okNoContent();
-    }
+    }**/
 
     @GetMapping(path = "/{courseId}/projects")
     @JsonView(EntityLevelViews.Basic.class)

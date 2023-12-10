@@ -17,16 +17,25 @@ public class TaskRankChange extends TaskChange {
 
     public TaskRankChange() { }
 
-    public TaskRankChange(User user, Task task, Integer rank) {
+    public TaskRankChange(User user, Task task, Integer oldValue, Integer newValue) {
         super(user, task);
-        this.rank = rank;
+        this.oldValue = oldValue.toString();
+        this.newValue = newValue.toString();
     }
 
-    @Column(name = "`rank`")
-    private Integer rank;
+    private String oldValue;
+
+    private String newValue;
 
     @JsonView(EntityLevelViews.Basic.class)
-    public Integer getRank() { return rank; }
+    public String getOldValue() {
+        return this.oldValue;
+    }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getNewValue() {
+        return this.newValue;
+    }
 
     @Override
     public String getType() {

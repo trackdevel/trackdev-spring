@@ -39,8 +39,12 @@ public class ProjectController extends BaseController {
     @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Collection<Project> getProjects(Principal principal) {
         String userId = super.getUserId(principal);
-        accessChecker.checkCanViewAllProjects(userId);
-        return service.findAll();
+        if(accessChecker.checkCanViewAllProjects(userId)){
+            return service.findAll();
+        }
+        else{
+            return userService.get(userId).getProjects();
+        }
     }
 
     @GetMapping(path = "/{projectId}")
