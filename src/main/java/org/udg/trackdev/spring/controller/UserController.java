@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.UserService;
@@ -45,6 +46,7 @@ public class UserController extends BaseController {
     }
 
     @GetMapping
+    @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public List<User> getAll(Principal principal) {
         if (!accessChecker.isUserAdmin(userService.get(principal.getName()))){
             throw new SecurityException("Only admins can list all users");

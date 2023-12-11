@@ -10,5 +10,5 @@ public class EntityLevelViews {
   static public class ProjectWithUser extends Basic { }
   static public class ProjectComplete extends ProjectWithUser { }
   static public class TaskComplete extends Basic { }
-  static public class UserComplete extends Basic { }
+  static public class UserWithoutProjectMembers extends Basic { }
 }
