@@ -14,6 +14,7 @@ import org.udg.trackdev.spring.configuration.AuthorizationConfiguration;
 import org.udg.trackdev.spring.configuration.CookieManager;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.EmailSenderService;
 import org.udg.trackdev.spring.service.UserService;
@@ -83,7 +84,7 @@ public class AuthController extends BaseController {
             description = "Return the public information of the logged user",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping(path="/self")
-    @JsonView(PrivacyLevelViews.Private.class)
+    @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public User self(Principal principal) {
 
         String userId = super.getUserId(principal);
