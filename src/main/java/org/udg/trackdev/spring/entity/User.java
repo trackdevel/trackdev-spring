@@ -63,9 +63,7 @@ public class User extends BaseEntityUUID {
   @Size(min = CAPITAL_LETTERS_LENGTH, max = CAPITAL_LETTERS_LENGTH)
   private String capitalLetters;
 
-  @ManyToOne
-  @JoinColumn(name = "currentProjectId")
-  private Project currentProject;
+  private Long currentProject;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "author", fetch = FetchType.LAZY)
   private final Collection<Comment> comments = new ArrayList<>();
@@ -108,10 +106,10 @@ public class User extends BaseEntityUUID {
     this.capitalLetters = generateCapitalLetters(username);
   }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
-  public Project getCurrentProject() { return currentProject; }
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
+  public Long getCurrentProject() { return currentProject; }
 
-  public void setCurrentProject(Project currentProject) { this.currentProject = currentProject; }
+  public void setCurrentProject(Long currentProject) { this.currentProject = currentProject; }
 
   @JsonIgnore
   public String getPassword() {

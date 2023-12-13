@@ -135,7 +135,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public void setCurrentProject(User user, Project project) {
-        user.setCurrentProject(project);
+        user.setCurrentProject(project.getId());
         repo.save(user);
     }
 
