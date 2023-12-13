@@ -35,14 +35,14 @@ public class UserController extends BaseController {
     /**
      * Returns the public profile of any user.
      * @param principal The current authenticated entity
-     * @param email The email of the user to request.
+     * @param id The email of the user to request.
      * @return The User identified by username
      */
-    @GetMapping(path = "/{email}")
+    @GetMapping(path = "/{id}")
     @JsonView(PrivacyLevelViews.Public.class)
-    public User getPublic(Principal principal, @PathVariable("email") String email) {
+    public User getPublic(Principal principal, @PathVariable("id") String id) {
         super.checkLoggedIn(principal);
-        return userService.getByEmail(email);
+        return userService.get(id);
     }
 
     @GetMapping
