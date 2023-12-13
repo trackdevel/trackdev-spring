@@ -74,17 +74,17 @@ public class UserController extends BaseController {
         return modifiedUser;
     }
 
-    @PatchMapping(path = "/{email}")
+    @PatchMapping(path = "/{id}")
     public User editUser(Principal principal,
                             @Valid @RequestBody EditU userRequest,
-                            @PathVariable("email") String email) {
+                            @PathVariable("id") String id) {
         String userId = super.getUserId(principal);
         User modifier = userService.get(userId);
         if (!accessChecker.isUserAdmin(modifier)){
             throw new SecurityException("You are not authorized");
         }
         else {
-            User user = userService.getByEmail(email);
+            User user = userService.get(id);
             User modifiedUser = userService.editMyUser(modifier, user, userRequest.username, userRequest.color,
                     userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
             return modifiedUser;
