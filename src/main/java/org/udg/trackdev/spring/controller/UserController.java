@@ -105,7 +105,7 @@ public class UserController extends BaseController {
     static class RegisterU {
         @NotBlank
         @Size(min = 4, max = User.USERNAME_LENGTH)
-        @Pattern(regexp = "[a-zA-Z0-9]+")
+        @Pattern(regexp = "^[a-zA-Z ]+$")
         public String username;
 
         @NotBlank
