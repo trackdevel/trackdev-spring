@@ -39,7 +39,7 @@ public class UserController extends BaseController {
      * @return The User identified by username
      */
     @GetMapping(path = "/{id}")
-    @JsonView(PrivacyLevelViews.Public.class)
+    @JsonView(PrivacyLevelViews.Private.class)
     public User getPublic(Principal principal, @PathVariable("id") String id) {
         super.checkLoggedIn(principal);
         return userService.get(id);
