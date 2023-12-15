@@ -85,6 +85,9 @@ public class AccessChecker {
         if(isSubjectOwner(subject, userId)) {
             return;
         }
+        if (userService.get(userId).isUserType(UserType.ADMIN)) {
+            return;
+        }
         throw new ServiceException(defaultNoAccessMessage);
     }
 

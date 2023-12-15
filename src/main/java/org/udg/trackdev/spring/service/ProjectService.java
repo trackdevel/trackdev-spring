@@ -65,6 +65,16 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         return project;
     }
 
+    @Transactional
+    public Project createProjectTask(Project project, String name, User reporter){
+        Task task = new Task(name, reporter);
+        project.addTask(task);
+        task.setProject(project);
+        repo.save(project);
+        return project;
+    }
+
+    @Transactional
     public void deleteProject(Long groupId, String userId) {
         Project project = get(groupId);
         accessChecker.checkCanManageProject(project, userId);

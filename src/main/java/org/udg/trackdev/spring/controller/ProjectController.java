@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
+import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.ProjectService;
@@ -93,8 +94,22 @@ public class ProjectController extends BaseController {
                                        @Valid @RequestBody CreateSprint sprintRequest) {
         String userId = super.getUserId(principal);
         Project project = service.get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
         service.createSprint(project, sprintRequest.name, sprintRequest.startDate, sprintRequest.endDate, userId);
         return okNoContent();
+    }
+
+    @PostMapping(path = "/{projectId}/tasks")
+    @JsonView(EntityLevelViews.Basic.class)
+    public Project createTask(Principal principal,
+                              @PathVariable(name = "projectId") Long projectId,
+                              @Valid @RequestBody  NewTask task) {
+        String userId = super.getUserId(principal);
+        User user = userService.get(userId);
+        Project project = service.get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+        return service.createProjectTask(project,task.name, user);
+
     }
 
     //TODO: Modificar a Optionals
@@ -110,5 +125,9 @@ public class ProjectController extends BaseController {
         public String name;
         public Date startDate;
         public Date endDate;
+    }
+
+    static class NewTask{
+        public String name;
     }
 }
