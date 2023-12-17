@@ -39,7 +39,7 @@ public class UserController extends BaseController {
      * @return The User identified by username
      */
     @GetMapping(path = "/{id}")
-    @JsonView(PrivacyLevelViews.Private.class)
+    @JsonView(EntityLevelViews.UserWithoutProjectMembers.class)
     public User getPublic(Principal principal, @PathVariable("id") String id) {
         super.checkLoggedIn(principal);
         return userService.get(id);
@@ -65,6 +65,7 @@ public class UserController extends BaseController {
     }
 
     @PatchMapping
+    @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public User editMyUser(Principal principal,
                          @Valid @RequestBody EditU userRequest) {
         String userId = super.getUserId(principal);
@@ -75,6 +76,7 @@ public class UserController extends BaseController {
     }
 
     @PatchMapping(path = "/{id}")
+    @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public User editUser(Principal principal,
                             @Valid @RequestBody EditU userRequest,
                             @PathVariable("id") String id) {

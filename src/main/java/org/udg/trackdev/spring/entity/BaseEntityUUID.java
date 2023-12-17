@@ -16,7 +16,7 @@ public abstract class BaseEntityUUID {
     @Column(length = UUID_LENGTH)
     private String id;
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class})
     public String getId() {
         return id;
     }

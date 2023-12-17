@@ -18,8 +18,8 @@ public class TaskActiveSprintsChange extends TaskChange {
 
     public TaskActiveSprintsChange() {}
 
-    public TaskActiveSprintsChange(User author, Task task, String oldValue, String newValues) {
-        super(author, task);
+    public TaskActiveSprintsChange(String author, Long taskId, String oldValue, String newValues) {
+        super(author, taskId);
         this.oldValue = oldValue;
         this.newValue = newValues;
     }

@@ -18,9 +18,11 @@ import javax.validation.constraints.NotNull;
 @Table(name = "projects")
 public class Project extends BaseEntityLong {
 
-    //-- ATTRIBUTES
+   //-- CONSTANTS
 
     public static final int NAME_LENGTH = 50;
+
+    //-- ATTRIBUTES
 
     @NotNull
     @Column(length = NAME_LENGTH)
@@ -54,7 +56,7 @@ public class Project extends BaseEntityLong {
 
     public void setName(String name) { this.name = name; }
 
-    @JsonView({EntityLevelViews.ProjectWithUser.class})
+    @JsonView({EntityLevelViews.ProjectWithUser.class, EntityLevelViews.TaskWithProjectMembers.class})
     public Set<User> getMembers() { return this.members; }
 
     @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })

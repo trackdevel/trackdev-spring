@@ -17,10 +17,10 @@ public class TaskStatusChange extends TaskChange {
 
     public TaskStatusChange() {}
 
-    public TaskStatusChange(User author, Task task, TaskStatus oldValue, TaskStatus newValue) {
-        super(author, task);
-        this.oldValue = oldValue.name();
-        this.newValue = newValue.name();
+    public TaskStatusChange(String author, Long taskId, String oldValue, String newValue) {
+        super(author, taskId);
+        this.oldValue = oldValue;
+        this.newValue = newValue;
     }
 
     private String oldValue;

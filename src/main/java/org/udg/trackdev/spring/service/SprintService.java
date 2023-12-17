@@ -24,6 +24,9 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     @Autowired
     UserService userService;
 
+    @Autowired
+    SprintChangeService sprintChangeService;
+
     @Transactional
     public Sprint create(Project project, String name, Date startDate, Date endDate, String userId) {
         User user = userService.get(userId);
@@ -47,6 +50,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException("Not possible to set name to null"));
             if(!name.equals(sprint.getName())) {
                 sprint.setName(name, user);
+                changes.add(new SprintNameChange(user.getEmail(),sprintId,name));
             }
         }
         if(editSprint.startDate != null) {
@@ -54,6 +58,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException("Not possible to set startDate to null"));
             if(!startDate.equals(sprint.getStartDate())) {
                 sprint.setStartDate(startDate, user);
+                changes.add(new SprintStartDateChange(user.getEmail(),sprintId,startDate));
             }
         }
         if(editSprint.endDate != null) {
@@ -61,6 +66,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException("Not possible to set endDate to null"));
             if(!endDate.equals(sprint.getEndDate())) {
                 sprint.setEndDate(endDate, user);
+                changes.add(new SprintEndDateChange(user.getEmail(),sprintId,endDate));
             }
         }
         if(editSprint.status != null) {
@@ -68,9 +74,13 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException("Not possible to set status to null"));
             if(status != sprint.getStatus()) {
                 sprint.setStatus(status, user);
+                changes.add(new SprintStatusChange(user.getEmail(),sprintId,status));
             }
         }
         repo().save(sprint);
+        for (SprintChange change : changes) {
+            sprintChangeService.store(change);
+        }
         return sprint;
     }
 

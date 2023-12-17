@@ -14,7 +14,7 @@ public abstract class SprintTasksChange extends SprintChange {
 
     public SprintTasksChange() {}
 
-    public SprintTasksChange(User author, Sprint sprint, Task task) {
+    public SprintTasksChange(String author, Long sprint, Task task) {
         super(author, sprint);
         this.task = task;
     }

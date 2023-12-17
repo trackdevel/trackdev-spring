@@ -17,7 +17,7 @@ public class SprintStatusChange extends SprintChange {
 
     public SprintStatusChange() { }
 
-    public SprintStatusChange(User author, Sprint sprint, SprintStatus status) {
+    public SprintStatusChange(String author, Long sprint, SprintStatus status) {
         super(author, sprint);
         this.status = status;
     }

@@ -81,12 +81,12 @@ public class DemoDataSeeder {
 
 
     private void populateProject(User admin, Course course, String projectName, List<User> users) {
-        List<String> usernames = new ArrayList<>();
+        List<String> emails = new ArrayList<>();
         for(User user: users) {
-            usernames.add(user.getUsername());
+            emails.add(user.getEmail());
         }
 
-        Project project = projectService.createProject(projectName, usernames, course.getId(), admin.getId());
+        Project project = projectService.createProject(projectName, emails, course.getId(), admin.getId());
 
         Random random = new Random();
         LocalDate start = LocalDate.of(2021,3,1);
@@ -187,7 +187,7 @@ public class DemoDataSeeder {
         User assignee = users.get(random.nextInt(users.size()));
 
         MergePatchTask editTask = new MergePatchTask();
-        editTask.assignee = Optional.of(assignee.getUsername());
+        editTask.assignee = Optional.of(assignee.getEmail());
         editTask.estimationPoints = Optional.of(points);
         return editTask;
     }

@@ -82,12 +82,12 @@ public class User extends BaseEntityUUID {
 
  // -- GETTERS AND SETTERS
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getId() {
     return super.getId();
   }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getEmail() {
     return email;
   }
@@ -96,7 +96,7 @@ public class User extends BaseEntityUUID {
     this.email = email;
   }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getUsername() {
     return username;
   }
@@ -129,12 +129,12 @@ public class User extends BaseEntityUUID {
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getColor() { return color; }
 
   public String setColor(String color) { return this.color = color; }
 
-  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getCapitalLetters() { return capitalLetters; }
 
   @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.UserWithoutProjectMembers.class})
@@ -142,7 +142,7 @@ public class User extends BaseEntityUUID {
     return projects;
   }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public GithubInfo getGithubInfo() { return githubInfo; }
 
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }

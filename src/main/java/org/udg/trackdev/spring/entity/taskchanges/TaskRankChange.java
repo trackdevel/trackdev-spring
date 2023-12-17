@@ -17,8 +17,8 @@ public class TaskRankChange extends TaskChange {
 
     public TaskRankChange() { }
 
-    public TaskRankChange(User user, Task task, Integer oldValue, Integer newValue) {
-        super(user, task);
+    public TaskRankChange(String user, Long taskId, Integer oldValue, Integer newValue) {
+        super(user, taskId);
         this.oldValue = oldValue.toString();
         this.newValue = newValue.toString();
     }

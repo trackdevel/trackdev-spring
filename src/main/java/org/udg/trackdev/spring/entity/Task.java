@@ -65,9 +65,6 @@ public class Task extends BaseEntityLong {
     @ManyToMany(mappedBy = "activeTasks")
     private Collection<Sprint> activeSprints = new ArrayList<>();
 
-    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
-    private Collection<TaskChange> taskChanges;
-
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Comment> discussion = new HashSet<>();
 
@@ -100,8 +97,7 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public User getReporter() { return reporter; }
 
-    @JsonView({ EntityLevelViews.ProjectComplete.class, EntityLevelViews.Hierarchy.class } )
-    @JsonSerialize(using = JsonHierarchyViewSerializer.class)
+    @JsonView({EntityLevelViews.TaskWithProjectMembers.class} )
     public Project getProject() {
         return project;
     }
@@ -124,7 +120,6 @@ public class Task extends BaseEntityLong {
         TaskStatus oldValue = this.status;
         checkCanMoveToStatus(status);
         this.status = status;
-        this.taskChanges.add(new TaskStatusChange(modifier, this, oldValue, status));
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -168,7 +163,7 @@ public class Task extends BaseEntityLong {
     }
 
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView(EntityLevelViews.TaskComplete.class)
     public Collection<Sprint> getActiveSprints() {
         return activeSprints;
     }

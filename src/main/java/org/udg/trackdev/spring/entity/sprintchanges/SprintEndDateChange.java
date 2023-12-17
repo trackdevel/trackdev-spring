@@ -19,7 +19,7 @@ public class SprintEndDateChange extends SprintChange {
 
     public SprintEndDateChange() {}
 
-    public SprintEndDateChange(User author, Sprint sprint, Date date) {
+    public SprintEndDateChange(String author, Long sprint, Date date) {
         super(author, sprint);
         this.endDate = date;
     }

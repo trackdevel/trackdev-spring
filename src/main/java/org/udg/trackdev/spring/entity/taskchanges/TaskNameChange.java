@@ -15,8 +15,8 @@ public class TaskNameChange extends TaskChange {
 
     public TaskNameChange() {}
 
-    public TaskNameChange(User author, Task task, String oldValue, String newValue) {
-        super(author, task);
+    public TaskNameChange(String author, Long taskId, String oldValue, String newValue) {
+        super(author, taskId);
         this.oldValue = oldValue;
         this.newValue = newValue;
     }

@@ -14,7 +14,7 @@ public class SprintTaskAdded extends SprintTasksChange {
 
     public SprintTaskAdded() {}
 
-    public SprintTaskAdded(User author, Sprint sprint, Task task) {
+    public SprintTaskAdded(String author, Long sprint, Task task) {
         super(author, sprint, task);
     }
 

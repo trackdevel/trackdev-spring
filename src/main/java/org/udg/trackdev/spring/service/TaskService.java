@@ -76,13 +76,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException("Not possible to set name to null"));
             task.setName(name);
-            changes.add(new TaskNameChange(user, task, oldName, name));
+            changes.add(new TaskNameChange(user.getEmail(), task.getId(), oldName, name));
         }
         if(editTask.assignee != null) {
             User assigneeUser = null;
             String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
             if(editTask.assignee.isPresent()) {
-                assigneeUser = userService.getByUsername(editTask.assignee.get());
+                assigneeUser = userService.getByEmail(editTask.assignee.get());
                 if(!task.getProject().isMember(assigneeUser)) {
                     throw new ServiceException("Assignee is not in the list of possible assignees");
                 }
@@ -90,18 +90,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             } else {
                 task.setAssignee(null);
             }
-            changes.add(new TaskAssigneeChange(user, task, oldValue, task.getAssignee().getUsername()));
+            changes.add(new TaskAssigneeChange(user.getEmail(), task.getId(), oldValue, task.getAssignee().getUsername()));
         }
         if(editTask.estimationPoints != null) {
             Integer oldPoints = task.getEstimationPoints();
             Integer points = editTask.estimationPoints.orElse(null);
             task.setEstimationPoints(points);
-            changes.add(new TaskEstimationPointsChange(user, task, oldPoints, points));
+            changes.add(new TaskEstimationPointsChange(user.getEmail(), task.getId(), oldPoints, points));
         }
         if(editTask.status != null) {
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException("Not possible to set status to null"));
+            TaskStatus oldStatus = task.getStatus();
             task.setStatus(status, user);
+            changes.add(new TaskStatusChange(user.getEmail(), task.getId(), oldStatus.name(),  status.name()));
         }
         if(editTask.rank != null) {
             Integer newRank = editTask.rank.orElseThrow(
@@ -109,7 +111,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             Integer currentRank = task.getRank();
             if(newRank != currentRank) {
                 //Collection<TaskChange> otherChanges = updateOtherTasksRank(user, newRank, currentRank);
-                changes.add(new TaskRankChange(user, task, task.getRank(), newRank));
+                changes.add(new TaskRankChange(user.getEmail(), task.getId(), task.getRank(), newRank));
                 task.setRank(newRank);
                 //changes.addAll(otherChanges);
             }
@@ -144,7 +146,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
             task.setActiveSprints(sprints);
             sprints.stream().forEach(sprint -> sprint.addTask(task, user));
-            changes.add(new TaskActiveSprintsChange(user, task, oldValues, newValues));
+            changes.add(new TaskActiveSprintsChange(user.getEmail(), task.getId(), oldValues, newValues));
         }
         if (editTask.comment != null) {
             Comment comment = editTask.comment.orElseThrow(
@@ -158,6 +160,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         return task;
     }
 
+
+    @Transactional
+    public void deleteTask(Long id, String userId) {
+        Task task = get(id);
+        User user = userService.get(userId);
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task, user));
+        task.setActiveSprints(new ArrayList<>());
+        if (task.getParentTask() == null){
+            repo.deleteAll(task.getChildTasks());
+        }
+        repo.delete(task);
+        //taskChangeService.store(new TaskDeleteChange(user.getEmail(), task.getId()));
+    }
 
     public Collection<Comment> getComments(Long taskId) {
         return commentService.getComments(taskId);

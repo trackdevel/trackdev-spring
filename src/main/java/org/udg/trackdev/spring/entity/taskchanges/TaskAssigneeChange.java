@@ -18,8 +18,8 @@ public class TaskAssigneeChange extends TaskChange {
 
     public TaskAssigneeChange() {}
 
-    public TaskAssigneeChange(User author, Task task, String oldValue, String newValues) {
-        super(author, task);
+    public TaskAssigneeChange(String author, Long taskId, String oldValue, String newValues) {
+        super(author, taskId);
         this.oldValue = oldValue;
         this.newValue = newValues;
     }

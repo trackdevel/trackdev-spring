@@ -45,7 +45,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     }
 
     @GetMapping(path = "/{id}")
-    @JsonView(EntityLevelViews.TaskComplete.class)
+    @JsonView(EntityLevelViews.TaskWithProjectMembers.class)
     public Task getTask(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         Task task = service.get(id);
@@ -95,6 +95,13 @@ public class TaskController extends CrudController<Task, TaskService> {
         Task subtask = service.createSubTask(id, request.name, userId);
 
         return new IdObjectLong(subtask.getId());
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteTasks(Principal principal,
+                            @PathVariable(name = "id") Long id) {
+        String userId = super.getUserId(principal);
+        service.deleteTask(id, userId);
     }
 
     static class NewSubTask {

@@ -14,7 +14,7 @@ public class SprintTaskRemoved extends SprintTasksChange {
 
     public SprintTaskRemoved() {}
 
-    public SprintTaskRemoved(User author, Sprint sprint, Task task) {
+    public SprintTaskRemoved(String author, Long sprint, Task task) {
         super(author, sprint, task);
     }
 

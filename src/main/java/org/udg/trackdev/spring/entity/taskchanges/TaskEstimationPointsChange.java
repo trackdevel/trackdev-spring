@@ -16,8 +16,8 @@ public class TaskEstimationPointsChange extends TaskChange {
 
     public TaskEstimationPointsChange() { }
 
-    public TaskEstimationPointsChange(User user, Task task, Integer oldValue, Integer newValue) {
-        super(user, task);
+    public TaskEstimationPointsChange(String user, Long taskId, Integer oldValue, Integer newValue) {
+        super(user, taskId);
         this.oldValue = oldValue == null ? null : oldValue.toString();
         this.newValue = newValue == null ? null : newValue.toString();
     }

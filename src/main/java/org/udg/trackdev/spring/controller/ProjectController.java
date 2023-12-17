@@ -18,8 +18,7 @@ import org.udg.trackdev.spring.service.UserService;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "5. Projects")
@@ -59,7 +58,7 @@ public class ProjectController extends BaseController {
     }
 
     @PatchMapping(path = "/{projectId}")
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Project editProject(Principal principal,
                                @PathVariable(name = "projectId") Long projectId,
                                @Valid @RequestBody EditProject projectRequest) {
@@ -110,6 +109,27 @@ public class ProjectController extends BaseController {
         accessChecker.checkCanViewProject(project, userId);
         return service.createProjectTask(project,task.name, user);
 
+    }
+
+    @GetMapping(path = "/{projectId}/sprints")
+    public ResponseEntity<List<Map<String, String>>> getProjectSprints(Principal principal,
+                                            @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        Project project = service.get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+        List<Map<String, String>> customResponse = buildCustomResponse(service.getProjectSprints(project));
+        return ResponseEntity.ok().body(customResponse);
+    }
+
+    private List<Map<String, String>> buildCustomResponse(Collection<Sprint> sprints) {
+        List<Map<String, String>> customResponse = new ArrayList<>();
+        for (Sprint sprint : sprints) {
+            Map<String, String> sprintMap = new HashMap<>();
+            sprintMap.put("value", sprint.getName());
+            sprintMap.put("label", sprint.getName());
+            customResponse.add(sprintMap);
+        }
+        return customResponse;
     }
 
     //TODO: Modificar a Optionals

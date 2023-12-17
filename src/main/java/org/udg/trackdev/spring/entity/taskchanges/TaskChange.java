@@ -10,11 +10,11 @@ import javax.persistence.*;
 @Table(name = "task_changes")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type")
-public abstract class TaskChange extends EntityLogChange<Task> {
+public abstract class TaskChange extends EntityLogChange {
 
     public TaskChange() { }
 
-    public TaskChange(User author, Task task) {
-        super(author, task);
+    public TaskChange(String author, Long entityId) {
+        super(author, entityId);
     }
 }

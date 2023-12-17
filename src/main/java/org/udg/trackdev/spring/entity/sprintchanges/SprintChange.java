@@ -10,11 +10,11 @@ import javax.persistence.*;
 @Table(name = "sprint_changes")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type")
-public abstract class SprintChange extends EntityLogChange<Sprint> {
+public abstract class SprintChange extends EntityLogChange {
 
     public SprintChange() { }
 
-    public SprintChange(User author, Sprint sprint) {
+    public SprintChange(String author, Long sprint) {
         super(author, sprint);
     }
 }

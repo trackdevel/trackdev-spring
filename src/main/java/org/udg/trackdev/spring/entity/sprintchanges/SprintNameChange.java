@@ -15,7 +15,7 @@ public class SprintNameChange extends SprintChange {
 
     public SprintNameChange() {}
 
-    public SprintNameChange(User author, Sprint sprint, String name) {
+    public SprintNameChange(String author, Long sprint, String name) {
         super(author, sprint);
         this.name = name;
     }

@@ -81,6 +81,10 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         repo.delete(project);
     }
 
+    public Collection<Sprint> getProjectSprints(Project project) {
+        return project.getSprints();
+    }
+
     public Collection<Task> getProjectTasks(Project project) {
         return project.getTasks();
     }
@@ -94,7 +98,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     private void addMembers(Course course, Project project, Collection<String> usernames) {
         for(String username: usernames) {
-            User user = userService.getByUsername(username);
+            User user = userService.getByEmail(username);
             addMember(course, project, user);
         }
     }
