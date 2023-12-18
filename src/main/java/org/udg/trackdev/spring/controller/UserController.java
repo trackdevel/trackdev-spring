@@ -45,6 +45,19 @@ public class UserController extends BaseController {
         return userService.get(id);
     }
 
+    /**
+     * Returns the public profile of any user.
+     * @param principal The current authenticated entity
+     * @param email The email of the user to request.
+     * @return The User identified by username
+     */
+    @GetMapping(path = "/{email}")
+    @JsonView(EntityLevelViews.UserWithoutProjectMembers.class)
+    public User getUserEmail(Principal principal, @PathVariable("email") String email) {
+        super.checkLoggedIn(principal);
+        return userService.getByEmail(email);
+    }
+
     @GetMapping
     @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public List<User> getAll(Principal principal) {

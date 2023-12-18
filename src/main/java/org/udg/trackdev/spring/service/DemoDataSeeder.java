@@ -193,7 +193,7 @@ public class DemoDataSeeder {
     }
 
     private TaskStatus getRandomStatus(Random random) {
-        TaskStatus status = TaskStatus.CREATED;
+        TaskStatus status = TaskStatus.BACKLOG;
         int index = random.nextInt(3);
         switch (index) {
             case 0:

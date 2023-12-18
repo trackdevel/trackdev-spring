@@ -6,11 +6,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
-import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
-import org.udg.trackdev.spring.entity.taskchanges.TaskStatusChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
-import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -38,6 +35,9 @@ public class Task extends BaseEntityLong {
 
     @ManyToOne
     private User reporter;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     private Date createdAt;
 
@@ -75,6 +75,7 @@ public class Task extends BaseEntityLong {
         this.createdAt = new Date();
         this.reporter = reporter;
         this.status = TaskStatus.BACKLOG;
+        this.estimationPoints = 0;
         this.rank = 0;
     }
 
@@ -96,6 +97,11 @@ public class Task extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Basic.class)
     public User getReporter() { return reporter; }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getDescription() { return description; }
+
+    public void setDescription(String description) { this.description = description; }
 
     @JsonView({EntityLevelViews.TaskWithProjectMembers.class} )
     public Project getProject() {
@@ -173,13 +179,10 @@ public class Task extends BaseEntityLong {
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {
-        if(this.status == TaskStatus.CREATED && !(status == TaskStatus.TODO || status == TaskStatus.DELETED)) {
+        if(this.status == TaskStatus.BACKLOG && status != TaskStatus.TODO) {
             throw new EntityException(String.format("Cannot change status from CREATED to new status <%s>", status));
         }
-        if(this.status == TaskStatus.DELETED) {
-            throw new EntityException("Cannot change status of DELETED task");
-        }
-        if(status == TaskStatus.CREATED) {
+        if(status == TaskStatus.BACKLOG) {
             throw new EntityException("Cannot set status to CREATED");
         }
     }

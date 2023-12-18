@@ -104,6 +104,11 @@ public class TaskController extends CrudController<Task, TaskService> {
         service.deleteTask(id, userId);
     }
 
+    @GetMapping("/status")
+    public Collection<String> getListOfStatus() {
+        return service.getListOfStatus();
+    }
+
     static class NewSubTask {
         @NotBlank
         @Size(max = Task.NAME_LENGTH)

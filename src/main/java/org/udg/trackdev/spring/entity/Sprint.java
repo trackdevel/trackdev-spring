@@ -5,16 +5,13 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
-import org.udg.trackdev.spring.entity.sprintchanges.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 
 @Entity
@@ -99,7 +96,7 @@ public class Sprint extends BaseEntityLong {
         }
         if(status == SprintStatus.ACTIVE) {
             for(Task task : this.activeTasks) {
-                if(task.getStatus() == TaskStatus.CREATED) {
+                if(task.getStatus() == TaskStatus.BACKLOG) {
                     task.setStatus(TaskStatus.TODO, modifier);
                 }
             }
@@ -129,7 +126,7 @@ public class Sprint extends BaseEntityLong {
 
     public void addTask(Task task, User modifier) {
         this.activeTasks.add(task);
-        if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.CREATED) {
+        if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.BACKLOG) {
             task.setStatus(TaskStatus.TODO, modifier);
         }
     }
@@ -140,7 +137,7 @@ public class Sprint extends BaseEntityLong {
 
     private boolean areAllTasksClosed() {
         boolean allClosed = this.activeTasks.stream().allMatch(
-                t -> t.getStatus() == TaskStatus.DONE || t.getStatus() == TaskStatus.DELETED);
+                t -> t.getStatus() == TaskStatus.DONE);
         return allClosed;
     }
 }

@@ -78,6 +78,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             task.setName(name);
             changes.add(new TaskNameChange(user.getEmail(), task.getId(), oldName, name));
         }
+        if(editTask.description != null) {
+            task.setDescription(editTask.description.orElse(null));
+        }
         if(editTask.assignee != null) {
             User assigneeUser = null;
             String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
@@ -172,7 +175,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             repo.deleteAll(task.getChildTasks());
         }
         repo.delete(task);
-        //taskChangeService.store(new TaskDeleteChange(user.getEmail(), task.getId()));
+    }
+
+    public Collection<String> getListOfStatus() {
+        List<String> status = new ArrayList<>();
+        for (TaskStatus taskStatus : TaskStatus.values()) {
+            status.add(taskStatus.name());
+        }
+        return status;
     }
 
     public Collection<Comment> getComments(Long taskId) {

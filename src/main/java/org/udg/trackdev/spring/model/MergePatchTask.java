@@ -24,6 +24,8 @@ import java.util.Optional;
 public class MergePatchTask {
     public Optional<String> name;
 
+    public Optional<String> description;
+
     public Optional<String> assignee;
 
     public Optional<Integer> estimationPoints;
