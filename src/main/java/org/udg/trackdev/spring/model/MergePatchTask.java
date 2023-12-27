@@ -1,9 +1,6 @@
 package org.udg.trackdev.spring.model;
 
-import org.udg.trackdev.spring.entity.Comment;
-import org.udg.trackdev.spring.entity.Sprint;
-import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.TaskStatus;
+import org.udg.trackdev.spring.entity.*;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -37,5 +34,7 @@ public class MergePatchTask {
     public Optional<Collection<Long>> activeSprints;
 
     public Optional<Comment> comment;
+
+    public Optional<PointsReview> pointsReview;
 
 }

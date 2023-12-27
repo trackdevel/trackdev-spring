@@ -80,6 +80,9 @@ public class User extends BaseEntityUUID {
   @JoinColumn(name = "githubInfoId", referencedColumnName = "id")
   private GithubInfo githubInfo;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<PointsReview> pointsReviewList = new ArrayList<>();
+
  // -- GETTERS AND SETTERS
 
   @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
@@ -144,6 +147,10 @@ public class User extends BaseEntityUUID {
 
   @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public GithubInfo getGithubInfo() { return githubInfo; }
+
+  public List<PointsReview> getPointsReviewList() { return pointsReviewList; }
+
+  public void addPointsReview(PointsReview pointsReview) { this.pointsReviewList.add(pointsReview); }
 
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
 

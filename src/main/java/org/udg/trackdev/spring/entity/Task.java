@@ -10,10 +10,7 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
+import java.util.*;
 
 @Entity
 @Table(name = "tasks")
@@ -67,6 +64,11 @@ public class Task extends BaseEntityLong {
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Comment> discussion = new HashSet<>();
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PointsReview> pointsReviewList = new ArrayList<>();
+
+    // -- CONSTRUCTORS
 
     public Task() {}
 
@@ -161,6 +163,14 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.TaskComplete.class)
     public Collection<Comment> getDiscussion() {
         return discussion;
+    }
+
+    public List<PointsReview> getPointsReviewList() {
+        return pointsReviewList;
+    }
+
+    public  void addPointsReview(PointsReview pointsReview) {
+        this.pointsReviewList.add(pointsReview);
     }
 
     public void addComment(Comment comment) {

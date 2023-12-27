@@ -7,12 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.Comment;
+import org.udg.trackdev.spring.entity.PointsReview;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.model.MergePatchTask;
+import org.udg.trackdev.spring.model.TaskWithPointsReview;
 import org.udg.trackdev.spring.service.AccessChecker;
+import org.udg.trackdev.spring.service.PointsReviewService;
 import org.udg.trackdev.spring.service.TaskChangeService;
 import org.udg.trackdev.spring.service.TaskService;
 
@@ -35,6 +38,9 @@ public class TaskController extends CrudController<Task, TaskService> {
     @Autowired
     AccessChecker accessChecker;
 
+    @Autowired
+    PointsReviewService pointsReviewService;
+
     @GetMapping
     @JsonView(EntityLevelViews.Basic.class)
     public List<Task> search(Principal principal,
@@ -46,11 +52,13 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.TaskWithProjectMembers.class)
-    public Task getTask(Principal principal, @PathVariable("id") Long id) {
+    public TaskWithPointsReview getTask(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
         Task task = service.get(id);
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        return task;
+        List<PointsReview> pointsReview = pointsReviewService.getPointsReview(userId);
+        TaskWithPointsReview taskWithPoints = new TaskWithPointsReview(task, pointsReview);
+        return taskWithPoints;
     }
 
     /** POTSER NECESARI PER REFRESCAR DISCUSSIONS **/

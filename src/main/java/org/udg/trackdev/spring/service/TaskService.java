@@ -37,6 +37,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Autowired
     AccessChecker accessChecker;
 
+    @Autowired
+    PointsReviewService pointsReviewService;
+
     @Transactional
     public Task createTask(Long projectId, String name, String userId) {
         Project project = projectService.get(projectId);
@@ -155,6 +158,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             Comment comment = editTask.comment.orElseThrow(
                     () -> new ServiceException("Not possible to set discussion to null"));
             task.addComment(commentService.addComment(comment.getContent(), userService.get(userId), task));
+        }
+        if (editTask.pointsReview != null) {
+            PointsReview pointsReview = editTask.pointsReview.orElseThrow(
+                    () -> new ServiceException("Not possible to set pointsReview to null"));
+            pointsReviewService.addPointsReview(pointsReview.getPoints(), pointsReview.getComment(), userService.get(userId), task);
         }
         repo.save(task);
         for(TaskChange change: changes) {
