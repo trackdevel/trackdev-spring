@@ -84,7 +84,7 @@ public class AuthController extends BaseController {
             description = "Return the public information of the logged user",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping(path="/self")
-    @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
+    @JsonView({EntityLevelViews.UserWithGithubToken.class})
     public User self(Principal principal) {
 
         String userId = super.getUserId(principal);

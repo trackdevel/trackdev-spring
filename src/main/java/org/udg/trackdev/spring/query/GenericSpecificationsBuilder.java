@@ -1,15 +1,11 @@
 package org.udg.trackdev.spring.query;
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.springframework.data.jpa.domain.Specification;
 
 
 public class GenericSpecificationsBuilder<U> {

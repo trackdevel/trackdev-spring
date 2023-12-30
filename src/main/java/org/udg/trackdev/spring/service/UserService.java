@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.GithubInfo;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.UserRepository;
 
 import java.util.Date;
@@ -158,9 +158,12 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             githubToken.ifPresent(user::setGithubToken);
             ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
             if(githubInfo.getStatusCode().is2xxSuccessful()) {
-                user.setGithubName(githubInfo.getBody().getLogin());
-                user.setGithubAvatar(githubInfo.getBody().getAvatar_url());
-                user.setGithubHtmlUrl(githubInfo.getBody().getHtml_url());
+                GithubInfo responseBody = githubInfo.getBody();
+                if(responseBody != null) {
+                    user.setGithubName(responseBody.getLogin());
+                    user.setGithubAvatar(responseBody.getAvatar_url());
+                    user.setGithubHtmlUrl(responseBody.getHtml_url());
+                }
             }
             else if(githubInfo.getStatusCode().is4xxClientError()) {
                 user.setGithubToken("ERROR: NOT VALID TOKEN");

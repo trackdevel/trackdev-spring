@@ -9,13 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
-import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.UserService;
 
-
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
@@ -84,7 +85,7 @@ public class UserController extends BaseController {
 
     @Operation(summary = "Edit your user", description = "Edit your user")
     @PatchMapping
-    @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
+    @JsonView({EntityLevelViews.UserWithGithubToken.class})
     public User editMyUser(Principal principal,
                          @Valid @RequestBody EditU userRequest) {
         String userId = super.getUserId(principal);

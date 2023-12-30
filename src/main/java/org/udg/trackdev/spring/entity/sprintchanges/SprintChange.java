@@ -1,7 +1,5 @@
 package org.udg.trackdev.spring.entity.sprintchanges;
 
-import org.udg.trackdev.spring.entity.Sprint;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.changes.EntityLogChange;
 
 import javax.persistence.*;

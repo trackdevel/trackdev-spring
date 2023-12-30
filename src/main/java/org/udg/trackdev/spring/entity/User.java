@@ -83,6 +83,8 @@ public class User extends BaseEntityUUID {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<PointsReview> pointsReviewList = new ArrayList<>();
 
+  private Random random = new Random();
+
  // -- GETTERS AND SETTERS
 
   @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
@@ -216,11 +218,10 @@ public class User extends BaseEntityUUID {
   public Collection<Course> getEnrolledCourse() { return this.course; }
    **/
 
-  private static String randomColorGenerator(){
-    Random random = new Random();
-    int red = random.nextInt(256);
-    int green = random.nextInt(256);
-    int blue = random.nextInt(256);
+  private String randomColorGenerator(){
+    int red = this.random.nextInt(256);
+    int green = this.random.nextInt(256);
+    int blue = this.random.nextInt(256);
     return String.format("#%02x%02x%02x", red, green, blue);
   }
 

@@ -3,7 +3,6 @@ package org.udg.trackdev.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.udg.trackdev.spring.entity.TaskType;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.taskchanges.*;
@@ -124,7 +123,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             Integer newRank = editTask.rank.orElseThrow(
                     () -> new ServiceException("Not possible to set rank to null"));
             Integer currentRank = task.getRank();
-            if(newRank != currentRank) {
+            if(!Objects.equals(newRank, currentRank)) {
                 //Collection<TaskChange> otherChanges = updateOtherTasksRank(user, newRank, currentRank);
                 changes.add(new TaskRankChange(user.getEmail(), task.getId(), task.getRank(), newRank));
                 task.setRank(newRank);

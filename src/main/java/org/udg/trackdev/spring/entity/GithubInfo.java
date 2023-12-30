@@ -27,7 +27,7 @@ public class GithubInfo extends BaseEntityUUID{
 
     public GithubInfo() {}
 
-    @JsonView(PrivacyLevelViews.Private.class)
+    @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.UserWithGithubToken.class})
     public String getGithub_token() { return github_token; }
 
     public String setGithubToken(String githubToken) { return this.github_token = githubToken; }

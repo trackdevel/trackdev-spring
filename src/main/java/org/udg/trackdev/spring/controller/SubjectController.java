@@ -10,11 +10,11 @@ import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.service.AccessChecker;
-import org.udg.trackdev.spring.service.SubjectService;
 import org.udg.trackdev.spring.service.CourseService;
+import org.udg.trackdev.spring.service.SubjectService;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
@@ -24,7 +24,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "3. Subjects")

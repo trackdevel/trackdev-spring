@@ -12,5 +12,6 @@ public class EntityLevelViews {
   static public class TaskComplete extends Basic { }
   static public class SprintComplete extends Basic { }
   static public class UserWithoutProjectMembers extends Basic { }
+  static public class UserWithGithubToken extends UserWithoutProjectMembers { }
   static public class TaskWithProjectMembers extends TaskComplete { }
 }
