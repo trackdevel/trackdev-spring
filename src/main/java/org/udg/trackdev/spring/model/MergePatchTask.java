@@ -31,6 +31,8 @@ public class MergePatchTask {
 
     public Optional<Integer> rank;
 
+    public Optional<String> reporter;
+
     public Optional<Collection<Long>> activeSprints;
 
     public Optional<Comment> comment;

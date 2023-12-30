@@ -145,6 +145,10 @@ public class Task extends BaseEntityLong {
         this.status = status;
     }
 
+    public void setReporter(User reporter) {
+        this.reporter = reporter;
+    }
+
     @JsonView(EntityLevelViews.Basic.class)
     public Integer getEstimationPoints() { return estimationPoints; }
 
