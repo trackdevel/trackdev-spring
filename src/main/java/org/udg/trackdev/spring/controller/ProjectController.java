@@ -34,7 +34,6 @@ public class ProjectController extends BaseController {
     @Autowired
     AccessChecker accessChecker;
 
-    //TODO: Get enrolled projects
     @GetMapping
     @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Collection<Project> getProjects(Principal principal) {
@@ -78,12 +77,16 @@ public class ProjectController extends BaseController {
 
     @GetMapping(path = "/{projectId}/tasks")
     @JsonView(EntityLevelViews.Basic.class)
-    public Collection<Task> getProjectTasks(Principal principal,
+    public Map<String, Object> getProjectTasks(Principal principal,
                                             @PathVariable(name = "projectId") Long projectId) {
+        Map<String, Object> response = new HashMap<>();
         String userId = super.getUserId(principal);
         Project project = service.get(projectId);
         accessChecker.checkCanViewProject(project, userId);
-        return service.getProjectTasks(project);
+        Collection<Task> tasks = service.getProjectTasks(project);
+        response.put("tasks", tasks);
+        response.put("projectId", projectId);
+        return response;
     }
 
     @PostMapping(path = "/{projectId}/sprints")

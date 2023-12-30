@@ -25,6 +25,7 @@ import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "6. Tasks")
@@ -113,8 +114,13 @@ public class TaskController extends CrudController<Task, TaskService> {
     }
 
     @GetMapping("/status")
-    public Collection<String> getListOfStatus() {
+    public Map<String,String > getListOfStatus() {
         return service.getListOfStatus();
+    }
+
+    @GetMapping("/types")
+    public Map<String,String> getListOfTypes() {
+        return service.getListOfTypes();
     }
 
     static class NewSubTask {

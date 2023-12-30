@@ -1,19 +1,16 @@
 package org.udg.trackdev.spring.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.entity.TaskType;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.taskchanges.*;
 import org.udg.trackdev.spring.model.MergePatchTask;
 import org.udg.trackdev.spring.repository.TaskRepository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +43,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         User user = userService.get(userId);
         accessChecker.checkCanViewProject(project, userId);
         Task task = new Task(name, user);
+        task.setType(TaskType.USER_STORY);
         task.setProject(project);
         project.addTask(task);
         this.repo.save(task);
@@ -60,6 +58,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         accessChecker.checkCanViewProject(parentTask.getProject(), userId);
         Task subtask = new Task(name, user);
         subtask.setProject(parentTask.getProject());
+        subtask.setType(TaskType.TASK);
         subtask.setParentTask(parentTask);
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
@@ -185,12 +184,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         repo.delete(task);
     }
 
-    public Collection<String> getListOfStatus() {
-        List<String> status = new ArrayList<>();
+    public Map<String,String> getListOfStatus() {
+        Map<String,String> status = new HashMap<>();
         for (TaskStatus taskStatus : TaskStatus.values()) {
-            status.add(taskStatus.name());
+            status.put(taskStatus.name(), taskStatus.toString());
         }
         return status;
+    }
+
+    public Map<String,String> getListOfTypes() {
+        Map<String,String> types = new HashMap<>();
+        for (TaskType taskType : TaskType.values()) {
+            types.put(taskType.name(),taskType.toString());
+        }
+        return types;
     }
 
     public Collection<Comment> getComments(Long taskId) {

@@ -11,6 +11,6 @@ public abstract class BaseEntityLong {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
+    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class})
     public Long getId() { return id; }
 }

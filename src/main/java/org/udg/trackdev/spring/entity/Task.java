@@ -36,6 +36,8 @@ public class Task extends BaseEntityLong {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private TaskType type;
+
     private Date createdAt;
 
     @ManyToOne
@@ -93,6 +95,16 @@ public class Task extends BaseEntityLong {
         this.name = name;
     }
 
+    public String getType() {
+        return type.toString();
+    }
+
+    @NonNull
+    @JsonView(EntityLevelViews.Basic.class)
+    public void setType(TaskType type) {
+        this.type = type;
+    }
+
     @JsonView(EntityLevelViews.Basic.class)
     @JsonSerialize(using = JsonDateSerializer.class)
     public Date getCreatedAt() { return createdAt; }
@@ -123,6 +135,9 @@ public class Task extends BaseEntityLong {
 
     @JsonView(EntityLevelViews.Basic.class)
     public TaskStatus getStatus() { return status; }
+
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getStatusText() { return status.toString(); }
 
     public void setStatus(TaskStatus status, User modifier) {
         TaskStatus oldValue = this.status;

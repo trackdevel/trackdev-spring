@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ public class UserController extends BaseController {
      * @param id The email of the user to request.
      * @return The User identified by username
      */
+    @Operation(summary = "Get user by id", description = "Get user by id")
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.UserWithoutProjectMembers.class)
     public User getPublic(Principal principal, @PathVariable("id") String id) {
@@ -51,6 +53,7 @@ public class UserController extends BaseController {
      * @param email The email of the user to request.
      * @return The User identified by username
      */
+    @Operation(summary = "Get user by email", description = "Get user by email")
     @GetMapping(path = "/{email}")
     @JsonView(EntityLevelViews.UserWithoutProjectMembers.class)
     public User getUserEmail(Principal principal, @PathVariable("email") String email) {
@@ -58,6 +61,7 @@ public class UserController extends BaseController {
         return userService.getByEmail(email);
     }
 
+    @Operation(summary = "Get all users", description = "Get all users, only admins can do this")
     @GetMapping
     @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public List<User> getAll(Principal principal) {
@@ -67,6 +71,7 @@ public class UserController extends BaseController {
         return userService.findAll();
     }
 
+    @Operation(summary = "Register user", description = "Register user, only admins can do this")
     @PostMapping(path = "/register")
     public ResponseEntity register(Principal principal, @Valid @RequestBody RegisterU ru) {
         checkLoggedIn(principal);
@@ -77,6 +82,7 @@ public class UserController extends BaseController {
         return okNoContent();
     }
 
+    @Operation(summary = "Edit your user", description = "Edit your user")
     @PatchMapping
     @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public User editMyUser(Principal principal,
@@ -88,6 +94,7 @@ public class UserController extends BaseController {
         return modifiedUser;
     }
 
+    @Operation(summary = "Edit user", description = "Edit user, only admins can do this")
     @PatchMapping(path = "/{id}")
     @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public User editUser(Principal principal,
@@ -106,6 +113,7 @@ public class UserController extends BaseController {
         }
     }
 
+    @Operation(summary = "Check if autenticated user is admin", description = "Check if autenticated user is admin")
     @GetMapping(path = "/checker/admin")
     public ResponseEntity<Void> imAdminUser(Principal principal) {
         String userId = super.getUserId(principal);
