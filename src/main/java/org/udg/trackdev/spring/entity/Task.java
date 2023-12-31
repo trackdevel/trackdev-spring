@@ -139,8 +139,7 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public String getStatusText() { return status.toString(); }
 
-    public void setStatus(TaskStatus status, User modifier) {
-        TaskStatus oldValue = this.status;
+    public void setStatus(TaskStatus status) {
         checkCanMoveToStatus(status);
         this.status = status;
     }

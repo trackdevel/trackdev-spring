@@ -74,7 +74,7 @@ public class UserController extends BaseController {
 
     @Operation(summary = "Register user", description = "Register user, only admins can do this")
     @PostMapping(path = "/register")
-    public ResponseEntity register(Principal principal, @Valid @RequestBody RegisterU ru) {
+    public ResponseEntity<Void> register(Principal principal, @Valid @RequestBody RegisterU ru) {
         checkLoggedIn(principal);
         if (!accessChecker.isUserAdmin(userService.get(principal.getName()))) {
             throw new SecurityException("Only admins can register users");
@@ -90,9 +90,8 @@ public class UserController extends BaseController {
                          @Valid @RequestBody EditU userRequest) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        User modifiedUser = userService.editMyUser(user, user, userRequest.username, userRequest.color,
+        return userService.editMyUser(user, user, userRequest.username, userRequest.color,
                 userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
-        return modifiedUser;
     }
 
     @Operation(summary = "Edit user", description = "Edit user, only admins can do this")
@@ -108,9 +107,8 @@ public class UserController extends BaseController {
         }
         else {
             User user = userService.get(id);
-            User modifiedUser = userService.editMyUser(modifier, user, userRequest.username, userRequest.color,
+            return userService.editMyUser(modifier, user, userRequest.username, userRequest.color,
                     userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
-            return modifiedUser;
         }
     }
 

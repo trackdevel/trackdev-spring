@@ -50,13 +50,10 @@ public class CourseController extends BaseController {
     public Collection<Course> getCourses(Principal principal) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        /**NOU BLOC**/
         if (user.isUserType(UserType.ADMIN))
             return service.getAll();
         else
             throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
-        /***/
-        //return user.getEnrolledCourseYears();
     }
 
     @GetMapping(path = "/{courseId}")
@@ -75,12 +72,12 @@ public class CourseController extends BaseController {
                              @PathVariable("courseId") Long courseId,
                              @Valid @RequestBody EditCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Course modifiedCourse = service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId, courseRequest.githubOrganization, userId);
-        return modifiedCourse;
+        return service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId,
+                courseRequest.githubOrganization, userId);
     }
 
     @DeleteMapping(path = "/{courseId}")
-    public ResponseEntity deleteCourse(Principal principal,
+    public ResponseEntity<Void> deleteCourse(Principal principal,
                                        @PathVariable("courseId") Long courseId) {
         String userId = super.getUserId(principal);
         service.deleteCourse(courseId, userId);

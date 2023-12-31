@@ -34,7 +34,7 @@ public class BaseController {
       throw new ControllerException("User should be authenticated");
   }
 
-  ResponseEntity okNoContent() {
+  ResponseEntity<Void> okNoContent() {
     return ResponseEntity.noContent().build();
   }
 

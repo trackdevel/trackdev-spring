@@ -33,8 +33,8 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     public Sprint create(Project project, String name, Date startDate, Date endDate, String userId) {
         User user = userService.get(userId);
         Sprint sprint = new Sprint(name);
-        sprint.setStartDate(startDate, user);
-        sprint.setEndDate(endDate, user);
+        sprint.setStartDate(startDate);
+        sprint.setEndDate(endDate);
         sprint.setProject(project);
         this.repo().save(sprint);
 
@@ -51,7 +51,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             String name = editSprint.name.orElseThrow(
                     () -> new ServiceException("Not possible to set name to null"));
             if(!name.equals(sprint.getName())) {
-                sprint.setName(name, user);
+                sprint.setName(name);
                 changes.add(new SprintNameChange(user.getEmail(),sprintId,name));
             }
         }
@@ -59,7 +59,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             Date startDate = editSprint.startDate.orElseThrow(
                     () -> new ServiceException("Not possible to set startDate to null"));
             if(!startDate.equals(sprint.getStartDate())) {
-                sprint.setStartDate(startDate, user);
+                sprint.setStartDate(startDate);
                 changes.add(new SprintStartDateChange(user.getEmail(),sprintId,startDate));
             }
         }
@@ -67,7 +67,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             Date endDate = editSprint.endDate.orElseThrow(
                     () -> new ServiceException("Not possible to set endDate to null"));
             if(!endDate.equals(sprint.getEndDate())) {
-                sprint.setEndDate(endDate, user);
+                sprint.setEndDate(endDate);
                 changes.add(new SprintEndDateChange(user.getEmail(),sprintId,endDate));
             }
         }

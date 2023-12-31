@@ -77,9 +77,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
                                @PathVariable("id") Long id,
                                @Valid @RequestBody EditSubject subjectRequest) {
         String userId = super.getUserId(principal);
-        Subject modifiedSubject = service.editSubjectDetails(id, subjectRequest.name, subjectRequest.acronym, userId);
-
-        return modifiedSubject;
+        return service.editSubjectDetails(id, subjectRequest.name, subjectRequest.acronym, userId);
     }
 
     @DeleteMapping(path = "/{id}")

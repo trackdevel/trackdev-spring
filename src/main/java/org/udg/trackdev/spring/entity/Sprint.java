@@ -36,7 +36,6 @@ public class Sprint extends BaseEntityLong {
     @Column(name = "`status`")
     private SprintStatus status;
 
-    //TODO: No hauria d'eliminar les tasques, quedarse amb sprints nulls
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Task> activeTasks = new ArrayList<>();
 
@@ -61,7 +60,7 @@ public class Sprint extends BaseEntityLong {
         return name;
     }
 
-    public void setName(@NonNull String name, User modifier) {
+    public void setName(@NonNull String name) {
         this.name = name;
     }
 
@@ -71,8 +70,7 @@ public class Sprint extends BaseEntityLong {
         return startDate;
     }
 
-    public void setStartDate(Date startDate, User modifier) {
-        Date oldValue = this.startDate;
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 
@@ -82,7 +80,7 @@ public class Sprint extends BaseEntityLong {
         return endDate;
     }
 
-    public void setEndDate(Date endDate, User modifier) {
+    public void setEndDate(Date endDate) {
         Date oldValue = this.endDate;
         this.endDate = endDate;
     }
@@ -97,7 +95,7 @@ public class Sprint extends BaseEntityLong {
         if(status == SprintStatus.ACTIVE) {
             for(Task task : this.activeTasks) {
                 if(task.getStatus() == TaskStatus.BACKLOG) {
-                    task.setStatus(TaskStatus.TODO, modifier);
+                    task.setStatus(TaskStatus.TODO);
                 }
             }
         }
@@ -127,11 +125,11 @@ public class Sprint extends BaseEntityLong {
     public void addTask(Task task, User modifier) {
         this.activeTasks.add(task);
         if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.BACKLOG) {
-            task.setStatus(TaskStatus.TODO, modifier);
+            task.setStatus(TaskStatus.TODO);
         }
     }
 
-    public void removeTask(Task task, User modifier) {
+    public void removeTask(Task task) {
         this.activeTasks.remove(task);
     }
 

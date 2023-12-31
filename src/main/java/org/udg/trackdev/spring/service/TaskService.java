@@ -116,7 +116,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException("Not possible to set status to null"));
             TaskStatus oldStatus = task.getStatus();
-            task.setStatus(status, user);
+            task.setStatus(status);
             changes.add(new TaskStatusChange(user.getEmail(), task.getId(), oldStatus.name(),  status.name()));
         }
         if(editTask.rank != null) {
@@ -185,7 +185,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Task task = get(id);
         User user = userService.get(userId);
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task, user));
+        task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
         task.setActiveSprints(new ArrayList<>());
         if (task.getParentTask() == null){
             repo.deleteAll(task.getChildTasks());

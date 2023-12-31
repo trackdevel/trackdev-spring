@@ -58,8 +58,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         Task task = service.get(id);
         accessChecker.checkCanViewProject(task.getProject(), userId);
         List<PointsReview> pointsReview = pointsReviewService.getPointsReview(userId);
-        TaskWithPointsReview taskWithPoints = new TaskWithPointsReview(task, pointsReview);
-        return taskWithPoints;
+        return new TaskWithPointsReview(task, pointsReview);
     }
 
     /** POTSER NECESARI PER REFRESCAR DISCUSSIONS **/
@@ -79,8 +78,7 @@ public class TaskController extends CrudController<Task, TaskService> {
                            @PathVariable(name = "id") Long id,
                            @Valid @RequestBody MergePatchTask taskRequest) {
         String userId = super.getUserId(principal);
-        Task modifiedTask = service.editTask(id, taskRequest, userId);
-        return modifiedTask;
+        return service.editTask(id, taskRequest, userId);
     }
 
     @GetMapping(path = "/{id}/history")
@@ -88,9 +86,6 @@ public class TaskController extends CrudController<Task, TaskService> {
     public List<TaskChange> getHistory(Principal principal,
                                        @PathVariable(name = "id") Long id,
                                        @RequestParam(value = "search", required = false) String search) {
-        String userId = super.getUserId(principal);
-        Task task = service.get(id);
-
         String refinedSearch = super.scopedSearch("entityId:"+ id, search);
         Specification<TaskChange> specification = super.buildSpecificationFromSearch(refinedSearch);
         return taskChangeService.search(specification);

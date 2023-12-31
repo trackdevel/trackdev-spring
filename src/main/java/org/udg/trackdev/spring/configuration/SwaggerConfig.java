@@ -51,10 +51,10 @@ public class SwaggerConfig {
         return openApi -> {
             Map<String, PathItem> paths = openApi.getPaths();
             Paths sortedPaths = new Paths();
-            TreeMap<String, PathItem> sortedTree = new TreeMap<String, PathItem>(paths);
+            TreeMap<String, PathItem> sortedTree = new TreeMap<>(paths);
 
             Set<Map.Entry<String, PathItem>> pathItems = sortedTree.entrySet();
-            Map<String, Map.Entry<String, PathItem>> distinctTagMap = new TreeMap<String, Map.Entry<String, PathItem>>();
+            Map<String, Map.Entry<String, PathItem>> distinctTagMap = new TreeMap<>();
             for (Map.Entry<String, PathItem> entry : pathItems) {
                 PathItem pathItem = entry.getValue();
                 Operation getOp = pathItem.getGet();
@@ -81,7 +81,7 @@ public class SwaggerConfig {
                 }
             }
 
-            LinkedHashMap<String, PathItem> customOrderMap = new LinkedHashMap<String, PathItem>();
+            LinkedHashMap<String, PathItem> customOrderMap = new LinkedHashMap<>();
             for (Map.Entry<String, PathItem> entry : distinctTagMap.values()) {
                 customOrderMap.put(entry.getKey(), entry.getValue());
             }

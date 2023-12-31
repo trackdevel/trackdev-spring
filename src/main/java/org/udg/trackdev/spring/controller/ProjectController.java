@@ -62,13 +62,12 @@ public class ProjectController extends BaseController {
                                @PathVariable(name = "projectId") Long projectId,
                                @Valid @RequestBody EditProject projectRequest) {
         String userId = super.getUserId(principal);
-        Project modifiedProject = service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, userId);
-        return modifiedProject;
+        return service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, userId);
     }
 
     @DeleteMapping(path = "/{projectId}")
     @JsonView(EntityLevelViews.Basic.class)
-    public ResponseEntity deleteProject(Principal principal,
+    public ResponseEntity<Void> deleteProject(Principal principal,
                                         @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         service.deleteProject(projectId, userId);
@@ -91,7 +90,7 @@ public class ProjectController extends BaseController {
 
     @PostMapping(path = "/{projectId}/sprints")
     @JsonView(EntityLevelViews.Basic.class)
-    public ResponseEntity createProjectSprint(Principal principal,
+    public ResponseEntity<Void> createProjectSprint(Principal principal,
                                        @PathVariable(name = "projectId") Long projectId,
                                        @Valid @RequestBody CreateSprint sprintRequest) {
         String userId = super.getUserId(principal);
@@ -135,7 +134,6 @@ public class ProjectController extends BaseController {
         return customResponse;
     }
 
-    //TODO: Modificar a Optionals
     static class EditProject {
         @Size(min = 1, max = Project.NAME_LENGTH)
         public String name;

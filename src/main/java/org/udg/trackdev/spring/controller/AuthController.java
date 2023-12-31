@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 @RestController
 public class AuthController extends BaseController {
 
+    private static final String COOKIE_NAME = "trackdev_JWT";
+
     @Autowired
     UserService userService;
 
@@ -61,7 +63,7 @@ public class AuthController extends BaseController {
         String token = getJWTToken(user);
 
         String cookieTokenValue = Base64.getEncoder().withoutPadding().encodeToString(token.getBytes());
-        cookieManager.addSessionCookie(request, response, "trackdev_JWT", cookieTokenValue);
+        cookieManager.addSessionCookie(request, response, COOKIE_NAME, cookieTokenValue);
 
         userService.setLastLogin(user);
 
@@ -76,7 +78,7 @@ public class AuthController extends BaseController {
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                                      HttpServletResponse response) {
 
-        cookieManager.removeCookie(request, response, "trackdev_JWT");
+        cookieManager.removeCookie(request, response, COOKIE_NAME);
         return okNoContent();
     }
 
@@ -95,7 +97,7 @@ public class AuthController extends BaseController {
             description = "Check if the user is logged to the website",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping(path = "/check")
-    public ResponseEntity check(Principal principal) {
+    public ResponseEntity<Void> check(Principal principal) {
         super.checkLoggedIn(principal);
 
         return okNoContent();
@@ -105,7 +107,7 @@ public class AuthController extends BaseController {
             description = "Change the password of the user for a new one",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @PostMapping(path="/password")
-    public ResponseEntity changePassword(Principal principal,
+    public ResponseEntity<Void> changePassword(Principal principal,
                                                      @Valid @RequestBody ChangePasswordT userBody) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
@@ -117,7 +119,7 @@ public class AuthController extends BaseController {
 
     @Operation(summary = "Get recovery code", description = "Get recovery code for user")
     @PostMapping(path="/recovery")
-    public ResponseEntity recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) throws MessagingException {
+    public ResponseEntity<Void> recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) throws MessagingException {
         User user = userService.getByEmail(userBody.email);
         if(user == null) {
             throw new ServiceException("User with this email does not exist");
@@ -129,7 +131,7 @@ public class AuthController extends BaseController {
 
     @Operation(summary = "Check recovery code", description = "Check recovery code for user")
     @PostMapping(path="/recovery/{email}/check")
-    public ResponseEntity checkRecoveryCode(@PathVariable("email") String email, @Valid @RequestBody CodeValidationR codeValidation) {
+    public ResponseEntity<Void> checkRecoveryCode(@PathVariable("email") String email, @Valid @RequestBody CodeValidationR codeValidation) {
         User user = userService.getByEmail(email);
         if(user == null) {
             throw new ServiceException("User with this mail does not exist");
@@ -142,7 +144,7 @@ public class AuthController extends BaseController {
 
     @Operation(summary = "Recovery password", description = "Recover password with recovery code")
     @PostMapping(path="/recovery/{email}")
-    public ResponseEntity recoveryPassword(@PathVariable("email") String email,  @Valid @RequestBody RecoveryPasswordT userBody) {
+    public ResponseEntity<Void> recoveryPassword(@PathVariable("email") String email,  @Valid @RequestBody RecoveryPasswordT userBody) {
         User user = userService.getByEmail(email);
         if(user == null) {
             throw new ServiceException("User with this email does not exist");
@@ -164,7 +166,7 @@ public class AuthController extends BaseController {
 
         String token = Jwts
                 .builder()
-                .setId("trackdev_JWT")
+                .setId(COOKIE_NAME)
                 .setSubject(user.getId())
                 .claim("authorities",
                         grantedAuthorities.stream()

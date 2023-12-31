@@ -52,17 +52,13 @@ public class SprintController extends CrudController<Sprint, SprintService> {
                          @PathVariable(name = "id") Long id,
                          @Valid @RequestBody MergePatchSprint sprintRequest) {
         String userId = super.getUserId(principal);
-        Sprint modifiedSprint = service.editSprint(id, sprintRequest, userId);
-        return modifiedSprint;
+        return service.editSprint(id, sprintRequest, userId);
     }
 
     @GetMapping(path = "/{id}/history")
     @JsonView(EntityLevelViews.Basic.class)
     public List<SprintChange> getHistory(Principal principal, @PathVariable("id") Long id,
                                          @RequestParam(value = "search", required = false) String search) {
-        String userId = super.getUserId(principal);
-        Sprint sprint = service.get(id);
-
         String refinedSearch = super.scopedSearch("entityId:"+ id, search);
         Specification<SprintChange> specification = super.buildSpecificationFromSearch(refinedSearch);
         return sprintChangeService.search(specification);
