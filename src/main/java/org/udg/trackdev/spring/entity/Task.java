@@ -197,7 +197,7 @@ public class Task extends BaseEntityLong {
     }
 
 
-    @JsonView(EntityLevelViews.TaskComplete.class)
+    @JsonView({EntityLevelViews.TaskComplete.class, EntityLevelViews.Basic.class})
     public Collection<Sprint> getActiveSprints() {
         return activeSprints;
     }
