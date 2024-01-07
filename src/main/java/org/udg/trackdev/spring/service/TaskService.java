@@ -193,11 +193,22 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         repo.delete(task);
     }
 
-    public Map<String,String> getListOfStatus() {
+    public Map<String,String> getListOfUsStatus() {
+        int i_start = TaskStatus.BACKLOG.ordinal();
+        int i_end = TaskStatus.DONE.ordinal();
         Map<String,String> status = new HashMap<>();
-        for (TaskStatus taskStatus : TaskStatus.values()) {
+        for (int i = i_start; i <= i_end; i++ ) {
+            TaskStatus taskStatus = TaskStatus.values()[i];
             status.put(taskStatus.name(), taskStatus.toString());
         }
+        return status;
+    }
+
+    public Map<String,String> getListOfTaskStatus() {
+        Map<String,String> status = new HashMap<>();
+        status.put(TaskStatus.DEFINED.name(), TaskStatus.DEFINED.toString());
+        status.put(TaskStatus.INPROGRESS.name(), TaskStatus.INPROGRESS.toString());
+        status.put(TaskStatus.DONE.name(), TaskStatus.DONE.toString());
         return status;
     }
 
