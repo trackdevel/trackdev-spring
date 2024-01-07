@@ -130,28 +130,6 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 //changes.addAll(otherChanges);
             }
         }
-        /**if(editTask.activeSprint != null) {
-            if(editTask.rank == null || !editTask.rank.isPresent()) {
-                throw new ServiceException("Is not allowed to change sprint without specifying rank");
-            }
-            Sprint newSprint = null;
-            if(editTask.activeSprint.isPresent()) {
-                Sprint oldSprint = task.getActiveSprints();
-                if(oldSprint != null) {
-                    oldSprint.removeTask(task, user);
-                }
-                Long newSprintId = editTask.activeSprint.get();
-                newSprint = sprintService.get(newSprintId);
-                task.setActiveSprint(newSprint);
-                newSprint.addTask(task, user);
-            } else {
-                Sprint oldSprint = task.getActiveSprint();
-                task.setActiveSprint(null);
-                oldSprint.removeTask(task, user);
-            }
-
-            changes.add(new TaskActiveSprintsChange(user, task, newSprint));
-        }**/
         if(editTask.activeSprints != null){
             Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
                     () -> new ServiceException("Not possible to set activeSprints to null"));
@@ -191,6 +169,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             repo.deleteAll(task.getChildTasks());
         }
         repo.delete(task);
+    }
+
+    public Map<String,String> getListOfStatus() {
+        Map<String,String> status = new HashMap<>();
+        for (TaskStatus taskStatus : TaskStatus.values()) {
+            status.put(taskStatus.name(), taskStatus.toString());
+        }
+        return status;
     }
 
     public Map<String,String> getListOfUsStatus() {

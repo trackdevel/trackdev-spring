@@ -88,10 +88,10 @@ public class Sprint extends BaseEntityLong {
     @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
     public SprintStatus getStatus() { return this.status; }
 
-    public void setStatus(SprintStatus status, User modifier) {
-        if(status == SprintStatus.CLOSED && !areAllTasksClosed()) {
-            throw new EntityException("Cannot close sprint with open tasks");
-        }
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
+    public String getStatusText() { return this.status.toString(); }
+
+    public void setStatus(SprintStatus status) {
         if(status == SprintStatus.ACTIVE) {
             for(Task task : this.activeTasks) {
                 if(task.getStatus() == TaskStatus.BACKLOG) {
