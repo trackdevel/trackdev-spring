@@ -207,11 +207,11 @@ public class Task extends BaseEntityLong {
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {
-        if(this.status == TaskStatus.BACKLOG && status != TaskStatus.TODO) {
-            throw new EntityException(String.format("Cannot change status from CREATED to new status <%s>", status));
+        /**if(this.status == TaskStatus.BACKLOG && status != TaskStatus.TODO) {
+            throw new EntityException(String.format("Cannot change status from BACKLOG to new status <%s>", status));
         }
         if(status == TaskStatus.BACKLOG) {
-            throw new EntityException("Cannot set status to CREATED");
-        }
+            throw new EntityException("Cannot set status to BACKLOG");
+        }**/
     }
 }
