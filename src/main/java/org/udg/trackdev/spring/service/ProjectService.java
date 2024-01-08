@@ -99,8 +99,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     public Map<String, Map<String,String>> getProjectRanks(Project project) {
         if(project.getQualification() != null){
-            Map<String, Double> ranks = new HashMap<>();
-            Map<String, Map<String,String>> ranks2 = new HashMap<>();
+            Map<String, Map<String,String>> ranks = new HashMap<>();
             Map<User, Integer> points = project.getTasks().stream()
                     .filter(task -> task.getAssignee() != null)
                     .collect(Collectors.groupingBy(Task::getAssignee, Collectors.summingInt(Task::getEstimationPoints)));
@@ -113,14 +112,14 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
                 info.put("qualification",String.valueOf(BigDecimal.valueOf(
                                 points.get(user).doubleValue() * project.getQualification() / maxPoints.doubleValue())
                         .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()));
-                ranks2.put(user.getEmail(),info);
+                ranks.put(user.getEmail(),info);
                 /**ranks.put(email,
                         BigDecimal.valueOf(
                                 points.get(email).doubleValue() * project.getQualification() / maxPoints.doubleValue())
                                 .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()
                 );**/
             }
-            return ranks2;
+            return ranks;
         }
         else{
             throw new ServiceException("Project has no qualification");
