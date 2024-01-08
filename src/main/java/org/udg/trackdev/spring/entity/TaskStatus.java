@@ -5,7 +5,8 @@ public enum TaskStatus {
     TODO("PRIORITZADA"),
     INPROGRESS("EN PROGRES"),
     VERIFY("EN VERIFICACIO"),
-    DONE("FINALITZADA")
+    DONE("FINALITZADA"),
+    DEFINED("DEFINIDA"),
     ;
 
     private final String text;

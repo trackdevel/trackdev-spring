@@ -7,10 +7,9 @@ import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.GroupRepository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
@@ -44,8 +43,8 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     }
 
     @Transactional
-    public Project editProject(Long projectId, String name, Collection<String> mails, Long courseId,
-                               String loggedInUserId) {
+    public Project editProject(Long projectId, String name, Collection<String> mails, Long courseId, Double qualification
+                               , String loggedInUserId) {
         Project project = get(projectId);
         accessChecker.checkCanManageProject(project, loggedInUserId);
         if(name != null) {
@@ -61,6 +60,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
             Course course = courseService.get(courseId);
             project.setCourse(course);
         }
+        project.setQualification(qualification);
         repo.save(project);
         
         return project;
@@ -95,6 +95,27 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         Sprint sprint = sprintService.create(project, name, startDate, endDate, userId);
         project.addSprint(sprint);
         repo.save(project);
+    }
+
+    public Map<String, Double> getProjectRanks(Project project) {
+        if(project.getQualification() != null){
+            Map<String, Double> ranks = new HashMap<>();
+            Map<String, Integer> points = project.getTasks().stream()
+                    .filter(task -> task.getAssignee() != null)
+                    .collect(Collectors.groupingBy(task -> task.getAssignee().getEmail(), Collectors.summingInt(Task::getEstimationPoints)));;
+            Integer maxPoints = points.values().stream().max(Integer::compareTo).orElse(0);
+            for(String email: points.keySet()) {
+                ranks.put(email,
+                        BigDecimal.valueOf(
+                                points.get(email).doubleValue() * project.getQualification() / maxPoints.doubleValue())
+                                .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()
+                );
+            }
+            return ranks;
+        }
+        else{
+            throw new ServiceException("Project has no qualification");
+        }
     }
 
     private void addMembers(Course course, Project project, Collection<String> usernames) {

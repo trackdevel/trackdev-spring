@@ -130,28 +130,6 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 //changes.addAll(otherChanges);
             }
         }
-        /**if(editTask.activeSprint != null) {
-            if(editTask.rank == null || !editTask.rank.isPresent()) {
-                throw new ServiceException("Is not allowed to change sprint without specifying rank");
-            }
-            Sprint newSprint = null;
-            if(editTask.activeSprint.isPresent()) {
-                Sprint oldSprint = task.getActiveSprints();
-                if(oldSprint != null) {
-                    oldSprint.removeTask(task, user);
-                }
-                Long newSprintId = editTask.activeSprint.get();
-                newSprint = sprintService.get(newSprintId);
-                task.setActiveSprint(newSprint);
-                newSprint.addTask(task, user);
-            } else {
-                Sprint oldSprint = task.getActiveSprint();
-                task.setActiveSprint(null);
-                oldSprint.removeTask(task, user);
-            }
-
-            changes.add(new TaskActiveSprintsChange(user, task, newSprint));
-        }**/
         if(editTask.activeSprints != null){
             Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
                     () -> new ServiceException("Not possible to set activeSprints to null"));
@@ -198,6 +176,25 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         for (TaskStatus taskStatus : TaskStatus.values()) {
             status.put(taskStatus.name(), taskStatus.toString());
         }
+        return status;
+    }
+
+    public Map<String,String> getListOfUsStatus() {
+        int i_start = TaskStatus.BACKLOG.ordinal();
+        int i_end = TaskStatus.DONE.ordinal();
+        Map<String,String> status = new HashMap<>();
+        for (int i = i_start; i <= i_end; i++ ) {
+            TaskStatus taskStatus = TaskStatus.values()[i];
+            status.put(taskStatus.name(), taskStatus.toString());
+        }
+        return status;
+    }
+
+    public Map<String,String> getListOfTaskStatus() {
+        Map<String,String> status = new HashMap<>();
+        status.put(TaskStatus.DEFINED.name(), TaskStatus.DEFINED.toString());
+        status.put(TaskStatus.INPROGRESS.name(), TaskStatus.INPROGRESS.toString());
+        status.put(TaskStatus.DONE.name(), TaskStatus.DONE.toString());
         return status;
     }
 

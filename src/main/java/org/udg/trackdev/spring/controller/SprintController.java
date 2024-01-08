@@ -63,4 +63,13 @@ public class SprintController extends CrudController<Sprint, SprintService> {
         Specification<SprintChange> specification = super.buildSpecificationFromSearch(refinedSearch);
         return sprintChangeService.search(specification);
     }
+
+    @DeleteMapping(path = "/{id}")
+    public void deleteSprint(Principal principal, @PathVariable("id") Long id) {
+        String userId = super.getUserId(principal);
+        Sprint sprint = service.get(id);
+        accessChecker.checkCanViewProject(sprint.getProject(), userId);
+        service.deleteSprint(id);
+    }
+
 }

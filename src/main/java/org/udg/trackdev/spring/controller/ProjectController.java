@@ -62,7 +62,7 @@ public class ProjectController extends BaseController {
                                @PathVariable(name = "projectId") Long projectId,
                                @Valid @RequestBody EditProject projectRequest) {
         String userId = super.getUserId(principal);
-        return service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, userId);
+        return service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, projectRequest.qualification, userId);
     }
 
     @DeleteMapping(path = "/{projectId}")
@@ -123,12 +123,25 @@ public class ProjectController extends BaseController {
         return ResponseEntity.ok().body(customResponse);
     }
 
+    @GetMapping(path = "/{projectId}/qualification")
+    public ResponseEntity<Map<String,Double>> getProjectRank(Principal principal,
+                                            @PathVariable(name = "projectId") Long projectId) {
+        User user = userService.get(super.getUserId(principal));
+        Project project = service.get(projectId);
+        accessChecker.isUserAdmin(user);
+        return ResponseEntity.ok().body(service.getProjectRanks(project));
+    }
+
     private List<Map<String, String>> buildCustomResponse(Collection<Sprint> sprints) {
         List<Map<String, String>> customResponse = new ArrayList<>();
         for (Sprint sprint : sprints) {
             Map<String, String> sprintMap = new HashMap<>();
             sprintMap.put("value", sprint.getName());
             sprintMap.put("label", sprint.getName());
+            sprintMap.put("id", sprint.getId().toString());
+            sprintMap.put("startDate", sprint.getStartDate().toString());
+            sprintMap.put("endDate", sprint.getEndDate().toString());
+            sprintMap.put("status", sprint.getStatusText());
             customResponse.add(sprintMap);
         }
         return customResponse;
@@ -139,6 +152,7 @@ public class ProjectController extends BaseController {
         public String name;
         public Collection<String> members;
         public Long courseId;
+        public Double qualification;
     }
 
     static class CreateSprint {

@@ -6,6 +6,7 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +39,9 @@ public class Project extends BaseEntityLong {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Sprint> sprints = new ArrayList<>();
+
+    @Max(10)
+    private Double qualification;
 
     //--- CONSTRUCTOR
 
@@ -78,6 +82,10 @@ public class Project extends BaseEntityLong {
     public Collection<Sprint> getSprints() {
         return this.sprints;
     }
+
+    @JsonView({EntityLevelViews.Basic.class})
+    public Double getQualification() { return this.qualification; }
+    public void setQualification(Double qualification) { this.qualification = qualification; }
 
     //--- METHODS
 

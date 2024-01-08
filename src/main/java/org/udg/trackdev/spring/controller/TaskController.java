@@ -113,6 +113,16 @@ public class TaskController extends CrudController<Task, TaskService> {
         return service.getListOfStatus();
     }
 
+    @GetMapping("/usstatus")
+    public Map<String,String > getListOfUsStatus() {
+        return service.getListOfUsStatus();
+    }
+
+    @GetMapping("/taskstatus")
+    public Map<String,String > getListOfTaskStatus() {
+        return service.getListOfTaskStatus();
+    }
+
     @GetMapping("/types")
     public Map<String,String> getListOfTypes() {
         return service.getListOfTypes();
