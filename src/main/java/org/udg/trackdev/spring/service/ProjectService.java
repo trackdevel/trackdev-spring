@@ -97,21 +97,30 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         repo.save(project);
     }
 
-    public Map<String, Double> getProjectRanks(Project project) {
+    public Map<String, Map<String,String>> getProjectRanks(Project project) {
         if(project.getQualification() != null){
             Map<String, Double> ranks = new HashMap<>();
-            Map<String, Integer> points = project.getTasks().stream()
+            Map<String, Map<String,String>> ranks2 = new HashMap<>();
+            Map<User, Integer> points = project.getTasks().stream()
                     .filter(task -> task.getAssignee() != null)
-                    .collect(Collectors.groupingBy(task -> task.getAssignee().getEmail(), Collectors.summingInt(Task::getEstimationPoints)));;
+                    .collect(Collectors.groupingBy(Task::getAssignee, Collectors.summingInt(Task::getEstimationPoints)));
             Integer maxPoints = points.values().stream().max(Integer::compareTo).orElse(0);
-            for(String email: points.keySet()) {
-                ranks.put(email,
+            for(User user: points.keySet()) {
+                Map<String,String> info = new HashMap<>();
+                info.put("name",user.getUsername());
+                info.put("acronym",user.getCapitalLetters());
+                info.put("color",user.getColor());
+                info.put("qualification",String.valueOf(BigDecimal.valueOf(
+                                points.get(user).doubleValue() * project.getQualification() / maxPoints.doubleValue())
+                        .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()));
+                ranks2.put(user.getEmail(),info);
+                /**ranks.put(email,
                         BigDecimal.valueOf(
                                 points.get(email).doubleValue() * project.getQualification() / maxPoints.doubleValue())
                                 .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()
-                );
+                );**/
             }
-            return ranks;
+            return ranks2;
         }
         else{
             throw new ServiceException("Project has no qualification");

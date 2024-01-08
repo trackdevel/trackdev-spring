@@ -124,7 +124,7 @@ public class ProjectController extends BaseController {
     }
 
     @GetMapping(path = "/{projectId}/qualification")
-    public ResponseEntity<Map<String,Double>> getProjectRank(Principal principal,
+    public ResponseEntity<Map<String, Map<String,String>>> getProjectRank(Principal principal,
                                             @PathVariable(name = "projectId") Long projectId) {
         User user = userService.get(super.getUserId(principal));
         Project project = service.get(projectId);
