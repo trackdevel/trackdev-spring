@@ -84,27 +84,6 @@ public class CourseController extends BaseController {
         return okNoContent();
     }
 
-    /**
-    @GetMapping(path = "/{courseId}/students")
-    @JsonView(PrivacyLevelViews.Public.class)
-    public Set<User> getStudents(Principal principal,
-                                 @PathVariable("courseId") Long courseId) {
-        String userId = super.getUserId(principal);
-        Course course = service.get(courseId);
-        accessChecker.checkCanViewCourseAllMembers(course, userId);
-        return course.getStudents();
-    }**/
-
-    /**
-    @DeleteMapping(path = "/{courseId}/students/{username}")
-    public ResponseEntity getStudents(Principal principal,
-                                      @PathVariable("courseId") Long courseId,
-                                      @PathVariable("username") String username) {
-        String principalUserId = super.getUserId(principal);
-        service.removeStudent(courseId, username, principalUserId);
-        return okNoContent();
-    }**/
-
     @GetMapping(path = "/{courseId}/projects")
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Project> getProjects(Principal principal,
