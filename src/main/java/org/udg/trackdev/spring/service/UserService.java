@@ -107,11 +107,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User addUserInternal(String username, String email, String password, List<UserType> roles) {
         checkIfExists(email);
 
-        /** COSES NOVES **/
         User user = new User(username, email, password);
-        user.setChangePassword(true);
+        user.setChangePassword(false);
         user.setEnabled(true);
-        /**************/
 
         for (UserType ut: roles) {
             Role role = roleService.get(ut);
