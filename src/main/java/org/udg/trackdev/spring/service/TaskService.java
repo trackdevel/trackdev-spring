@@ -85,7 +85,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.reporter != null) {
             User reporterUser = null;
             if (editTask.reporter.isPresent()) {
-                reporterUser = userService.getByEmail(editTask.assignee.get());
+                reporterUser = userService.getByEmail(editTask.reporter.get());
                 if (!task.getProject().isMember(reporterUser)) {
                     throw new ServiceException("Assignee is not in the list of possible assignees");
                 }
