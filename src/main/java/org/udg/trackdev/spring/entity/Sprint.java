@@ -36,7 +36,7 @@ public class Sprint extends BaseEntityLong {
     @Column(name = "`status`")
     private SprintStatus status;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private Collection<Task> activeTasks = new ArrayList<>();
 
     @ManyToOne

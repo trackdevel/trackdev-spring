@@ -91,6 +91,13 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         return sprint;
     }
 
+    @Transactional
+    public void deleteSprint(Long sprintId) {
+        Sprint sprint = get(sprintId);
+        repo().delete(sprint);
+    }
+
+
     public Collection<Sprint> getSpritnsByIds(Collection<Long> sprintIds) {
         return repo.findAllById(sprintIds);
     }
