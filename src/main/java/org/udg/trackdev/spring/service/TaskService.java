@@ -136,6 +136,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
             Collection<Sprint> sprints = sprintService.getSpritnsByIds(sprintsIds);
             String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
+            task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
             task.setActiveSprints(sprints);
             sprints.stream().forEach(sprint -> sprint.addTask(task, user));
             changes.add(new TaskActiveSprintsChange(user.getEmail(), task.getId(), oldValues, newValues));
