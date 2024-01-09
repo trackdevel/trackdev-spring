@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.GithubInfo;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.repository.UserRepository;
 
 import java.util.Date;
@@ -36,10 +36,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Autowired
     Global global;
     
-    public User matchPassword(String username, String password) {
-        User user = this.getByUsername(username);
+    public User matchPassword(String email, String password) {
+        User user = this.getByEmail(email);
 
-        if (user == null) throw new ServiceException("User does not exists");
+        if (user == null) throw new ServiceException("User does not exists with this email");
 
         if (global.getPasswordEncoder().matches(password, user.getPassword()))
             return user;
@@ -55,7 +55,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User register(String username, String email) {
         try{
-            checkIfExists(username, email);
+            checkIfExists(email);
 
             String tempPassword = RandomStringUtils.randomAlphanumeric(8);
 
@@ -94,7 +94,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User getByEmail(String email) {
         User user = repo().findByEmail(email);
         if(user == null) {
-            throw new EntityNotFound(String.format("User with name = %s does not exist", email));
+            throw new EntityNotFound(String.format("User with email %s does not exist", email));
         }
         return user;
     }
@@ -105,13 +105,11 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public User addUserInternal(String username, String email, String password, List<UserType> roles) {
-        checkIfExists(username, email);
+        checkIfExists(email);
 
-        /** COSES NOVES **/
         User user = new User(username, email, password);
-        user.setChangePassword(true);
+        user.setChangePassword(false);
         user.setEnabled(true);
-        /**************/
 
         for (UserType ut: roles) {
             Role role = roleService.get(ut);
@@ -122,12 +120,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         return user;
     }
 
-    private void checkIfExists(String username, String email) {
+    private void checkIfExists(String email) {
         if (repo().existsByEmail(email))
             throw new ServiceException("User with this email already exist");
-
-        if (repo().existsByUsername(username))
-            throw new ServiceException("Username already exists");
     }
 
     @Transactional
@@ -138,7 +133,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public void setCurrentProject(User user, Project project) {
-        user.setCurrentProject(project);
+        user.setCurrentProject(project.getId());
         repo.save(user);
     }
 
@@ -150,32 +145,41 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User editMyUser(User user, Optional<String> email, Optional<String> color,
-                         Optional<String> capitalLetters, Optional<String> nicename, Optional<Boolean> changePassword,
+    public User editMyUser(User modifier, User user, Optional<String> username, Optional<String> color,
+                         Optional<String> capitalLetters, Optional<Boolean> changePassword,
                          Optional<String> githubToken) {
-        if(email != null) email.ifPresent(user::setEmail);
+        if(username != null && modifier.isUserType(UserType.ADMIN)) username.ifPresent(user::setUsername);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
-        if(nicename != null) nicename.ifPresent(user::setNicename);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
         if(githubToken != null) {
             githubToken.ifPresent(user::setGithubToken);
             ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
             if(githubInfo.getStatusCode().is2xxSuccessful()) {
-                user.setGithubName(githubInfo.getBody().getLogin());
-                user.setGithubAvatar(githubInfo.getBody().getAvatar_url());
-                user.setGithubHtmlUrl(githubInfo.getBody().getHtml_url());
+                GithubInfo responseBody = githubInfo.getBody();
+                if(responseBody != null) {
+                    user.setGithubName(responseBody.getLogin());
+                    user.setGithubAvatar(responseBody.getAvatar_url());
+                    user.setGithubHtmlUrl(responseBody.getHtml_url());
+                }
             }
             else if(githubInfo.getStatusCode().is4xxClientError()) {
                 user.setGithubToken("ERROR: NOT VALID TOKEN");
                 user.setGithubName(null);
                 user.setGithubAvatar(null);
+                user.setGithubHtmlUrl(null);
             }
             else {
                 user.setGithubToken("ERROR: GITHUB API ERROR");
                 user.setGithubName(null);
                 user.setGithubAvatar(null);
+                user.setGithubHtmlUrl(null);
             }
+        } else {
+            user.setGithubToken(null);
+            user.setGithubName(null);
+            user.setGithubAvatar(null);
+            user.setGithubHtmlUrl(null);
         }
         repo().save(user);
         return user;

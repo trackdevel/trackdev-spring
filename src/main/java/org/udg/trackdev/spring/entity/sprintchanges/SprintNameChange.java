@@ -1,8 +1,6 @@
 package org.udg.trackdev.spring.entity.sprintchanges;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Sprint;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.DiscriminatorValue;
@@ -15,7 +13,7 @@ public class SprintNameChange extends SprintChange {
 
     public SprintNameChange() {}
 
-    public SprintNameChange(User author, Sprint sprint, String name) {
+    public SprintNameChange(String author, Long sprint, String name) {
         super(author, sprint);
         this.name = name;
     }

@@ -6,20 +6,22 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.validation.constraints.NotNull;
-
 @Entity
 @Table(name = "projects")
 public class Project extends BaseEntityLong {
 
-    //-- ATTRIBUTES
+   //-- CONSTANTS
 
     public static final int NAME_LENGTH = 50;
+
+    //-- ATTRIBUTES
 
     @NotNull
     @Column(length = NAME_LENGTH)
@@ -38,6 +40,9 @@ public class Project extends BaseEntityLong {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Sprint> sprints = new ArrayList<>();
 
+    @Max(10)
+    private Double qualification;
+
     //--- CONSTRUCTOR
 
     public Project() {}
@@ -53,7 +58,7 @@ public class Project extends BaseEntityLong {
 
     public void setName(String name) { this.name = name; }
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.ProjectWithUser.class, EntityLevelViews.TaskWithProjectMembers.class})
     public Set<User> getMembers() { return this.members; }
 
     @JsonView( { EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
@@ -77,6 +82,10 @@ public class Project extends BaseEntityLong {
     public Collection<Sprint> getSprints() {
         return this.sprints;
     }
+
+    @JsonView({EntityLevelViews.Basic.class})
+    public Double getQualification() { return this.qualification; }
+    public void setQualification(Double qualification) { this.qualification = qualification; }
 
     //--- METHODS
 

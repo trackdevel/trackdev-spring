@@ -5,16 +5,13 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
-import org.udg.trackdev.spring.entity.sprintchanges.*;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 
 @Entity
@@ -39,15 +36,12 @@ public class Sprint extends BaseEntityLong {
     @Column(name = "`status`")
     private SprintStatus status;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private Collection<Task> activeTasks = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "projectId")
     private Project project;
-
-    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
-    private Collection<SprintChange> sprintChanges;
 
     //--- CONSTRUCTOR
 
@@ -61,63 +55,54 @@ public class Sprint extends BaseEntityLong {
     //--- GETTERS AND SETTERS
 
     @NonNull
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
     public String getName() {
         return name;
     }
 
-    public void setName(@NonNull String name, User modifier) {
+    public void setName(@NonNull String name) {
         this.name = name;
-        this.sprintChanges.add(new SprintNameChange(modifier, this, name));
     }
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
     @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
     public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate, User modifier) {
-        Date oldValue = this.startDate;
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
-        if(oldValue != null) {
-            sprintChanges.add(new SprintStartDateChange(modifier, this, startDate));
-        }
     }
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
     @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
     public Date getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate, User modifier) {
+    public void setEndDate(Date endDate) {
         Date oldValue = this.endDate;
         this.endDate = endDate;
-        if(oldValue != null) {
-            sprintChanges.add(new SprintEndDateChange(modifier, this, endDate));
-        }
     }
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
     public SprintStatus getStatus() { return this.status; }
 
-    public void setStatus(SprintStatus status, User modifier) {
-        if(status == SprintStatus.CLOSED && !areAllTasksClosed()) {
-            throw new EntityException("Cannot close sprint with open tasks");
-        }
+    @JsonView({EntityLevelViews.Basic.class, EntityLevelViews.TaskComplete.class})
+    public String getStatusText() { return this.status.toString(); }
+
+    public void setStatus(SprintStatus status) {
         if(status == SprintStatus.ACTIVE) {
             for(Task task : this.activeTasks) {
-                if(task.getStatus() == TaskStatus.CREATED) {
-                    task.setStatus(TaskStatus.TODO, modifier);
+                if(task.getStatus() == TaskStatus.BACKLOG) {
+                    task.setStatus(TaskStatus.TODO);
                 }
             }
         }
         this.status = status;
-        this.sprintChanges.add(new SprintStatusChange(modifier, this, status));
     }
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView(EntityLevelViews.SprintComplete.class)
     public Collection<Task> getActiveTasks() {
         return this.activeTasks;
     }
@@ -126,6 +111,7 @@ public class Sprint extends BaseEntityLong {
         this.activeTasks = tasks;
     }
 
+    @JsonView(EntityLevelViews.SprintComplete.class)
     public Project getProject() {
         return this.project;
     }
@@ -138,20 +124,18 @@ public class Sprint extends BaseEntityLong {
 
     public void addTask(Task task, User modifier) {
         this.activeTasks.add(task);
-        this.sprintChanges.add(new SprintTaskAdded(modifier, this, task));
-        if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.CREATED) {
-            task.setStatus(TaskStatus.TODO, modifier);
+        if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.BACKLOG) {
+            task.setStatus(TaskStatus.TODO);
         }
     }
 
-    public void removeTask(Task task, User modifier) {
+    public void removeTask(Task task) {
         this.activeTasks.remove(task);
-        this.sprintChanges.add(new SprintTaskRemoved(modifier, this, task));
     }
 
     private boolean areAllTasksClosed() {
         boolean allClosed = this.activeTasks.stream().allMatch(
-                t -> t.getStatus() == TaskStatus.DONE || t.getStatus() == TaskStatus.DELETED);
+                t -> t.getStatus() == TaskStatus.DONE);
         return allClosed;
     }
 }

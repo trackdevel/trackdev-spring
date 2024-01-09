@@ -18,7 +18,7 @@ import java.util.*;
 @Table(name = "users")
 public class User extends BaseEntityUUID {
 
-  public static final int USERNAME_LENGTH = 12;
+  public static final int USERNAME_LENGTH = 50;
   public static final int EMAIL_LENGTH = 128;
   public static final int CAPITAL_LETTERS_LENGTH = 2;
   public static final int RECOVERY_CODE_LENGTH = 8;
@@ -31,10 +31,11 @@ public class User extends BaseEntityUUID {
     this.password = password;
     this.color = randomColorGenerator();
     this.githubInfo = new GithubInfo();
+    this.capitalLetters = generateCapitalLetters(username);
   }
 
   @NotNull
-  @Column(unique=true, length=USERNAME_LENGTH)
+  @Column(length=USERNAME_LENGTH)
   private String username;
 
   @NotNull
@@ -54,9 +55,6 @@ public class User extends BaseEntityUUID {
   @ManyToMany(mappedBy = "members")
   private Collection<Project> projects = new ArrayList<>();
 
-  @ManyToMany(mappedBy = "students")
-  private Collection<Course> course = new ArrayList<>();
-
   @ManyToMany()
   private Set<Role> roles = new HashSet<>();
 
@@ -65,14 +63,10 @@ public class User extends BaseEntityUUID {
   @Size(min = CAPITAL_LETTERS_LENGTH, max = CAPITAL_LETTERS_LENGTH)
   private String capitalLetters;
 
-  @ManyToOne
-  @JoinColumn(name = "currentProjectId")
-  private Project currentProject;
+  private Long currentProject;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "author", fetch = FetchType.LAZY)
   private final Collection<Comment> comments = new ArrayList<>();
-
-  private String nicename;
 
   @NotNull
   private Boolean changePassword;
@@ -86,14 +80,19 @@ public class User extends BaseEntityUUID {
   @JoinColumn(name = "githubInfoId", referencedColumnName = "id")
   private GithubInfo githubInfo;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<PointsReview> pointsReviewList = new ArrayList<>();
+
+  private Random random = new Random();
+
  // -- GETTERS AND SETTERS
 
-  @JsonView(PrivacyLevelViews.Private.class)
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getId() {
     return super.getId();
   }
 
-  @JsonView(PrivacyLevelViews.Private.class)
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getEmail() {
     return email;
   }
@@ -102,33 +101,20 @@ public class User extends BaseEntityUUID {
     this.email = email;
   }
 
-  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getUsername() {
     return username;
   }
 
-  @JsonView(PrivacyLevelViews.Public.class)
-  public Project getCurrentProject() { return currentProject; }
-
-  public void setCurrentProject(Project currentProject) { this.currentProject = currentProject; }
-
-  @JsonView(PrivacyLevelViews.Public.class)
-  public String getNicename() { return nicename; }
-
-  public void setNicename(String nicename) { this.nicename = nicename;
-    String[] names = nicename.split(" ");
-    String firstLetter;
-    String secondLetter;
-    if(names.length > 1){
-      firstLetter = names[0].substring(0, 1);
-      secondLetter = names[1].substring(0, 1);
-    }
-    else{
-      firstLetter = names[0].substring(0, 1);
-      secondLetter = names[0].substring(1, 2);
-    }
-    this.capitalLetters = (firstLetter + secondLetter).toUpperCase();
+  public void setUsername(String username) {
+    this.username = username;
+    this.capitalLetters = generateCapitalLetters(username);
   }
+
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
+  public Long getCurrentProject() { return currentProject; }
+
+  public void setCurrentProject(Long currentProject) { this.currentProject = currentProject; }
 
   @JsonIgnore
   public String getPassword() {
@@ -144,20 +130,29 @@ public class User extends BaseEntityUUID {
 
   public void setRecoveryCode(String recoveryCode) { this.recoveryCode = recoveryCode; }
 
-  @JsonView(PrivacyLevelViews.Private.class)
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class})
   @JsonSerialize(using= JsonRolesSerializer.class)
   public Set<Role> getRoles() { return roles; }
 
-  @JsonView(PrivacyLevelViews.Private.class)
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getColor() { return color; }
 
   public String setColor(String color) { return this.color = color; }
 
-  @JsonView(PrivacyLevelViews.Private.class)
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public String getCapitalLetters() { return capitalLetters; }
 
-  @JsonView(PrivacyLevelViews.Public.class)
+  @JsonView({PrivacyLevelViews.Private.class, EntityLevelViews.UserWithoutProjectMembers.class})
+  public Collection<Project> getProjects() {
+    return projects;
+  }
+
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class, EntityLevelViews.TaskWithProjectMembers.class})
   public GithubInfo getGithubInfo() { return githubInfo; }
+
+  public List<PointsReview> getPointsReviewList() { return pointsReviewList; }
+
+  public void addPointsReview(PointsReview pointsReview) { this.pointsReviewList.add(pointsReview); }
 
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
 
@@ -169,15 +164,12 @@ public class User extends BaseEntityUUID {
 
   public String setCapitalLetters(String capitalLetters) { return this.capitalLetters = capitalLetters; }
 
-  @JsonView(PrivacyLevelViews.Public.class)
-  public String nicename() { return nicename; }
-
-  @JsonView(PrivacyLevelViews.Public.class)
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
   public Boolean getChangePassword() { return changePassword; }
 
   public void setChangePassword(Boolean changePassword) { this.changePassword = changePassword; }
 
-  @JsonView(PrivacyLevelViews.Public.class)
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.Basic.class})
   public Boolean getEnabled() { return enabled; }
 
   public void setEnabled(Boolean enabled) { this.enabled = enabled; }
@@ -197,7 +189,7 @@ public class User extends BaseEntityUUID {
     return inRole;
   }
 
-  @JsonView(PrivacyLevelViews.Public.class)
+  @JsonView({PrivacyLevelViews.Public.class, EntityLevelViews.ProjectWithUser.class})
   public Date getLastLogin(){ return lastLogin; }
 
   public void setLastLogin(Date lastLogin) {
@@ -216,19 +208,36 @@ public class User extends BaseEntityUUID {
     }
   }
 
+  /**
   public void enrollToCourse(Course course) { this.course.add(course); }
 
   public void removeFromCourse(Course course) { this.course.remove(course); }
 
+
   @JsonIgnore
   public Collection<Course> getEnrolledCourse() { return this.course; }
+   **/
 
-  private static String randomColorGenerator(){
-    Random random = new Random();
-    int red = random.nextInt(256);
-    int green = random.nextInt(256);
-    int blue = random.nextInt(256);
+  private String randomColorGenerator(){
+    int red = this.random.nextInt(256);
+    int green = this.random.nextInt(256);
+    int blue = this.random.nextInt(256);
     return String.format("#%02x%02x%02x", red, green, blue);
+  }
+
+  private static String generateCapitalLetters(String username){
+    String[] names = username.split(" ");
+    String firstLetter;
+    String secondLetter;
+    if(names.length > 1){
+      firstLetter = names[0].substring(0, 1);
+      secondLetter = names[1].substring(0, 1);
+    }
+    else{
+      firstLetter = names[0].substring(0, 1);
+      secondLetter = names[0].substring(1, 2);
+    }
+    return (firstLetter + secondLetter).toUpperCase();
   }
 
 }

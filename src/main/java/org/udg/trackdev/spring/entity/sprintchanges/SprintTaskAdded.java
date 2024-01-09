@@ -1,8 +1,6 @@
 package org.udg.trackdev.spring.entity.sprintchanges;
 
-import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.User;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -14,7 +12,7 @@ public class SprintTaskAdded extends SprintTasksChange {
 
     public SprintTaskAdded() {}
 
-    public SprintTaskAdded(User author, Sprint sprint, Task task) {
+    public SprintTaskAdded(String author, Long sprint, Task task) {
         super(author, sprint, task);
     }
 

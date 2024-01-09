@@ -1,9 +1,7 @@
 package org.udg.trackdev.spring.entity.sprintchanges;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.Entity;
@@ -14,7 +12,7 @@ public abstract class SprintTasksChange extends SprintChange {
 
     public SprintTasksChange() {}
 
-    public SprintTasksChange(User author, Sprint sprint, Task task) {
+    public SprintTasksChange(String author, Long sprint, Task task) {
         super(author, sprint);
         this.task = task;
     }

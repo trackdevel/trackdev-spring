@@ -7,9 +7,9 @@ import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.GroupRepository;
 
-import javax.swing.text.html.Option;
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
@@ -27,7 +27,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     AccessChecker accessChecker;
 
     @Transactional
-    public Project createProject(String name, Collection<String> usernames, Long courseId,
+    public Project createProject(String name, Collection<String> emails, Long courseId,
                                  String loggedInUserId) {
         Course course = courseService.get(courseId);
         accessChecker.checkCanManageCourse(course, loggedInUserId);
@@ -35,37 +35,55 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         course.addProject(project);
         project.setCourse(course);
 
-        if(usernames != null && !usernames.isEmpty()) {
-            addMembers(course, project, usernames);
+        if(emails != null && !emails.isEmpty()) {
+            addMembers(course, project, emails);
         }
         repo.save(project);
         return project;
     }
 
-    //TODO: Modificar a Optionals
     @Transactional
-    public Project editProject(Long projectId, String name, Collection<String> usernames,
-                               String loggedInUserId) {
+    public Project editProject(Long projectId, String name, Collection<String> mails, Long courseId, Double qualification
+                               , String loggedInUserId) {
         Project project = get(projectId);
         accessChecker.checkCanManageProject(project, loggedInUserId);
         if(name != null) {
             project.setName(name);
         }
-        if(usernames != null) {
-            if(usernames.isEmpty() && !project.getMembers().isEmpty()) {
+        if(mails != null) {
+            if(mails.isEmpty() && !project.getMembers().isEmpty()) {
                 throw new ServiceException("Cannot remove all members of a project");
             }
-            editMembers(usernames, project);
+            editMembers(mails, project);
         }
+        if(courseId != null) {
+            Course course = courseService.get(courseId);
+            project.setCourse(course);
+        }
+        project.setQualification(qualification);
         repo.save(project);
         
         return project;
     }
 
+    @Transactional
+    public Project createProjectTask(Project project, String name, User reporter){
+        Task task = new Task(name, reporter);
+        project.addTask(task);
+        task.setProject(project);
+        repo.save(project);
+        return project;
+    }
+
+    @Transactional
     public void deleteProject(Long groupId, String userId) {
         Project project = get(groupId);
         accessChecker.checkCanManageProject(project, userId);
         repo.delete(project);
+    }
+
+    public Collection<Sprint> getProjectSprints(Project project) {
+        return project.getSprints();
     }
 
     public Collection<Task> getProjectTasks(Project project) {
@@ -79,32 +97,58 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         repo.save(project);
     }
 
+    public Map<String, Map<String,String>> getProjectRanks(Project project) {
+        if(project.getQualification() != null){
+            Map<String, Map<String,String>> ranks = new HashMap<>();
+            Map<User, Integer> points = project.getTasks().stream()
+                    .filter(task -> task.getAssignee() != null)
+                    .collect(Collectors.groupingBy(Task::getAssignee, Collectors.summingInt(Task::getEstimationPoints)));
+            Integer maxPoints = points.values().stream().max(Integer::compareTo).orElse(0);
+            for(User user: points.keySet()) {
+                Map<String,String> info = new HashMap<>();
+                info.put("name",user.getUsername());
+                info.put("acronym",user.getCapitalLetters());
+                info.put("color",user.getColor());
+                info.put("qualification",String.valueOf(BigDecimal.valueOf(
+                                points.get(user).doubleValue() * project.getQualification() / maxPoints.doubleValue())
+                        .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()));
+                ranks.put(user.getEmail(),info);
+                /**ranks.put(email,
+                        BigDecimal.valueOf(
+                                points.get(email).doubleValue() * project.getQualification() / maxPoints.doubleValue())
+                                .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()
+                );**/
+            }
+            return ranks;
+        }
+        else{
+            throw new ServiceException("Project has no qualification");
+        }
+    }
+
     private void addMembers(Course course, Project project, Collection<String> usernames) {
         for(String username: usernames) {
-            User user = userService.getByUsername(username);
+            User user = userService.getByEmail(username);
             addMember(course, project, user);
         }
     }
 
+
     private void addMember(Course course, Project project, User user) {
-        if(!course.isEnrolled(user)) {
-            String message = String.format("User with name = %s is not enrolled to this course", user.getUsername());
-            throw new ServiceException(message);
-        }
         project.addMember(user);
         user.addToGroup(project);
     }
 
-    private void editMembers(Collection<String> usernames, Project project) {
-        for(String username: usernames) {
-            User user = userService.getByUsername(username);
+    private void editMembers(Collection<String> mails, Project project) {
+        for(String mail: mails) {
+            User user = userService.getByEmail(mail);
             if(!project.isMember(user)) {
                 addMember(project.getCourse(), project, user);
             }
         }
         List<User> toRemove = new ArrayList<>();
         for(User user: project.getMembers()) {
-            if(!usernames.contains(user.getUsername())) {
+            if(!mails.contains(user.getEmail())) {
                 toRemove.add(user);
             }
         }

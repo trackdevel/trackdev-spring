@@ -6,17 +6,11 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.udg.trackdev.spring.controller.exceptions.EntityException;
-import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
-import org.udg.trackdev.spring.entity.taskchanges.TaskStatusChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.serializer.JsonDateSerializer;
-import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
+import java.util.*;
 
 @Entity
 @Table(name = "tasks")
@@ -38,6 +32,11 @@ public class Task extends BaseEntityLong {
 
     @ManyToOne
     private User reporter;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private TaskType type;
 
     private Date createdAt;
 
@@ -65,11 +64,13 @@ public class Task extends BaseEntityLong {
     @ManyToMany(mappedBy = "activeTasks")
     private Collection<Sprint> activeSprints = new ArrayList<>();
 
-    @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
-    private Collection<TaskChange> taskChanges;
-
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<Comment> discussion = new HashSet<>();
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PointsReview> pointsReviewList = new ArrayList<>();
+
+    // -- CONSTRUCTORS
 
     public Task() {}
 
@@ -78,6 +79,8 @@ public class Task extends BaseEntityLong {
         this.createdAt = new Date();
         this.reporter = reporter;
         this.status = TaskStatus.BACKLOG;
+        this.estimationPoints = 0;
+        this.rank = 0;
     }
 
     // -- GETTERS AND SETTERS
@@ -92,6 +95,16 @@ public class Task extends BaseEntityLong {
         this.name = name;
     }
 
+    public String getType() {
+        return type.toString();
+    }
+
+    @NonNull
+    @JsonView(EntityLevelViews.Basic.class)
+    public void setType(TaskType type) {
+        this.type = type;
+    }
+
     @JsonView(EntityLevelViews.Basic.class)
     @JsonSerialize(using = JsonDateSerializer.class)
     public Date getCreatedAt() { return createdAt; }
@@ -99,8 +112,12 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public User getReporter() { return reporter; }
 
-    @JsonView({ EntityLevelViews.ProjectComplete.class, EntityLevelViews.Hierarchy.class } )
-    @JsonSerialize(using = JsonHierarchyViewSerializer.class)
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getDescription() { return description; }
+
+    public void setDescription(String description) { this.description = description; }
+
+    @JsonView({EntityLevelViews.TaskWithProjectMembers.class} )
     public Project getProject() {
         return project;
     }
@@ -119,11 +136,16 @@ public class Task extends BaseEntityLong {
     @JsonView(EntityLevelViews.Basic.class)
     public TaskStatus getStatus() { return status; }
 
-    public void setStatus(TaskStatus status, User modifier) {
-        TaskStatus oldValue = this.status;
+    @JsonView(EntityLevelViews.Basic.class)
+    public String getStatusText() { return status.toString(); }
+
+    public void setStatus(TaskStatus status) {
         checkCanMoveToStatus(status);
         this.status = status;
-        this.taskChanges.add(new TaskStatusChange(modifier, this, oldValue, status));
+    }
+
+    public void setReporter(User reporter) {
+        this.reporter = reporter;
     }
 
     @JsonView(EntityLevelViews.Basic.class)
@@ -161,13 +183,21 @@ public class Task extends BaseEntityLong {
         return discussion;
     }
 
+    public List<PointsReview> getPointsReviewList() {
+        return pointsReviewList;
+    }
+
+    public  void addPointsReview(PointsReview pointsReview) {
+        this.pointsReviewList.add(pointsReview);
+    }
+
     public void addComment(Comment comment) {
         this.discussion.add(comment);
         comment.setTask(this);
     }
 
 
-    @JsonView(EntityLevelViews.Basic.class)
+    @JsonView({EntityLevelViews.TaskComplete.class, EntityLevelViews.Basic.class})
     public Collection<Sprint> getActiveSprints() {
         return activeSprints;
     }
@@ -177,14 +207,11 @@ public class Task extends BaseEntityLong {
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {
-        if(this.status == TaskStatus.CREATED && !(status == TaskStatus.TODO || status == TaskStatus.DELETED)) {
-            throw new EntityException(String.format("Cannot change status from CREATED to new status <%s>", status));
+        /**if(this.status == TaskStatus.BACKLOG && status != TaskStatus.TODO) {
+            throw new EntityException(String.format("Cannot change status from BACKLOG to new status <%s>", status));
         }
-        if(this.status == TaskStatus.DELETED) {
-            throw new EntityException("Cannot change status of DELETED task");
-        }
-        if(status == TaskStatus.CREATED) {
-            throw new EntityException("Cannot set status to CREATED");
-        }
+        if(status == TaskStatus.BACKLOG) {
+            throw new EntityException("Cannot set status to BACKLOG");
+        }**/
     }
 }

@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +11,11 @@ import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.User;
-import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
+import org.udg.trackdev.spring.model.IdObjectLong;
 import org.udg.trackdev.spring.service.AccessChecker;
-import org.udg.trackdev.spring.service.SubjectService;
 import org.udg.trackdev.spring.service.CourseService;
+import org.udg.trackdev.spring.service.SubjectService;
 import org.udg.trackdev.spring.service.UserService;
 
 import javax.validation.Valid;
@@ -24,7 +25,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "3. Subjects")
@@ -41,6 +41,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @Autowired
     UserService userService;
 
+    @Operation(summary = "Get all subjects", description = "Get all subjects")
     @GetMapping
     @JsonView(EntityLevelViews.SubjectComplete.class)
     public List<Subject> search(Principal principal, @RequestParam(value = "search", required = false) String search) {
@@ -55,6 +56,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         }
     }
 
+    @Operation(summary = "Get specific subject", description = "Get specific subject")
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.SubjectComplete.class)
     public Subject getSubject(Principal principal, @PathVariable("id") Long id) {
@@ -64,6 +66,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return subject;
     }
 
+    @Operation(summary = "Create subject", description = "Create subject")
     @PostMapping
     public IdObjectLong createSubject(Principal principal, @Valid @RequestBody NewSubject subjectRequest) {
         String userId = super.getUserId(principal);
@@ -72,17 +75,17 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return new IdObjectLong(createdSubject.getId());
     }
 
+    @Operation(summary = "Edit specific subject", description = "Edit specific subject")
     @PatchMapping(path = "/{id}")
     @JsonView(EntityLevelViews.SubjectComplete.class)
     public Subject editSubject(Principal principal,
                                @PathVariable("id") Long id,
                                @Valid @RequestBody EditSubject subjectRequest) {
         String userId = super.getUserId(principal);
-        Subject modifiedSubject = service.editSubjectDetails(id, subjectRequest.name, subjectRequest.acronym, userId);
-
-        return modifiedSubject;
+        return service.editSubjectDetails(id, subjectRequest.name, subjectRequest.acronym, userId);
     }
 
+    @Operation(summary = "Delete specific subject", description = "Delete specific subject")
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteSubject(Principal principal, @PathVariable("id") Long id) {
         String userId = super.getUserId(principal);
@@ -91,12 +94,13 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return okNoContent();
     }
 
+    @Operation(summary = "Create course enrolled to specific subject", description = "Create course enrolled to specific subject")
     @PostMapping(path = "/{subjectId}/courses")
     public IdObjectLong createCourse(Principal principal,
                                      @PathVariable("subjectId") Long subjectId,
                                      @Valid @RequestBody NewCourse courseRequest) {
         String userId = super.getUserId(principal);
-        Course createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, userId);
+        Course createdCourse = courseService.createCourse(subjectId, courseRequest.startYear, courseRequest.githubOrganization, userId);
         return new IdObjectLong(createdCourse.getId());
     }
 
@@ -120,5 +124,6 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         @Min(value = 2020)
         @Max(value = 3000)
         public Integer startYear;
+        public String githubOrganization;
     }
 }

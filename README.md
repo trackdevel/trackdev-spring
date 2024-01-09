@@ -1,13 +1,17 @@
 # TrackDev-spring
 The REST API for the TrackDev project built with Spring Boot.
 
-The TrackDev project is an application built for educational purposes with the goal to teach and help students to learn to work in teams using an agile metodology while working together to build an application. It works with the [TrackDev-react](https://github.com/trackdevel/trackdev-react) as a web client.
+The TrackDev project is an application built for educational purposes with the goal to teach and help students to learn to work in teams using an agile metodology while working together to build an application. It works with the [TrackDev-react](https://github.com/trackdevel/trackdev2-react) as a web client.
 
-This is an ongoing project.
+This SpringBoot project was developed by Gerard Rovellat.
 
 Current features:
-* Courses, students and projects management
-* Backlogs, tasks and sprints management
+* Subjects, courses, students and projects management
+* Sprints, US and tasks managment
+* Qualification system for projects
+* Autentication and authorization system
+* Email system for register and recover password
+* Automated recovery password method
 
 ## About the API
 
@@ -15,7 +19,7 @@ This Spring Boot application is a multi-tier application. The main three tiers u
 
 * REST tier (```@Controller```)
 * Business tier (```@Service```)
-* Persistence tier (JPA)
+* Persistence tier using JPA (``@Repositori``)
 
 Other Java APIs used:
 

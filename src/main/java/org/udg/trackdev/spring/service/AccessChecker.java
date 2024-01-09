@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
-import org.udg.trackdev.spring.entity.*;
+import org.udg.trackdev.spring.entity.Course;
+import org.udg.trackdev.spring.entity.Project;
+import org.udg.trackdev.spring.entity.Subject;
+import org.udg.trackdev.spring.entity.User;
 
 /*
  * Centralized service to control if current principal
@@ -24,9 +27,9 @@ public class AccessChecker {
     // SUBJECTS
 
     public void checkCanCreateSubject(User user) {
-        boolean isProfessor = user.isUserType(UserType.PROFESSOR);
+        boolean isProfessor = user.isUserType(UserType.ADMIN);
         if(!isProfessor) {
-            throw new ServiceException("User does not have rights to create courses");
+            throw new ServiceException("User does not have rights to create subjects");
         }
     }
 
@@ -53,18 +56,16 @@ public class AccessChecker {
         if(isSubjectOwner(course.getSubject(), userId)) {
             return;
         }
-        User user = userService.get(userId);
-        if(course.isEnrolled(user)) {
-            return;
-        }
         throw new ServiceException(defaultNoAccessMessage);
     }
 
+    /**
     public void checkCanViewCourseAllMembers(Course course, String userId) {
         if(!isSubjectOwner(course.getSubject(), userId)) {
             throw new ServiceException(defaultNoAccessMessage);
         }
     }
+     **/
 
     public boolean canViewCourseAllProjects(Course course, String userId) {
         if(isSubjectOwner(course.getSubject(), userId)) {
@@ -87,6 +88,9 @@ public class AccessChecker {
         if(isSubjectOwner(subject, userId)) {
             return;
         }
+        if (userService.get(userId).isUserType(UserType.ADMIN)) {
+            return;
+        }
         throw new ServiceException(defaultNoAccessMessage);
     }
 
@@ -97,19 +101,21 @@ public class AccessChecker {
         throw new ServiceException("User cannot see all tasks");
     }
 
-    public void checkCanViewAllProjects(String userId) {
+    public boolean checkCanViewAllProjects(String userId) {
         if(userService.get(userId).isUserType(UserType.ADMIN)) {
-            return;
+            return true;
         }
-        throw new ServiceException("User cannot see all projects");
+        else{
+            return false;
+        }
     }
 
     private boolean isSubjectOwner(Subject subject, String userId) {
         return subject.getOwnerId().equals(userId);
     }
 
-    public boolean isUserAdminOrProfessor(User user) {
-        return user.isUserType(UserType.ADMIN) || user.isUserType(UserType.PROFESSOR);
+    public boolean isUserAdmin(User user) {
+        return user.isUserType(UserType.ADMIN);
     }
 
 }

@@ -3,6 +3,7 @@ package org.udg.trackdev.spring.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
+
 import java.security.Principal;
 
 /**
@@ -33,7 +34,7 @@ public class BaseController {
       throw new ControllerException("User should be authenticated");
   }
 
-  ResponseEntity okNoContent() {
+  ResponseEntity<Void> okNoContent() {
     return ResponseEntity.noContent().build();
   }
 

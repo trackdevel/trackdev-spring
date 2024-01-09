@@ -1,8 +1,6 @@
 package org.udg.trackdev.spring.entity.taskchanges;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.DiscriminatorValue;
@@ -16,8 +14,8 @@ public class TaskEstimationPointsChange extends TaskChange {
 
     public TaskEstimationPointsChange() { }
 
-    public TaskEstimationPointsChange(User user, Task task, Integer oldValue, Integer newValue) {
-        super(user, task);
+    public TaskEstimationPointsChange(String user, Long taskId, Integer oldValue, Integer newValue) {
+        super(user, taskId);
         this.oldValue = oldValue == null ? null : oldValue.toString();
         this.newValue = newValue == null ? null : newValue.toString();
     }

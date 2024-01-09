@@ -3,11 +3,11 @@ package org.udg.trackdev.spring.controller;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.PullRequest;
-import org.udg.trackdev.spring.service.SubjectService;
+import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.service.PRNoteService;
 import org.udg.trackdev.spring.service.PullRequestService;
+import org.udg.trackdev.spring.service.SubjectService;
 
 import javax.validation.Valid;
 

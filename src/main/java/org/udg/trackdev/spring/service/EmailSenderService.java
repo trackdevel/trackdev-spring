@@ -1,10 +1,9 @@
 package org.udg.trackdev.spring.service;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.udg.trackdev.spring.entity.Email;
 import org.udg.trackdev.spring.repository.EmailRepository;
 
@@ -14,6 +13,8 @@ import java.time.LocalDateTime;
 
 @Service
 public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
+
+    private static final String LINK_RECOVERY = "http://localhost:3000/auth/password";
 
     private final JavaMailSender javaMailSender;
 
@@ -54,8 +55,8 @@ public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
         helper.setText(
                 String.format("Hola!<br><br>Has demanat recuperar la teva contrasenya de <b>TrackDev</b>. Si no has estat tu, ignora aquest missatge.<br><br>" +
                         "Si has estat tu, pots restaurar la teva contrasenya introduint el següent codi a la pàgina de recuperació de contrasenya<br>" +
-                        "Codi de recuperació: <b>%s</b><br><br>" +
-                        "Si us plau, no responguis aquest missatge, és un enviament automàtic.<br><br><b>Trackdev.</b>", tempCode),
+                        "Codi de recuperació: <b>%s</b><br>Accedeix al següent <a href=%s>link</a><br><br>" +
+                        "Si us plau, no responguis aquest missatge, és un enviament automàtic.<br><br><b>Trackdev.</b>", tempCode,LINK_RECOVERY),
                 true
         );
         javaMailSender.send(message);

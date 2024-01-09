@@ -5,7 +5,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 @Entity

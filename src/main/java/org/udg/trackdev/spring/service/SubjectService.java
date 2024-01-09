@@ -32,9 +32,8 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     public Subject createSubject(String name, String acronym, String loggedInUserId) {
         User owner = userService.get(loggedInUserId);
         accessChecker.checkCanCreateSubject(owner);
-        Subject  subject = new Subject(name,acronym);
+        Subject  subject = new Subject(name,acronym, owner);
         owner.addOwnCourse(subject);
-        subject.setOwner(owner);
         repo.save(subject);
         return subject;
     }

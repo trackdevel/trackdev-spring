@@ -1,8 +1,6 @@
 package org.udg.trackdev.spring.entity.taskchanges;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.DiscriminatorValue;
@@ -15,8 +13,8 @@ public class TaskNameChange extends TaskChange {
 
     public TaskNameChange() {}
 
-    public TaskNameChange(User author, Task task, String oldValue, String newValue) {
-        super(author, task);
+    public TaskNameChange(String author, Long taskId, String oldValue, String newValue) {
+        super(author, taskId);
         this.oldValue = oldValue;
         this.newValue = newValue;
     }

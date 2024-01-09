@@ -3,7 +3,9 @@ package org.udg.trackdev.spring.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
-import org.udg.trackdev.spring.query.*;
+import org.udg.trackdev.spring.query.CriteriaParser;
+import org.udg.trackdev.spring.query.GenericSpecificationsBuilder;
+import org.udg.trackdev.spring.query.SearchSpecification;
 import org.udg.trackdev.spring.service.IBaseService;
 
 import java.util.List;

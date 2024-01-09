@@ -1,9 +1,7 @@
 package org.udg.trackdev.spring.entity.sprintchanges;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.SprintStatus;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.Column;
@@ -17,7 +15,7 @@ public class SprintStatusChange extends SprintChange {
 
     public SprintStatusChange() { }
 
-    public SprintStatusChange(User author, Sprint sprint, SprintStatus status) {
+    public SprintStatusChange(String author, Long sprint, SprintStatus status) {
         super(author, sprint);
         this.status = status;
     }

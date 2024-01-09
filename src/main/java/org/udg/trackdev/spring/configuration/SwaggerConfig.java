@@ -4,17 +4,18 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.media.Schema;
-
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 
 @OpenAPIDefinition(info = @Info(title = "Trackdev API", version = "1.0.0",
@@ -50,10 +51,10 @@ public class SwaggerConfig {
         return openApi -> {
             Map<String, PathItem> paths = openApi.getPaths();
             Paths sortedPaths = new Paths();
-            TreeMap<String, PathItem> sortedTree = new TreeMap<String, PathItem>(paths);
+            TreeMap<String, PathItem> sortedTree = new TreeMap<>(paths);
 
             Set<Map.Entry<String, PathItem>> pathItems = sortedTree.entrySet();
-            Map<String, Map.Entry<String, PathItem>> distinctTagMap = new TreeMap<String, Map.Entry<String, PathItem>>();
+            Map<String, Map.Entry<String, PathItem>> distinctTagMap = new TreeMap<>();
             for (Map.Entry<String, PathItem> entry : pathItems) {
                 PathItem pathItem = entry.getValue();
                 Operation getOp = pathItem.getGet();
@@ -80,7 +81,7 @@ public class SwaggerConfig {
                 }
             }
 
-            LinkedHashMap<String, PathItem> customOrderMap = new LinkedHashMap<String, PathItem>();
+            LinkedHashMap<String, PathItem> customOrderMap = new LinkedHashMap<>();
             for (Map.Entry<String, PathItem> entry : distinctTagMap.values()) {
                 customOrderMap.put(entry.getKey(), entry.getValue());
             }

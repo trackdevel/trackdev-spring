@@ -2,7 +2,6 @@ package org.udg.trackdev.spring.model;
 
 import org.udg.trackdev.spring.entity.SprintStatus;
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.Optional;
 

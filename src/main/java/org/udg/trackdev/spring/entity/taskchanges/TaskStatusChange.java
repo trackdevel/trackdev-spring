@@ -1,12 +1,8 @@
 package org.udg.trackdev.spring.entity.taskchanges;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Task;
-import org.udg.trackdev.spring.entity.TaskStatus;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
-import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
@@ -17,10 +13,10 @@ public class TaskStatusChange extends TaskChange {
 
     public TaskStatusChange() {}
 
-    public TaskStatusChange(User author, Task task, TaskStatus oldValue, TaskStatus newValue) {
-        super(author, task);
-        this.oldValue = oldValue.name();
-        this.newValue = newValue.name();
+    public TaskStatusChange(String author, Long taskId, String oldValue, String newValue) {
+        super(author, taskId);
+        this.oldValue = oldValue;
+        this.newValue = newValue;
     }
 
     private String oldValue;

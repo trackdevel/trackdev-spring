@@ -2,14 +2,11 @@ package org.udg.trackdev.spring.entity.sprintchanges;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.udg.trackdev.spring.entity.Sprint;
-import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.Global;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -19,7 +16,7 @@ public class SprintEndDateChange extends SprintChange {
 
     public SprintEndDateChange() {}
 
-    public SprintEndDateChange(User author, Sprint sprint, Date date) {
+    public SprintEndDateChange(String author, Long sprint, Date date) {
         super(author, sprint);
         this.endDate = date;
     }

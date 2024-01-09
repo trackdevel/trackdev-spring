@@ -36,9 +36,10 @@ public class Subject extends BaseEntityLong {
 
     public Subject() {}
 
-    public Subject(String name, String acronym) {
+    public Subject(String name, String acronym, User owner) {
         this.name = name;
         this.acronym = acronym;
+        this.owner = owner;
     }
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })

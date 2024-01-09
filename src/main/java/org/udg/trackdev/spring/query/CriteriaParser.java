@@ -1,15 +1,10 @@
 package org.udg.trackdev.spring.query;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import com.google.common.base.Joiner;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.google.common.base.Joiner;
 
 public class CriteriaParser {
 

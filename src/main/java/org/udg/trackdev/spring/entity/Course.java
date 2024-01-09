@@ -6,8 +6,6 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 
 import javax.persistence.*;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "courses")
@@ -21,14 +19,13 @@ public class Course extends BaseEntityLong {
 
     private Integer startYear;
 
+    private String githubOrganization;
+
     @ManyToOne
     private Subject subject;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course", fetch = FetchType.LAZY)
     private Collection<Project> projects;
-
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private Set<User> students = new HashSet<>();
 
     @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
     public Integer getStartYear() { return startYear; }
@@ -45,18 +42,9 @@ public class Course extends BaseEntityLong {
 
     public void addProject(Project project) { this.projects.add(project); }
 
-    @JsonIgnore
-    public Set<User> getStudents() {  return this.students; }
+    @JsonView({ EntityLevelViews.Basic.class, EntityLevelViews.Hierarchy.class })
+    public String getGithubOrganization() { return this.githubOrganization; }
 
-    public void enrollStudent(User user) {
-        this.students.add(user);
-    }
+    public void setGithubOrganization(String githubOrganization) { this.githubOrganization = githubOrganization; }
 
-    public void removeStudent(User user) {
-        this.students.remove(user);
-    }
-
-    public boolean isEnrolled(User user) {
-        return this.students.contains(user);
-    }
 }

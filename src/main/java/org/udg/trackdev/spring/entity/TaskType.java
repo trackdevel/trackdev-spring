@@ -1,16 +1,16 @@
 package org.udg.trackdev.spring.entity;
 
-public enum TaskStatus {
-    BACKLOG("BACKLOG"),
-    TODO("PRIORITZADA"),
-    INPROGRESS("EN PROGRES"),
-    VERIFY("EN VERIFICACIO"),
-    DONE("FINALITZADA"),
-    DEFINED("DEFINIDA"),
+public enum TaskType {
+    USER_STORY("HISTORIA D'USUARI"),
+    TASK("TASCA"),
     ;
 
     private final String text;
-    TaskStatus(final String text) {
+
+    /**
+     * @param text
+     */
+    TaskType(final String text) {
         this.text = text;
     }
 
