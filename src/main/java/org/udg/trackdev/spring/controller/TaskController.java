@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @Autowired
     PointsReviewService pointsReviewService;
 
+    @Operation(summary = "Get information of tasks", description = "Get information of tasks")
     @GetMapping
     @JsonView(EntityLevelViews.Basic.class)
     public List<Task> search(Principal principal,
@@ -51,6 +53,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return super.search(search);
     }
 
+    @Operation(summary = "Get information of a specific task", description = "Get information of a specific task")
     @GetMapping(path = "/{id}")
     @JsonView(EntityLevelViews.TaskWithProjectMembers.class)
     public TaskWithPointsReview getTask(Principal principal, @PathVariable("id") Long id) {
@@ -61,7 +64,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return new TaskWithPointsReview(task, pointsReview);
     }
 
-    /** POTSER NECESARI PER REFRESCAR DISCUSSIONS **/
+    @Operation(summary = "Get comments of the task", description = "Get comments of the task")
     @GetMapping(path = "/{id}/comments")
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Comment> getComments(Principal principal, @PathVariable("id") Long id) {
@@ -70,8 +73,8 @@ public class TaskController extends CrudController<Task, TaskService> {
         accessChecker.checkCanViewProject(task.getProject(), userId);
         return service.getComments(id);
     }
-    /***/
 
+    @Operation(summary = "Edit task information", description = "Edit task information")
     @PatchMapping(path = "/{id}")
     @JsonView(EntityLevelViews.TaskComplete.class)
     public Task editTask(Principal principal,
@@ -81,6 +84,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return service.editTask(id, taskRequest, userId);
     }
 
+    @Operation(summary = "Get history of logs of the task", description = "Get history of logs of the task")
     @GetMapping(path = "/{id}/history")
     @JsonView(EntityLevelViews.Basic.class)
     public List<TaskChange> getHistory(Principal principal,
@@ -91,6 +95,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return taskChangeService.search(specification);
     }
 
+    @Operation(summary = "Create task of User Story", description = "Create task of User Story")
     @PostMapping(path = "/{id}/subtasks")
     public IdObjectLong createSubtask(Principal principal,
                                       @PathVariable(name = "id") Long id,
@@ -101,6 +106,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return new IdObjectLong(subtask.getId());
     }
 
+    @Operation(summary = "Delete especific task", description = "Delete especific task")
     @DeleteMapping("/{id}")
     public void deleteTasks(Principal principal,
                             @PathVariable(name = "id") Long id) {
@@ -108,21 +114,25 @@ public class TaskController extends CrudController<Task, TaskService> {
         service.deleteTask(id, userId);
     }
 
+    @Operation(summary = "Get list of tasks status", description = "Get list of tasks status")
     @GetMapping("/status")
     public Map<String,String > getListOfStatus() {
         return service.getListOfStatus();
     }
 
+    @Operation(summary = "Get list of US status", description = "Get list of US status")
     @GetMapping("/usstatus")
     public Map<String,String > getListOfUsStatus() {
         return service.getListOfUsStatus();
     }
 
+    @Operation(summary = "Get list of task status", description = "Get list of task status")
     @GetMapping("/taskstatus")
     public Map<String,String > getListOfTaskStatus() {
         return service.getListOfTaskStatus();
     }
 
+    @Operation(summary = "Get types of tasks", description = "Get types of tasks")
     @GetMapping("/types")
     public Map<String,String> getListOfTypes() {
         return service.getListOfTypes();

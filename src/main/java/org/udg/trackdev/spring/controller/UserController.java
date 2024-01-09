@@ -41,7 +41,7 @@ public class UserController extends BaseController {
      * @return The User identified by username
      */
     @Operation(summary = "Get user by id", description = "Get user by id")
-    @GetMapping(path = "/{id}")
+    @GetMapping(path = "/uuid/{id}")
     @JsonView(EntityLevelViews.UserWithoutProjectMembers.class)
     public User getPublic(Principal principal, @PathVariable("id") String id) {
         super.checkLoggedIn(principal);

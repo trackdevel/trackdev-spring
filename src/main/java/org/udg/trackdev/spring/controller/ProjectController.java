@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ public class ProjectController extends BaseController {
     @Autowired
     AccessChecker accessChecker;
 
+    @Operation(summary = "Get all projects", description = "Get all projects")
     @GetMapping
     @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Collection<Project> getProjects(Principal principal) {
@@ -46,6 +48,7 @@ public class ProjectController extends BaseController {
         }
     }
 
+    @Operation(summary = "Get specific project", description = "Get specific project")
     @GetMapping(path = "/{projectId}")
     @JsonView(EntityLevelViews.ProjectComplete.class)
     public Project getProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
@@ -56,6 +59,7 @@ public class ProjectController extends BaseController {
         return project;
     }
 
+    @Operation(summary = "Edit specific project", description = "Edit specific project")
     @PatchMapping(path = "/{projectId}")
     @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Project editProject(Principal principal,
@@ -65,6 +69,7 @@ public class ProjectController extends BaseController {
         return service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, projectRequest.qualification, userId);
     }
 
+    @Operation(summary = "Delete specific project", description = "Delete specific project")
     @DeleteMapping(path = "/{projectId}")
     @JsonView(EntityLevelViews.Basic.class)
     public ResponseEntity<Void> deleteProject(Principal principal,
@@ -74,6 +79,7 @@ public class ProjectController extends BaseController {
         return okNoContent();
     }
 
+    @Operation(summary = "Get tasks of specific project", description = "Get tasks of specific project")
     @GetMapping(path = "/{projectId}/tasks")
     @JsonView(EntityLevelViews.Basic.class)
     public Map<String, Object> getProjectTasks(Principal principal,
@@ -88,6 +94,7 @@ public class ProjectController extends BaseController {
         return response;
     }
 
+    @Operation(summary = "Create sprint of specific project", description = "Create sprint of specific project")
     @PostMapping(path = "/{projectId}/sprints")
     @JsonView(EntityLevelViews.Basic.class)
     public ResponseEntity<Void> createProjectSprint(Principal principal,
@@ -100,6 +107,7 @@ public class ProjectController extends BaseController {
         return okNoContent();
     }
 
+    @Operation(summary = "Create US of specific project", description = "Create US of specific project")
     @PostMapping(path = "/{projectId}/tasks")
     @JsonView(EntityLevelViews.Basic.class)
     public Project createTask(Principal principal,
@@ -113,6 +121,7 @@ public class ProjectController extends BaseController {
 
     }
 
+    @Operation(summary = "Get all project sprints of specific project", description = "Get all project sprints of specific project")
     @GetMapping(path = "/{projectId}/sprints")
     public ResponseEntity<List<Map<String, String>>> getProjectSprints(Principal principal,
                                             @PathVariable(name = "projectId") Long projectId) {
@@ -123,6 +132,7 @@ public class ProjectController extends BaseController {
         return ResponseEntity.ok().body(customResponse);
     }
 
+    @Operation(summary = "Get users qualification of specific project", description = "Get users qualification of specific project")
     @GetMapping(path = "/{projectId}/qualification")
     public ResponseEntity<Map<String, Map<String,String>>> getProjectRank(Principal principal,
                                             @PathVariable(name = "projectId") Long projectId) {

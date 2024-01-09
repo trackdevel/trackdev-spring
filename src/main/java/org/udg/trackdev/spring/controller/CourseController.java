@@ -1,6 +1,7 @@
 package org.udg.trackdev.spring.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class CourseController extends BaseController {
     @Autowired
     AccessChecker accessChecker;
 
+    @Operation(summary = "Get all courses", description = "Get all courses")
     @GetMapping
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Collection<Course> getCourses(Principal principal) {
@@ -56,6 +58,7 @@ public class CourseController extends BaseController {
             throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
     }
 
+    @Operation(summary = "Get specific course", description = "Get specific course")
     @GetMapping(path = "/{courseId}")
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Course getCourse(Principal principal, @PathVariable("courseId") Long courseId) {
@@ -65,7 +68,7 @@ public class CourseController extends BaseController {
         return course;
     }
 
-
+    @Operation(summary = "Edit specific course", description = "Edit specific course")
     @PatchMapping(path = "/{courseId}")
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Course editCourse(Principal principal,
@@ -76,6 +79,7 @@ public class CourseController extends BaseController {
                 courseRequest.githubOrganization, userId);
     }
 
+    @Operation(summary = "Delete specific course", description = "Delete specific course")
     @DeleteMapping(path = "/{courseId}")
     public ResponseEntity<Void> deleteCourse(Principal principal,
                                        @PathVariable("courseId") Long courseId) {
@@ -84,6 +88,7 @@ public class CourseController extends BaseController {
         return okNoContent();
     }
 
+    @Operation(summary = "Get projects enrolled to specific course", description = "Get projects enrolled to specific course")
     @GetMapping(path = "/{courseId}/projects")
     @JsonView(EntityLevelViews.Basic.class)
     public Collection<Project> getProjects(Principal principal,
@@ -101,6 +106,7 @@ public class CourseController extends BaseController {
         return projects;
     }
 
+    @Operation(summary = "Create project enrolled to specific course", description = "Create project enrolled to specific course")
     @PostMapping(path = "/{courseId}/projects")
     public IdObjectLong createProject(Principal principal,
                                       @PathVariable("courseId") Long courseId,
