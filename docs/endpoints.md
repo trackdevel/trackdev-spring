@@ -11,18 +11,19 @@ GET | /auth/self | Logged in user profile | ✅
 POST | /auth/password | Change password of the user | ✅
 POST | /auth/recovery | Request for recovery code to change password | ✅
 POST | /auth/recovery/{email}/check | Check if recoveyr code for email is OK | ✅
-POST |
+POST | /auth/recovery/{email} | Change the password of user with valid code | ✅
 
 ## Users
 
-Method|Path|Description|Status
-------|-----|---------|--- 
-GET | /users | Get all users (Only Administrators) | ✅
-GET | /users/{uuid} | View public profile of user | ✅
-POST | /users/register | Register user into website | ✅
-PATCH | /users | Change settings of my user | ✅
-PATCH | /users/{id} | Change settings of other user (Only Administrator) | ✅
-GET | /users/checker/admin | Check if the authenticades user is admin | ✅
+ Method | Path                 | Description                                        | Status 
+--------|----------------------|----------------------------------------------------|-------- 
+ GET    | /users               | Get all users (Only Administrators)                | ✅      
+ GET    | /users/uuid/{uuid}   | View public profile of user using uuid             | ✅      
+ GET    | /users/{email}       | View public profile of user using email            | ✅      
+ POST   | /users/register      | Register user into website                         | ✅      
+ PATCH  | /users               | Change settings of my user                         | ✅      
+ PATCH  | /users/{id}          | Change settings of other user (Only Administrator) | ✅      
+ GET    | /users/checker/admin | Check if the authenticades user is admin           | ✅      
 
 ## Subjects
 
