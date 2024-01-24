@@ -26,7 +26,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .cors().and()
             .addFilterAfter(new JWTAuthorizationFilter(authorizationConfiguration, cookieManager), UsernamePasswordAuthenticationFilter.class)
             .authorizeRequests()
-            .antMatchers(HttpMethod.POST, "/auth/login").permitAll()
+            .antMatchers(HttpMethod.POST, "/auth/login","/auth/password/**","/auth/recovery/**").permitAll()
             .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**","/swagger-resources/**").permitAll()
             .anyRequest().authenticated();
 
