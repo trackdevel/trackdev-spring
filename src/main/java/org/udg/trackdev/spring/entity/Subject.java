@@ -11,6 +11,7 @@ import java.util.Collection;
 @Table(name = "subjects")
 public class Subject extends BaseEntityLong {
 
+    public static final int MIN_NAME_LENGTH = 1;
     public static final int NAME_LENGTH = 50;
     public static final int MIN_ACRONYM_LENGTH = 2;
 

@@ -5,8 +5,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
@@ -15,11 +18,14 @@ import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.ProjectService;
 import org.udg.trackdev.spring.service.UserService;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "5. Projects")
@@ -64,7 +70,14 @@ public class ProjectController extends BaseController {
     @JsonView(EntityLevelViews.ProjectWithUser.class)
     public Project editProject(Principal principal,
                                @PathVariable(name = "projectId") Long projectId,
-                               @Valid @RequestBody EditProject projectRequest) {
+                               @Valid @RequestBody EditProject projectRequest,
+                               BindingResult result) {
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ControllerException(String.join(". ", errors));
+        }
         String userId = super.getUserId(principal);
         return service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, projectRequest.qualification, userId);
     }
@@ -99,7 +112,11 @@ public class ProjectController extends BaseController {
     @JsonView(EntityLevelViews.Basic.class)
     public ResponseEntity<Void> createProjectSprint(Principal principal,
                                        @PathVariable(name = "projectId") Long projectId,
-                                       @Valid @RequestBody CreateSprint sprintRequest) {
+                                       @Valid @RequestBody CreateSprint sprintRequest,
+                                                    BindingResult result) {
+        if (result.hasErrors()) {
+            throw new ControllerException(ErrorConstants.INVALID_SPRINT_NAME_LENGTH);
+        }
         String userId = super.getUserId(principal);
         Project project = service.get(projectId);
         accessChecker.checkCanViewProject(project, userId);
@@ -158,15 +175,21 @@ public class ProjectController extends BaseController {
     }
 
     static class EditProject {
-        @Size(min = 1, max = Project.NAME_LENGTH)
+        @Size(
+                min = Project.MIN_NAME_LENGTH,
+                max = Project.NAME_LENGTH,
+                message = ErrorConstants.INVALID_PRJ_NAME_LENGTH
+        )
         public String name;
         public Collection<String> members;
         public Long courseId;
+        @Max(value = Project.MIN_QUALIFICATION, message = ErrorConstants.INVALID_PRJ_QUALIFICATION)
+        @Max(value = Project.MAX_QUALIFICATION, message = ErrorConstants.INVALID_PRJ_QUALIFICATION)
         public Double qualification;
     }
 
     static class CreateSprint {
-        @Size(min = 1, max = Sprint.NAME_LENGTH)
+        @Size(min = Sprint.MIN_NAME_LENGTH, max = Sprint.NAME_LENGTH)
         public String name;
         public Date startDate;
         public Date endDate;

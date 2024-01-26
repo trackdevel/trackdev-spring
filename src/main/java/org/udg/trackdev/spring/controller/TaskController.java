@@ -6,9 +6,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.Comment;
 import org.udg.trackdev.spring.entity.PointsReview;
+import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.taskchanges.TaskChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -19,6 +22,7 @@ import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.PointsReviewService;
 import org.udg.trackdev.spring.service.TaskChangeService;
 import org.udg.trackdev.spring.service.TaskService;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -80,6 +84,11 @@ public class TaskController extends CrudController<Task, TaskService> {
     public Task editTask(Principal principal,
                            @PathVariable(name = "id") Long id,
                            @Valid @RequestBody MergePatchTask taskRequest) {
+        if (taskRequest.name.isPresent()){
+            if (taskRequest.name.get().isEmpty() || taskRequest.name.get().length() > Task.NAME_LENGTH) {
+                throw new ControllerException(ErrorConstants.INVALID_TASK_NAME_LENGTH);
+            }
+        }
         String userId = super.getUserId(principal);
         return service.editTask(id, taskRequest, userId);
     }
@@ -99,7 +108,11 @@ public class TaskController extends CrudController<Task, TaskService> {
     @PostMapping(path = "/{id}/subtasks")
     public IdObjectLong createSubtask(Principal principal,
                                       @PathVariable(name = "id") Long id,
-                                      @Valid @RequestBody NewSubTask request) {
+                                      @Valid @RequestBody NewSubTask request,
+                                      BindingResult result) {
+        if (result.hasErrors()) {
+            throw new ControllerException(ErrorConstants.INVALID_TASK_NAME_LENGTH);
+        }
         String userId = super.getUserId(principal);
         Task subtask = service.createSubTask(id, request.name, userId);
 
@@ -140,7 +153,10 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     static class NewSubTask {
         @NotBlank
-        @Size(max = Task.NAME_LENGTH)
+        @Size(
+                min = Task.MIN_NAME_LENGTH,
+                max = Task.NAME_LENGTH
+        )
         public String name;
     }
 }

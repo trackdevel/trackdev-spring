@@ -7,6 +7,7 @@ import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.SubjectRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +24,7 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     public Subject getSubject(Long id) {
         Optional<Subject> oc = this.repo.findById(id);
         if (oc.isEmpty())
-            throw new EntityNotFound("Subject does not exists");
+            throw new EntityNotFound(ErrorConstants.SUBJECT_NOT_EXIST);
         return oc.get();
     }
 

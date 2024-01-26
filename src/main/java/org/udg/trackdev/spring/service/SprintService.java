@@ -14,6 +14,7 @@ import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.sprintchanges.*;
 import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.repository.SprintRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +55,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         List<SprintChange> changes = new ArrayList<>();
         if(editSprint.name != null) {
             String name = editSprint.name.orElseThrow(
-                    () -> new ServiceException("Not possible to set name to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!name.equals(sprint.getName())) {
                 sprint.setName(name);
                 changes.add(new SprintNameChange(user.getEmail(),sprintId,name));
@@ -62,7 +63,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         }
         if(editSprint.startDate != null) {
             Date startDate = editSprint.startDate.orElseThrow(
-                    () -> new ServiceException("Not possible to set startDate to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!startDate.equals(sprint.getStartDate())) {
                 sprint.setStartDate(startDate);
                 changes.add(new SprintStartDateChange(user.getEmail(),sprintId,startDate));
@@ -70,7 +71,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         }
         if(editSprint.endDate != null) {
             Date endDate = editSprint.endDate.orElseThrow(
-                    () -> new ServiceException("Not possible to set endDate to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!endDate.equals(sprint.getEndDate())) {
                 sprint.setEndDate(endDate);
                 changes.add(new SprintEndDateChange(user.getEmail(),sprintId,endDate));
@@ -78,7 +79,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         }
         if(editSprint.status != null) {
             SprintStatus status = editSprint.status.orElseThrow(
-                    () -> new ServiceException("Not possible to set status to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(status != sprint.getStatus()) {
                 sprint.setStatus(status);
                 changes.add(new SprintStatusChange(user.getEmail(),sprintId,status));

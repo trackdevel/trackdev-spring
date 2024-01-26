@@ -11,6 +11,10 @@ import java.util.Collection;
 @Table(name = "courses")
 public class Course extends BaseEntityLong {
 
+    public static final int MIN_START_YEAR = 1900;
+    public static final int MAX_START_YEAR = 9999;
+
+
     public Course() {}
 
     public Course(Integer startYear) {

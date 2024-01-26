@@ -10,6 +10,7 @@ import org.udg.trackdev.spring.entity.PointsReview;
 import org.udg.trackdev.spring.entity.Task;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.PointsReviewRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public class PointsReviewService extends BaseServiceLong<PointsReview, PointsRev
     @Transactional
     public ResponseEntity addPointsReview(Integer points, String comment, User user, Task task){
         if(task.getPointsReviewList().stream().filter(pointsReview1 -> pointsReview1.getUser().getId().equals(user.getId())).count() > 1){
-            throw new ServiceException("This user has already reviewed this task");
+            throw new ServiceException(ErrorConstants.TASK_ALREADY_REVIEWED);
         }
         else if(task.getPointsReviewList().stream().filter(pointsReview1 -> pointsReview1.getUser().getId().equals(user.getId())).count() == 1){
             Optional<PointsReview> review = task.getPointsReviewList().stream().filter(pointsReview1 -> pointsReview1.getUser().getId()

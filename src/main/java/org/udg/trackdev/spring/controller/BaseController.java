@@ -3,6 +3,7 @@ package org.udg.trackdev.spring.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.udg.trackdev.spring.controller.exceptions.ControllerException;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.security.Principal;
 
@@ -26,12 +27,12 @@ public class BaseController {
 
   void checkNotLoggedIn(Principal principal) {
     if(principal != null)
-      throw new ControllerException("User should not be authenticated");
+      throw new ControllerException(ErrorConstants.USER_SHOULD_NOT_LOGEDIN);
   }
 
   void checkLoggedIn(Principal principal) {
     if(principal == null)
-      throw new ControllerException("User should be authenticated");
+      throw new ControllerException(ErrorConstants.USER_NOT_LOGGED_IN);
   }
 
   ResponseEntity<Void> okNoContent() {

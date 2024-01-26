@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.serializer.JsonHierarchyViewSerializer;
 import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,7 +20,10 @@ public class Project extends BaseEntityLong {
 
    //-- CONSTANTS
 
-    public static final int NAME_LENGTH = 50;
+    public static final int MIN_NAME_LENGTH = 1;
+    public static final int NAME_LENGTH = 100;
+    public static final int MIN_QUALIFICATION = 0;
+    public static final int MAX_QUALIFICATION = 10;
 
     //-- ATTRIBUTES
 

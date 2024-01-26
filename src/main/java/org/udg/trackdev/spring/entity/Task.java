@@ -20,6 +20,8 @@ import java.util.*;
 )
 public class Task extends BaseEntityLong {
 
+    //-- ATTRIBUTES
+    public static final int MIN_NAME_LENGTH = 1;
     public static final int NAME_LENGTH = 100;
 
     @NonNull

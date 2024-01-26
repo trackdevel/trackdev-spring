@@ -6,6 +6,7 @@ import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.repository.RoleRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.transaction.Transactional;
 import java.util.List;
@@ -26,7 +27,7 @@ public class RoleService {
             role = new Role(type);
             roleRepository.save(role);
         } else {
-            throw new ServiceException("Unexpected state of roles in repository");
+            throw new ServiceException(ErrorConstants.UNKNOWN_ROLE);
         }
         return role;
     }

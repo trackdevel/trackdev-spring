@@ -10,7 +10,9 @@ import org.udg.trackdev.spring.serializer.JsonDateSerializer;
 import org.udg.trackdev.spring.serializer.JsonRolesSerializer;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.*;
 
@@ -18,10 +20,11 @@ import java.util.*;
 @Table(name = "users")
 public class User extends BaseEntityUUID {
 
+  public static final int MIN_USERNAME_LENGTH = 1;
   public static final int USERNAME_LENGTH = 50;
+  public static final int MIN_EMAIL_LENGHT = 4;
   public static final int EMAIL_LENGTH = 128;
   public static final int CAPITAL_LETTERS_LENGTH = 2;
-  public static final int RECOVERY_CODE_LENGTH = 8;
 
   public User() {}
 

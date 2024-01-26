@@ -54,32 +54,4 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         repo.delete(course);
     }
 
-    /**
-    @Transactional
-    public void removeStudent(Long yearId, String username, String loggedInUserId) {
-        Course course = get(yearId);
-        accessChecker.checkCanManageCourse(course, loggedInUserId);
-        User user = userService.getByUsername(username);
-        for(Project project : course.getProjects()) {
-            if(project.isMember(user)) {
-                project.removeMember(user);
-                user.removeFromGroup(project);
-            }
-        }
-        course.removeStudent(user);
-        user.removeFromCourse(course);
-    }
-
-    @Transactional
-    public void addStudent(Long yearId, String username, String loggedInUserId) {
-        Course course = get(yearId);
-        accessChecker.checkCanManageCourse(course, loggedInUserId);
-        User user = userService.getByUsername(username);
-        if (!user.isUserType(UserType.STUDENT)){
-            throw new ServiceException("User is not a student");
-        }
-        course.enrollStudent(user);
-
-    }**/
-
 }

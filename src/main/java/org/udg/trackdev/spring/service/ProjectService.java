@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.repository.GroupRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -52,7 +53,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         }
         if(mails != null) {
             if(mails.isEmpty() && !project.getMembers().isEmpty()) {
-                throw new ServiceException("Cannot remove all members of a project");
+                throw new ServiceException(ErrorConstants.PRJ_WITHOUT_MEMBERS);
             }
             editMembers(mails, project);
         }
@@ -113,16 +114,11 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
                                 points.get(user).doubleValue() * project.getQualification() / maxPoints.doubleValue())
                         .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()));
                 ranks.put(user.getEmail(),info);
-                /**ranks.put(email,
-                        BigDecimal.valueOf(
-                                points.get(email).doubleValue() * project.getQualification() / maxPoints.doubleValue())
-                                .setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue()
-                );**/
             }
             return ranks;
         }
         else{
-            throw new ServiceException("Project has no qualification");
+            throw new ServiceException(ErrorConstants.PRJ_WITHOUT_QUALIFICATION);
         }
     }
 

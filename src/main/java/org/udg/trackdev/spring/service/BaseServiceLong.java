@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
 import org.udg.trackdev.spring.entity.BaseEntityLong;
 import org.udg.trackdev.spring.repository.BaseRepositoryLong;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +19,7 @@ public class BaseServiceLong<T extends BaseEntityLong, Repo extends BaseReposito
     public T get(Long id) {
         Optional<T> oc = this.repo.findById(id);
         if (oc.isEmpty())
-            throw new EntityNotFound("Entity does not exists");
+            throw new EntityNotFound(ErrorConstants.ENTITY_NOT_EXIST);
         return oc.get();
     }
 

@@ -20,6 +20,7 @@ public class Sprint extends BaseEntityLong {
 
     //-- ATTRIBUTES
 
+    public static final int MIN_NAME_LENGTH = 1;
     public static final int NAME_LENGTH = 50;
 
     @NonNull

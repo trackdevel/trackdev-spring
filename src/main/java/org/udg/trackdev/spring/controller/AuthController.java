@@ -6,18 +6,21 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.AuthorizationConfiguration;
 import org.udg.trackdev.spring.configuration.CookieManager;
-import org.udg.trackdev.spring.controller.exceptions.ServiceException;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.entity.views.PrivacyLevelViews;
 import org.udg.trackdev.spring.service.EmailSenderService;
 import org.udg.trackdev.spring.service.UserService;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.Base64;
@@ -58,7 +62,6 @@ public class AuthController extends BaseController {
     public ResponseEntity<Map<String, Object>> login(HttpServletRequest request,
                                                      HttpServletResponse response,
                                                      @Valid @RequestBody LoginT userBody) {
-
         User user = userService.matchPassword(userBody.email, userBody.password);
         String token = getJWTToken(user);
 
@@ -108,10 +111,17 @@ public class AuthController extends BaseController {
             security = {@SecurityRequirement(name = "bearerAuth")})
     @PostMapping(path="/password")
     public ResponseEntity<Void> changePassword(Principal principal,
-                                                     @Valid @RequestBody ChangePasswordT userBody) {
+                                               @Valid @RequestBody ChangePasswordT userBody,
+                                               BindingResult result) {
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ControllerException(String.join(". ", errors));
+        }
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
-        userService.matchPassword(user.getUsername(), userBody.oldPassword);
+        userService.matchPassword(user.getEmail(), userBody.oldPassword);
         userService.changePassword(user, userBody.newPassword);
 
         return okNoContent();
@@ -122,7 +132,7 @@ public class AuthController extends BaseController {
     public ResponseEntity<Void> recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) throws MessagingException {
         User user = userService.getByEmail(userBody.email);
         if(user == null) {
-            throw new ServiceException("User with this email does not exist");
+            throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
         }
         String tempCode = userService.generateRecoveryCode(user);
         emailSenderService.sendRecoveryEmail(userBody.email, tempCode);
@@ -134,23 +144,29 @@ public class AuthController extends BaseController {
     public ResponseEntity<Void> checkRecoveryCode(@PathVariable("email") String email, @Valid @RequestBody CodeValidationR codeValidation) {
         User user = userService.getByEmail(email);
         if(user == null) {
-            throw new ServiceException("User with this mail does not exist");
+            throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
         }
         if(!userService.matchRecoveryCode(user, codeValidation.code)) {
-            throw new ServiceException("Code does not match");
+            throw new ControllerException(ErrorConstants.RECOVERY_CODE_NOT_MATCH);
         }
         return okNoContent();
     }
 
     @Operation(summary = "Recovery password", description = "Recover password with recovery code")
     @PostMapping(path="/recovery/{email}")
-    public ResponseEntity<Void> recoveryPassword(@PathVariable("email") String email,  @Valid @RequestBody RecoveryPasswordT userBody) {
+    public ResponseEntity<Void> recoveryPassword(@PathVariable("email") String email,  @Valid @RequestBody RecoveryPasswordT userBody, BindingResult result) {
         User user = userService.getByEmail(email);
         if(user == null) {
-            throw new ServiceException("User with this email does not exist");
+            throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
         }
         if(!userService.matchRecoveryCode(user,userBody.code)) {
-            throw new ServiceException("Code does not match");
+            throw new ControllerException(ErrorConstants.RECOVERY_CODE_NOT_MATCH);
+        }
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ControllerException(String.join(". ", errors));
         }
         userService.changePassword(user, userBody.newPassword);
         userService.cleanRecoveryCode(user);
@@ -190,7 +206,15 @@ public class AuthController extends BaseController {
     static class ChangePasswordT {
         @NotNull
         public String oldPassword;
-        @NotNull
+        @NotBlank
+        @Size(
+                min = 8,
+                message = ErrorConstants.PASSWORD_MINIUM_LENGTH
+        )
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
+                message = ErrorConstants.INVALID_PASSWORD_FORMAT
+        )
         public String newPassword;
     }
 
@@ -200,16 +224,22 @@ public class AuthController extends BaseController {
     }
 
     static class CodeValidationR {
-        @NotBlank
-        @Size(min = User.RECOVERY_CODE_LENGTH, max = User.RECOVERY_CODE_LENGTH)
+
         public String code;
     }
 
     static class RecoveryPasswordT {
-        @NotBlank
-        @Size(min = User.RECOVERY_CODE_LENGTH, max = User.RECOVERY_CODE_LENGTH)
+
         public String code;
         @NotBlank
+        @Size(
+                min = 8,
+                message = ErrorConstants.PASSWORD_MINIUM_LENGTH
+        )
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
+                message = ErrorConstants.INVALID_PASSWORD_FORMAT
+        )
         public String newPassword;
     }
 

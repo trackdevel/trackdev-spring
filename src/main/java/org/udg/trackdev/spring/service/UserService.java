@@ -13,6 +13,7 @@ import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Role;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.repository.UserRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.util.Date;
 import java.util.List;
@@ -39,19 +40,19 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User matchPassword(String email, String password) {
         User user = this.getByEmail(email);
 
-        if (user == null) throw new ServiceException("User does not exists with this email");
+        if (user == null) throw new ServiceException(ErrorConstants.LOGIN_KO);
+        if (!user.getEnabled()) throw new ServiceException(ErrorConstants.USER_DISABLED);
 
         if (global.getPasswordEncoder().matches(password, user.getPassword()))
             return user;
         else
-            throw new ServiceException("Password does not match");
+            throw new ServiceException(ErrorConstants.LOGIN_KO);
     }
 
     public boolean matchRecoveryCode(User user, String code) {
         return global.getPasswordEncoder().matches(code, user.getRecoveryCode());
     }
 
-    /** COSA NOVA **/
     @Transactional
     public User register(String username, String email) {
         try{
@@ -70,7 +71,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             return user;
         }
         catch (Exception e) {
-            throw new ServiceException("Error when registering user" + e.getMessage());
+            throw new ServiceException(ErrorConstants.REGISTER_KO + email);
         }
 
     }
@@ -80,13 +81,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if (uo.isPresent())
             return uo.get();
         else
-            throw new EntityNotFound(String.format("User with id = %s does not exist", id));
+            throw new EntityNotFound(String.format(ErrorConstants.USER_MAIL_NOT_FOUND, id));
     }
 
     public User getByUsername(String username) {
         Optional<User> user = repo().findByUsername(username);
         if(user.isEmpty()) {
-            throw new EntityNotFound(String.format("User with username <%s> does not exist", username));
+            throw new EntityNotFound(String.format(ErrorConstants.USER_NOT_FOUND, username));
         }
         return user.get();
     }
@@ -94,7 +95,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User getByEmail(String email) {
         User user = repo().findByEmail(email);
         if(user == null) {
-            throw new EntityNotFound(String.format("User with email %s does not exist", email));
+            throw new EntityNotFound(String.format(ErrorConstants.USER_NOT_FOUND, email));
         }
         return user;
     }
@@ -122,7 +123,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     private void checkIfExists(String email) {
         if (repo().existsByEmail(email))
-            throw new ServiceException("User with this email already exist");
+            throw new ServiceException(ErrorConstants.USER_ALREADY_EXIST + email);
     }
 
     @Transactional
@@ -164,13 +165,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
                 }
             }
             else if(githubInfo.getStatusCode().is4xxClientError()) {
-                user.setGithubToken("ERROR: NOT VALID TOKEN");
+                user.setGithubToken(ErrorConstants.GITHUB_TOKEN_INVALID);
                 user.setGithubName(null);
                 user.setGithubAvatar(null);
                 user.setGithubHtmlUrl(null);
             }
             else {
-                user.setGithubToken("ERROR: GITHUB API ERROR");
+                user.setGithubToken(ErrorConstants.API_GITHUB_KO);
                 user.setGithubName(null);
                 user.setGithubAvatar(null);
                 user.setGithubHtmlUrl(null);

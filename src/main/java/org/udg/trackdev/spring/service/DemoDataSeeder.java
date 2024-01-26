@@ -40,20 +40,29 @@ public class DemoDataSeeder {
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private CommentService commentService;
+
     public void seedDemoData() {
         logger.info("Starting populating database ...");
         // users
         List<User> enrolledStudents = createDemoStudents();
-        User nacho = userService.addUserInternal("Ignacio Martín", "ignacio.martin@udg.edu ", global.getPasswordEncoder().encode("123456"), List.of(UserType.ADMIN, UserType.PROFESSOR));
-        User gerard = userService.addUserInternal("Gerard Rovellat", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
-        User marc = userService.addUserInternal("Marc Got", "gotcritgmarc@gmail.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN));
-        User admin = userService.addUserInternal("Admin user", "admin@trackdev.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN, UserType.PROFESSOR));
-        User professor = userService.addUserInternal("Professor user", "professor@trackdev.com", global.getPasswordEncoder().encode("professor"), List.of(UserType.PROFESSOR));
+        User nacho = userService.addUserInternal("Ignacio Martín", "ignacio.martin@udg.edu ", global.getPasswordEncoder().encode("N123123n"), List.of(UserType.ADMIN, UserType.PROFESSOR));
+        User gerard = userService.addUserInternal("Gerard Rovellat", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("G123123r"), List.of(UserType.ADMIN));
+        User marc = userService.addUserInternal("Marc Got", "gotcritgmarc@gmail.com", global.getPasswordEncoder().encode("M123123g"), List.of(UserType.ADMIN));
+        User admin = userService.addUserInternal("TrackDev Administrator", "admin@trackdev.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN, UserType.PROFESSOR));
 
         User student1 = userService.addUserInternal("Steve Jobs", "student1@trackdev.com", global.getPasswordEncoder().encode("1111"), List.of(UserType.STUDENT));
         User student2 = userService.addUserInternal("Mark Zuckerberg", "student2@trackdev.com", global.getPasswordEncoder().encode("2222"), List.of(UserType.STUDENT));
         User student3 = userService.addUserInternal("Jeff Bezos", "student3@trackdev.com", global.getPasswordEncoder().encode("3333"), List.of(UserType.STUDENT));
         User student4 = userService.addUserInternal("Elon Musk", "student4@trackdev.com", global.getPasswordEncoder().encode("4444"), List.of(UserType.STUDENT));
+
+        //DEMO PFG
+        User demo1 = userService.addUserInternal("Bill Gates", "demo1@trackdev.com", global.getPasswordEncoder().encode("B123123g"), List.of(UserType.STUDENT));
+        User demo2 = userService.addUserInternal("Alan Turing", "demo2@trackdev.com", global.getPasswordEncoder().encode("A123123t"), List.of(UserType.STUDENT));
+        User demo3 = userService.addUserInternal("Michael Sipser", "demo3@trackdev.com", global.getPasswordEncoder().encode("M123123s"), List.of(UserType.STUDENT));
+        User demo4 = userService.addUserInternal("James Gosling", "demo4@trackdev.com", global.getPasswordEncoder().encode("J123123g"), List.of(UserType.STUDENT));
+
         enrolledStudents.add(student1);
         enrolledStudents.add(student2);
         enrolledStudents.add(student3);
@@ -64,21 +73,72 @@ public class DemoDataSeeder {
         Subject subject1 = subjectService.createSubject("Projecte web","PW" ,admin.getId());
         Subject subject2 = subjectService.createSubject("Sistema de Computadors I","SO1" ,admin.getId());
         Subject subject3 = subjectService.createSubject("Sistema de Computadors II","SO2" ,admin.getId());
+        Subject subject4 = subjectService.createSubject("Projectes final de grau","PFG" ,admin.getId());
 
         // Course
         Course course = courseService.createCourse(subject.getId(), 2024,null, admin.getId());
         Course course4 = courseService.createCourse(subject.getId(), 2025,null, admin.getId());
-        Course course1 = courseService.createCourse(subject1.getId(), 2024,null, admin.getId());
-        Course course2 = courseService.createCourse(subject2.getId(), 2024,null, admin.getId());
-        Course course3 = courseService.createCourse(subject3.getId(), 2024,null, admin.getId());
+        Course course1 = courseService.createCourse(subject1.getId(), 2026,null, admin.getId());
+        Course course2 = courseService.createCourse(subject2.getId(), 2027,null, admin.getId());
+        Course course3 = courseService.createCourse(subject3.getId(), 2028,null, admin.getId());
 
         // one subject set up
         populateProject(admin, course, "Movie reviews", enrolledStudents.subList(0,12));
         populateProject(admin, course, "Calendar", enrolledStudents.subList(12,22));
         populateProject(admin, course, "FaceNotes", enrolledStudents.subList(22,26));
+        populateProject(admin, course, "FaceNotes", enrolledStudents.subList(22,26));
+
+        //DEMO PFG
+        Course course5 = courseService.createCourse(subject4.getId(), 2023,null, admin.getId());
+        populateProjectDemo(
+                admin,
+                course5,
+                "Aplicació web per la gestió de projectes en metodologia Agile",
+                new ArrayList<>(Arrays.asList(nacho, gerard, marc, demo1, demo2, demo3, demo4))
+        );
+
         logger.info("Done populating database");
     }
 
+    private void populateProjectDemo(User admin, Course course, String projectName, List<User> users){
+        List<String> emails = new ArrayList<>();
+        for(User user: users) {
+            emails.add(user.getEmail());
+        }
+        Project project = projectService.createProject(projectName, emails, course.getId(), admin.getId());
+        //PRIMER SPRINT
+        LocalDate start1 = LocalDate.of(2024,1,29);
+        LocalDate end2 = start1.plusDays(14);
+        User sprintCreator1 = users.get(1);
+        Sprint sprint1 = sprintService.create(project, "Sprint 1", Date.from(start1.atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(end2.atStartOfDay(ZoneId.systemDefault()).toInstant()), sprintCreator1.getId());
+        //Task1
+        Task task1 = taskService.createTask(project.getId(), "Anàlisis i disseny de la base de dades", users.get(2).getId());
+        MergePatchTask editTask1 = new MergePatchTask();
+        editTask1.description = Optional.of("S'ha de fer una anàlisi i disseny de la base de dades pel desenvolupament del projecte final de grau. S'ha de fer un diagrama entitat-relació i un diagrama de classes.");
+        editTask1.assignee = Optional.of(users.get(2).getEmail());
+        editTask1.estimationPoints = Optional.of(5);
+        editTask1.activeSprints = Optional.of(new ArrayList<>(Collections.singletonList(sprint1.getId())));
+        taskService.editTask(task1.getId(), editTask1, users.get(2).getId());
+        commentService.addComment( "Algú sap si necessitarem crear un xat?", users.get(2),task1);
+        commentService.addComment( "No ho tinc clar, és un stopper? ", users.get(3),task1);
+        commentService.addComment( "Sí, no sé si haig de crear l'objecte \"comentari\"", users.get(2),task1);
+        commentService.addComment( "Jo crec que sí que el crearem, fem-ho", users.get(4),task1);
+        commentService.addComment( "Agree", users.get(5),task1);
+        commentService.addComment( "Em sembla bé també", users.get(6),task1);
+        commentService.addComment( "Recordeu que una funcionalitat no completada no contarà per l'sprint", users.get(0),task1);
+        Task subtask11 = taskService.createSubTask(task1.getId(), "Diagrama entitat-relació", users.get(2).getId());
+        Task subtask12 = taskService.createSubTask(task1.getId(), "Diagrama classes", users.get(2).getId());
+        MergePatchTask editTaskSub11 = new MergePatchTask();
+        MergePatchTask editTaskSub12 = new MergePatchTask();
+        editTaskSub11.assignee = Optional.of(users.get(2).getEmail());
+        editTaskSub12.assignee = Optional.of(users.get(2).getEmail());
+        editTaskSub11.activeSprints = Optional.of(new ArrayList<>(Collections.singletonList(sprint1.getId())));
+        editTaskSub12.activeSprints = Optional.of(new ArrayList<>(Collections.singletonList(sprint1.getId())));
+        taskService.editTask(subtask11.getId(), editTaskSub11, users.get(0).getId());
+        taskService.editTask(subtask12.getId(), editTaskSub12, users.get(0).getId());
+
+        userService.setCurrentProject(admin,project);
+    }
 
     private void populateProject(User admin, Course course, String projectName, List<User> users) {
         List<String> emails = new ArrayList<>();
