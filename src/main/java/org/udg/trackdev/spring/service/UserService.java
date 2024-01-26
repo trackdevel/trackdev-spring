@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.udg.trackdev.spring.configuration.UserType;
 import org.udg.trackdev.spring.controller.exceptions.EntityNotFound;
+import org.udg.trackdev.spring.controller.exceptions.SecurityException;
 import org.udg.trackdev.spring.controller.exceptions.ServiceException;
 import org.udg.trackdev.spring.entity.GithubInfo;
 import org.udg.trackdev.spring.entity.Project;
@@ -41,7 +42,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         User user = this.getByEmail(email);
 
         if (user == null) throw new ServiceException(ErrorConstants.LOGIN_KO);
-        if (!user.getEnabled()) throw new ServiceException(ErrorConstants.USER_DISABLED);
+        if (!user.getEnabled()) throw new SecurityException(ErrorConstants.USER_DISABLED);
 
         if (global.getPasswordEncoder().matches(password, user.getPassword()))
             return user;
