@@ -148,12 +148,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User editMyUser(User modifier, User user, Optional<String> username, Optional<String> color,
                          Optional<String> capitalLetters, Optional<Boolean> changePassword,
-                         Optional<String> githubToken) {
+                         Optional<String> githubToken, Optional<Boolean> enabled) {
         if(username != null && modifier.isUserType(UserType.ADMIN)) username.ifPresent(user::setUsername);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
-        if(githubToken != null) {
+        if(enabled != null && modifier.isUserType(UserType.ADMIN)) enabled.ifPresent(user::setEnabled);
+        if(githubToken != null ) {
             githubToken.ifPresent(user::setGithubToken);
             ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
             if(githubInfo.getStatusCode().is2xxSuccessful()) {

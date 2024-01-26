@@ -100,7 +100,7 @@ public class UserController extends BaseController {
     @JsonView({EntityLevelViews.UserWithGithubToken.class})
     public User editMyUser(Principal principal,
                          @Valid @RequestBody EditU userRequest) {
-        if (userRequest.username.isPresent()){
+        if (userRequest.username != null){
             if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
             }
@@ -111,7 +111,7 @@ public class UserController extends BaseController {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         return userService.editMyUser(user, user, userRequest.username, userRequest.color,
-                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
+                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled);
     }
 
     @Operation(summary = "Edit user", description = "Edit user, only admins can do this")
@@ -120,7 +120,7 @@ public class UserController extends BaseController {
     public User editUser(Principal principal,
                             @Valid @RequestBody EditU userRequest,
                             @PathVariable("id") String id) {
-        if (userRequest.username.isPresent()){
+        if (userRequest.username != null){
             if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
             }
@@ -136,7 +136,7 @@ public class UserController extends BaseController {
         else {
             User user = userService.get(id);
             return userService.editMyUser(modifier, user, userRequest.username, userRequest.color,
-                    userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
+                    userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled);
         }
     }
 
@@ -187,6 +187,8 @@ public class UserController extends BaseController {
         public Optional<Boolean> changePassword;
 
         public Optional<String> githubToken;
+
+        public Optional<Boolean> enabled;
     }
 
 }
