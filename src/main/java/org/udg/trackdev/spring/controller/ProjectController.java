@@ -22,6 +22,7 @@ import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.*;
@@ -183,7 +184,7 @@ public class ProjectController extends BaseController {
         public String name;
         public Collection<String> members;
         public Long courseId;
-        @Max(value = Project.MIN_QUALIFICATION, message = ErrorConstants.INVALID_PRJ_QUALIFICATION)
+        @Min(value = Project.MIN_QUALIFICATION, message = ErrorConstants.INVALID_PRJ_QUALIFICATION)
         @Max(value = Project.MAX_QUALIFICATION, message = ErrorConstants.INVALID_PRJ_QUALIFICATION)
         public Double qualification;
     }
