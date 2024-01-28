@@ -48,8 +48,8 @@ public class DemoDataSeeder {
         // users
         List<User> enrolledStudents = createDemoStudents();
         User nacho = userService.addUserInternal("Ignacio Martín", "ignacio.martin@udg.edu ", global.getPasswordEncoder().encode("N123123n"), List.of(UserType.ADMIN, UserType.PROFESSOR));
-        User gerard = userService.addUserInternal("Gerard Rovellat", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("G123123r"), List.of(UserType.ADMIN));
-        User marc = userService.addUserInternal("Marc Got", "gotcritgmarc@gmail.com", global.getPasswordEncoder().encode("M123123g"), List.of(UserType.ADMIN));
+        User gerard = userService.addUserInternal("Gerard Rovellat", "gerard.rovellat@gmail.com", global.getPasswordEncoder().encode("G123123r"), List.of(UserType.STUDENT));
+        User marc = userService.addUserInternal("Marc Got", "gotcritgmarc@gmail.com", global.getPasswordEncoder().encode("M123123g"), List.of(UserType.STUDENT));
         User admin = userService.addUserInternal("TrackDev Administrator", "admin@trackdev.com", global.getPasswordEncoder().encode("admin"), List.of(UserType.ADMIN, UserType.PROFESSOR));
 
         User student1 = userService.addUserInternal("Steve Jobs", "student1@trackdev.com", global.getPasswordEncoder().encode("1111"), List.of(UserType.STUDENT));
@@ -58,10 +58,10 @@ public class DemoDataSeeder {
         User student4 = userService.addUserInternal("Elon Musk", "student4@trackdev.com", global.getPasswordEncoder().encode("4444"), List.of(UserType.STUDENT));
 
         //DEMO PFG
-        User demo1 = userService.addUserInternal("Bill Gates", "demo1@trackdev.com", global.getPasswordEncoder().encode("B123123g"), List.of(UserType.STUDENT));
-        User demo2 = userService.addUserInternal("Alan Turing", "demo2@trackdev.com", global.getPasswordEncoder().encode("A123123t"), List.of(UserType.STUDENT));
-        User demo3 = userService.addUserInternal("Michael Sipser", "demo3@trackdev.com", global.getPasswordEncoder().encode("M123123s"), List.of(UserType.STUDENT));
-        User demo4 = userService.addUserInternal("James Gosling", "demo4@trackdev.com", global.getPasswordEncoder().encode("J123123g"), List.of(UserType.STUDENT));
+        User demo1 = userService.addUserInternal("Bill Gates", "demo1@trackdev.com", global.getPasswordEncoder().encode("D123123d"), List.of(UserType.STUDENT));
+        User demo2 = userService.addUserInternal("Alan Turing", "demo2@trackdev.com", global.getPasswordEncoder().encode("D123123d"), List.of(UserType.STUDENT));
+        User demo3 = userService.addUserInternal("Michael Sipser", "demo3@trackdev.com", global.getPasswordEncoder().encode("D123123d"), List.of(UserType.STUDENT));
+        User demo4 = userService.addUserInternal("James Gosling", "demo4@trackdev.com", global.getPasswordEncoder().encode("D123123d"), List.of(UserType.STUDENT));
 
         enrolledStudents.add(student1);
         enrolledStudents.add(student2);
@@ -86,14 +86,14 @@ public class DemoDataSeeder {
         populateProject(admin, course, "Movie reviews", enrolledStudents.subList(0,12));
         populateProject(admin, course, "Calendar", enrolledStudents.subList(12,22));
         populateProject(admin, course, "FaceNotes", enrolledStudents.subList(22,26));
-        populateProject(admin, course, "FaceNotes", enrolledStudents.subList(22,26));
+        populateProject(admin, course, "Filmer", enrolledStudents.subList(22,26));
 
         //DEMO PFG
         Course course5 = courseService.createCourse(subject4.getId(), 2023,null, admin.getId());
         populateProjectDemo(
                 admin,
                 course5,
-                "Aplicació web per la gestió de projectes en metodologia Agile",
+                "Gestió de projectes en metodologia Agile",
                 new ArrayList<>(Arrays.asList(nacho, gerard, marc, demo1, demo2, demo3, demo4))
         );
 
