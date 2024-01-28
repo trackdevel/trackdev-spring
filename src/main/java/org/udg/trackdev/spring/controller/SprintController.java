@@ -57,7 +57,7 @@ public class SprintController extends CrudController<Sprint, SprintService> {
     public Sprint editSprint(Principal principal,
                          @PathVariable(name = "id") Long id,
                          @Valid @RequestBody MergePatchSprint sprintRequest) {
-        if (sprintRequest.name.isPresent()){
+        if (sprintRequest.name != null){
             if (sprintRequest.name.get().isEmpty() || sprintRequest.name.get().length() > Sprint.NAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_SPRINT_NAME_LENGTH);
             }
