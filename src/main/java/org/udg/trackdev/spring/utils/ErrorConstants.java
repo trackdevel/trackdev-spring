@@ -5,7 +5,7 @@ public final class ErrorConstants {
     public static final String USER_MAIL_NOT_FOUND = "No existeix cap usuari amb aquest correu electrònic";
     public static final String USER_NOT_FOUND = "L'usuari no existeix <%s>";
     public static final String USER_ALREADY_EXIST = "L'usuari ja existeix";
-    public static final String LOGIN_KO = "El correu electrònic o la contrassenya no són correctes";
+    public static final String LOGIN_KO = "El correu electrònic o la contrasenya no són correctes";
     public static final String USER_DISABLED = "L'usuari no està habilitat, contacta amb l'administrador";
     public static final String REGISTER_KO = "Error al registrar l'usuari";
     public static final String RECOVERY_CODE_NOT_MATCH = "El codi de recuperació no és correcte";
@@ -20,12 +20,12 @@ public final class ErrorConstants {
     public static final String INVALID_SUBJECT_NAME_LENGTH = "El nom de l'assignatura ha de tindre entre 1 i 50 caràcters";
     public static final String INVALID_SUBJECT_ACRONYM_LENGTH = "El acronim de l'assignatura ha de tindre entre 3 i 5 caràcters";
     public static final String INVALID_TASK_NAME_LENGTH = "El nom de la tasca ha de tindre entre 1 i 100 caràcters";
-    public static final String PASSWORD_MINIUM_LENGTH = "La contrassenya ha de tindre almenys 8 caracters";
+    public static final String PASSWORD_MINIUM_LENGTH = "La contrasenya ha de tindre almenys 8 caracters";
     public static final String INVALID_MAIL_FORMAT = "El correu electrònic no té un format vàlid";
     public static final String INVALID_MAIL_SIZE = "La longitud del correu electrònic no és vàlida";
     public static final String INVALID_USERNAME_SIZE = "La longitud del nom d'usuari ha de tindre entre 1 i 50 caràcters";
     public static final String INVALID_USERNAME_FORMAT = "El nom d'usuari conte caràcters no vàlids";
-    public static final String INVALID_PASSWORD_FORMAT = "La contrassenya ha de contenir almenys una lletra minuscula, una majuscula i un numero";
+    public static final String INVALID_PASSWORD_FORMAT = "La contrasenya ha de contenir almenys una lletra minuscula, una majuscula i un numero";
     public static final String UNAUTHORIZED = "L'usuari no esta autoritzat a realitzar aquesta acció o veure aquest recurs";
     public static final String TASK_ALREADY_REVIEWED = "Aquest usuari ja ha revisat els punts d'aquesta tasca";
     public static final String PRJ_WITHOUT_MEMBERS = "El projecte ha de tindre almenys un membre";
@@ -36,6 +36,5 @@ public final class ErrorConstants {
     public static final String ENTITY_NOT_EXIST = "L'entitat no existeix";
     public static final String GITHUB_TOKEN_INVALID = "ERROR: Token invalid";
     public static final String API_GITHUB_KO = "ERROR: L'API de Github no funciona";
-
-
+    public static final String EMPTY = "";
 }

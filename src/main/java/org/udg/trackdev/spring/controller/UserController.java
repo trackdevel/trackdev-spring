@@ -72,7 +72,7 @@ public class UserController extends BaseController {
     @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public List<User> getAll(Principal principal) {
         if (!accessChecker.isUserAdmin(userService.get(principal.getName()))){
-            throw new SecurityException(ErrorConstants.UNAUTHORIZED);
+            throw new SecurityException(ErrorConstants.EMPTY);
         }
         return userService.findAll();
     }
@@ -148,7 +148,7 @@ public class UserController extends BaseController {
         if (accessChecker.isUserAdmin(user)) {
             return okNoContent();
         } else {
-            throw new SecurityException(ErrorConstants.UNAUTHORIZED);
+            throw new SecurityException(ErrorConstants.EMPTY);
         }
     }
 

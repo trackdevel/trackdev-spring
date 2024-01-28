@@ -169,7 +169,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
         task.setActiveSprints(new ArrayList<>());
         if (task.getParentTask() == null){
-            repo.deleteAll(task.getChildTasks());
+            Collection<Task> removeTask = task.getChildTasks();
+            removeTask.stream().forEach(childTask -> childTask.setParentTask(null));
+            repo.deleteAll(removeTask);
         }
         repo.delete(task);
     }
