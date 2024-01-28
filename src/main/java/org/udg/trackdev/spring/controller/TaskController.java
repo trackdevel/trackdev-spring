@@ -84,7 +84,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     public Task editTask(Principal principal,
                            @PathVariable(name = "id") Long id,
                            @Valid @RequestBody MergePatchTask taskRequest) {
-        if (taskRequest.name.isPresent()){
+        if (taskRequest.name != null){
             if (taskRequest.name.get().isEmpty() || taskRequest.name.get().length() > Task.NAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_TASK_NAME_LENGTH);
             }
