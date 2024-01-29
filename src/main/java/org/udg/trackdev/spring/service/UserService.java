@@ -155,7 +155,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
         if(enabled != null && modifier.isUserType(UserType.ADMIN)) enabled.ifPresent(user::setEnabled);
-        if(!githubToken.isEmpty()) {
+        if(githubToken != null && !githubToken.isEmpty()) {
             githubToken.ifPresent(user::setGithubToken);
             ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
             if(githubInfo.getStatusCode().is2xxSuccessful()) {
