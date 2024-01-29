@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.Subject;
 import org.udg.trackdev.spring.entity.User;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 /*
  * Centralized service to control if current principal
@@ -19,7 +20,6 @@ import org.udg.trackdev.spring.entity.User;
  */
 @Component
 public class AccessChecker {
-    private final String defaultNoAccessMessage = "User does not have access to this resource";
 
     @Autowired
     UserService userService;
@@ -29,13 +29,13 @@ public class AccessChecker {
     public void checkCanCreateSubject(User user) {
         boolean isProfessor = user.isUserType(UserType.ADMIN);
         if(!isProfessor) {
-            throw new ServiceException("User does not have rights to create subjects");
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
         }
     }
 
     public void checkCanManageSubject(Subject subject, String userId) {
         if(!isSubjectOwner(subject, userId)) {
-            throw new ServiceException("User cannot manage this subject");
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
         }
     }
 
@@ -43,7 +43,7 @@ public class AccessChecker {
         if(isSubjectOwner(subject, userId)) {
             return;
         }
-        throw new ServiceException(defaultNoAccessMessage);
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
     // COURSES
@@ -56,16 +56,9 @@ public class AccessChecker {
         if(isSubjectOwner(course.getSubject(), userId)) {
             return;
         }
-        throw new ServiceException(defaultNoAccessMessage);
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
-    /**
-    public void checkCanViewCourseAllMembers(Course course, String userId) {
-        if(!isSubjectOwner(course.getSubject(), userId)) {
-            throw new ServiceException(defaultNoAccessMessage);
-        }
-    }
-     **/
 
     public boolean canViewCourseAllProjects(Course course, String userId) {
         if(isSubjectOwner(course.getSubject(), userId)) {
@@ -91,14 +84,14 @@ public class AccessChecker {
         if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
-        throw new ServiceException(defaultNoAccessMessage);
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
     public void checkCanViewAllTasks(String userId) {
         if(userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
-        throw new ServiceException("User cannot see all tasks");
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
     public boolean checkCanViewAllProjects(String userId) {

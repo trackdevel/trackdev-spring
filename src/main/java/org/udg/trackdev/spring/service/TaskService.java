@@ -8,6 +8,7 @@ import org.udg.trackdev.spring.entity.*;
 import org.udg.trackdev.spring.entity.taskchanges.*;
 import org.udg.trackdev.spring.model.MergePatchTask;
 import org.udg.trackdev.spring.repository.TaskRepository;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,6 +60,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         subtask.setProject(parentTask.getProject());
         subtask.setType(TaskType.TASK);
         subtask.setParentTask(parentTask);
+        subtask.setStatus(TaskStatus.DEFINED);
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
 
@@ -75,7 +77,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.name != null) {
             String oldName = task.getName();
             String name = editTask.name.orElseThrow(
-                    () -> new ServiceException("Not possible to set name to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             task.setName(name);
             changes.add(new TaskNameChange(user.getEmail(), task.getId(), oldName, name));
         }
@@ -87,7 +89,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if (editTask.reporter.isPresent()) {
                 reporterUser = userService.getByEmail(editTask.reporter.get());
                 if (!task.getProject().isMember(reporterUser)) {
-                    throw new ServiceException("Assignee is not in the list of possible assignees");
+                    throw new ServiceException(ErrorConstants.USER_NOT_PRJ_MEMBER);
                 }
                 task.setReporter(reporterUser);
             }
@@ -98,7 +100,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if(editTask.assignee.isPresent()) {
                 assigneeUser = userService.getByEmail(editTask.assignee.get());
                 if(!task.getProject().isMember(assigneeUser)) {
-                    throw new ServiceException("Assignee is not in the list of possible assignees");
+                    throw new ServiceException(ErrorConstants.USER_NOT_PRJ_MEMBER);
                 }
                 task.setAssignee(assigneeUser);
             } else {
@@ -114,14 +116,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         if(editTask.status != null) {
             TaskStatus status = editTask.status.orElseThrow(
-                    () -> new ServiceException("Not possible to set status to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             TaskStatus oldStatus = task.getStatus();
             task.setStatus(status);
             changes.add(new TaskStatusChange(user.getEmail(), task.getId(), oldStatus.toString(),  status.toString()));
         }
         if(editTask.rank != null) {
             Integer newRank = editTask.rank.orElseThrow(
-                    () -> new ServiceException("Not possible to set rank to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             Integer currentRank = task.getRank();
             if(!Objects.equals(newRank, currentRank)) {
                 //Collection<TaskChange> otherChanges = updateOtherTasksRank(user, newRank, currentRank);
@@ -132,7 +134,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         if(editTask.activeSprints != null){
             Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
-                    () -> new ServiceException("Not possible to set activeSprints to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
             Collection<Sprint> sprints = sprintService.getSpritnsByIds(sprintsIds);
             String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
@@ -143,12 +145,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         if (editTask.comment != null) {
             Comment comment = editTask.comment.orElseThrow(
-                    () -> new ServiceException("Not possible to set discussion to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             task.addComment(commentService.addComment(comment.getContent(), userService.get(userId), task));
         }
         if (editTask.pointsReview != null) {
             PointsReview pointsReview = editTask.pointsReview.orElseThrow(
-                    () -> new ServiceException("Not possible to set pointsReview to null"));
+                    () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             pointsReviewService.addPointsReview(pointsReview.getPoints(), pointsReview.getComment(), userService.get(userId), task);
         }
         repo.save(task);
@@ -167,7 +169,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
         task.setActiveSprints(new ArrayList<>());
         if (task.getParentTask() == null){
-            repo.deleteAll(task.getChildTasks());
+            Collection<Task> removeTask = task.getChildTasks();
+            removeTask.stream().forEach(childTask -> childTask.setParentTask(null));
+            removeTask.stream().forEach(childTask -> childTask.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(childTask)));
+            repo.deleteAll(removeTask);
         }
         repo.delete(task);
     }

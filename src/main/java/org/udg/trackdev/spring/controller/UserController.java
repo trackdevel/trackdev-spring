@@ -5,12 +5,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.User;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.UserService;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
@@ -20,6 +24,7 @@ import javax.validation.constraints.Size;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 // This class is used to manage users and sign up
 @SecurityRequirement(name = "bearerAuth")
@@ -67,17 +72,24 @@ public class UserController extends BaseController {
     @JsonView({EntityLevelViews.UserWithoutProjectMembers.class})
     public List<User> getAll(Principal principal) {
         if (!accessChecker.isUserAdmin(userService.get(principal.getName()))){
-            throw new SecurityException("Only admins can list all users");
+            throw new SecurityException(ErrorConstants.EMPTY);
         }
         return userService.findAll();
     }
 
     @Operation(summary = "Register user", description = "Register user, only admins can do this")
     @PostMapping(path = "/register")
-    public ResponseEntity<Void> register(Principal principal, @Valid @RequestBody RegisterU ru) {
+    public ResponseEntity<Void> register(Principal principal, @Valid @RequestBody RegisterU ru,
+                                         BindingResult result) {
         checkLoggedIn(principal);
         if (!accessChecker.isUserAdmin(userService.get(principal.getName()))) {
-            throw new SecurityException("Only admins can register users");
+            throw new SecurityException(ErrorConstants.UNAUTHORIZED);
+        }
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ControllerException(String.join(". ", errors));
         }
         userService.register(ru.username, ru.email);
         return okNoContent();
@@ -88,10 +100,18 @@ public class UserController extends BaseController {
     @JsonView({EntityLevelViews.UserWithGithubToken.class})
     public User editMyUser(Principal principal,
                          @Valid @RequestBody EditU userRequest) {
+        if (userRequest.username != null){
+            if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
+            }
+            if (!userRequest.username.get().matches("^[a-zA-ZÀ-ÖØ-öø-ÿ ]+$")) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_FORMAT);
+            }
+        }
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         return userService.editMyUser(user, user, userRequest.username, userRequest.color,
-                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
+                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled);
     }
 
     @Operation(summary = "Edit user", description = "Edit user, only admins can do this")
@@ -100,15 +120,23 @@ public class UserController extends BaseController {
     public User editUser(Principal principal,
                             @Valid @RequestBody EditU userRequest,
                             @PathVariable("id") String id) {
+        if (userRequest.username != null){
+            if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
+            }
+            if (!userRequest.username.get().matches("^[a-zA-ZÀ-ÖØ-öø-ÿ ]+$")) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_FORMAT);
+            }
+        }
         String userId = super.getUserId(principal);
         User modifier = userService.get(userId);
         if (!accessChecker.isUserAdmin(modifier)){
-            throw new SecurityException("You are not authorized");
+            throw new SecurityException(ErrorConstants.UNAUTHORIZED);
         }
         else {
             User user = userService.get(id);
             return userService.editMyUser(modifier, user, userRequest.username, userRequest.color,
-                    userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken);
+                    userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled);
         }
     }
 
@@ -120,19 +148,30 @@ public class UserController extends BaseController {
         if (accessChecker.isUserAdmin(user)) {
             return okNoContent();
         } else {
-            throw new SecurityException("You are not admin");
+            throw new SecurityException(ErrorConstants.EMPTY);
         }
     }
 
     static class RegisterU {
         @NotBlank
-        @Size(min = 4, max = User.USERNAME_LENGTH)
-        @Pattern(regexp = "^[a-zA-Z ]+$")
+        @Size(
+                min = User.MIN_USERNAME_LENGTH,
+                max = User.USERNAME_LENGTH,
+                message = ErrorConstants.INVALID_USERNAME_SIZE
+        )
+        @Pattern(
+                regexp = "^[a-zA-ZÀ-ÖØ-öø-ÿ ]+$",
+                message = ErrorConstants.INVALID_USERNAME_FORMAT
+        )
         public String username;
 
         @NotBlank
-        @Email
-        @Size(max = User.EMAIL_LENGTH)
+        @Email(message = ErrorConstants.INVALID_MAIL_FORMAT)
+        @Size(
+                min = User.MIN_EMAIL_LENGHT,
+                max = User.EMAIL_LENGTH,
+                message = ErrorConstants.INVALID_MAIL_SIZE
+        )
         public String email;
 
     }
@@ -148,6 +187,8 @@ public class UserController extends BaseController {
         public Optional<Boolean> changePassword;
 
         public Optional<String> githubToken;
+
+        public Optional<Boolean> enabled;
     }
 
 }

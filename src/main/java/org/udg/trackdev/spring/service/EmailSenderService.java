@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Service
 public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
 
-    private static final String LINK_RECOVERY = "http://localhost:3000/auth/password";
+    private static final String LINK_RECOVERY = "http://localhost:3000/auth/password?email=";
 
     private final JavaMailSender javaMailSender;
 
@@ -55,8 +55,8 @@ public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
         helper.setText(
                 String.format("Hola!<br><br>Has demanat recuperar la teva contrasenya de <b>TrackDev</b>. Si no has estat tu, ignora aquest missatge.<br><br>" +
                         "Si has estat tu, pots restaurar la teva contrasenya introduint el següent codi a la pàgina de recuperació de contrasenya<br>" +
-                        "Codi de recuperació: <b>%s</b><br>Accedeix al següent <a href=%s>link</a><br><br>" +
-                        "Si us plau, no responguis aquest missatge, és un enviament automàtic.<br><br><b>Trackdev.</b>", tempCode,LINK_RECOVERY),
+                        "Codi de recuperació: <b>%s</b><br>Accedeix al següent <a href=%s%s>link</a><br><br>" +
+                        "Si us plau, no responguis aquest missatge, és un enviament automàtic.<br><br><b>Trackdev.</b>", tempCode,LINK_RECOVERY,email),
                 true
         );
         javaMailSender.send(message);

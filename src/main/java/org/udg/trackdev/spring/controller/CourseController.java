@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.udg.trackdev.spring.configuration.UserType;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.Course;
 import org.udg.trackdev.spring.entity.Project;
 import org.udg.trackdev.spring.entity.User;
@@ -17,6 +19,7 @@ import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.CourseService;
 import org.udg.trackdev.spring.service.ProjectService;
 import org.udg.trackdev.spring.service.UserService;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -55,7 +58,7 @@ public class CourseController extends BaseController {
         if (user.isUserType(UserType.ADMIN))
             return service.getAll();
         else
-            throw new IllegalArgumentException("Unknown user role: " + user.getRoles());
+            throw new IllegalArgumentException(ErrorConstants.UNKNOWN_ROLE + user.getRoles());
     }
 
     @Operation(summary = "Get specific course", description = "Get specific course")
@@ -73,7 +76,11 @@ public class CourseController extends BaseController {
     @JsonView(EntityLevelViews.CourseComplete.class)
     public Course editCourse(Principal principal,
                              @PathVariable("courseId") Long courseId,
-                             @Valid @RequestBody EditCourse courseRequest) {
+                             @Valid @RequestBody EditCourse courseRequest,
+                             BindingResult result) {
+        if (result.hasErrors()) {
+            throw new ControllerException(ErrorConstants.INVALID_COURSE_START_YEAR);
+        }
         String userId = super.getUserId(principal);
         return service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId,
                 courseRequest.githubOrganization, userId);
@@ -110,7 +117,11 @@ public class CourseController extends BaseController {
     @PostMapping(path = "/{courseId}/projects")
     public IdObjectLong createProject(Principal principal,
                                       @PathVariable("courseId") Long courseId,
-                                      @Valid @RequestBody NewProject projectRequest) {
+                                      @Valid @RequestBody NewProject projectRequest,
+                                      BindingResult result) {
+        if (result.hasErrors()) {
+            throw new ControllerException(ErrorConstants.INVALID_PRJ_NAME_LENGTH);
+        }
         String userId = super.getUserId(principal);
         Project createdProject = projectService.createProject(projectRequest.name, projectRequest.members, courseId, userId);
         return new IdObjectLong(createdProject.getId());
@@ -119,14 +130,17 @@ public class CourseController extends BaseController {
 
     static class NewProject {
         @NotBlank
-        @Size(max = Project.NAME_LENGTH)
+        @Size(
+                min = Project.MIN_NAME_LENGTH,
+                max = Project.NAME_LENGTH
+        )
         public String name;
         public Collection<String> members;
     }
 
     static class EditCourse {
-        @Min(value = 2020)
-        @Max(value = 3000)
+        @Min(value = Course.MIN_START_YEAR)
+        @Max(value = Course.MAX_START_YEAR)
         public Integer startYear;
         public Long subjectId;
         public String githubOrganization;

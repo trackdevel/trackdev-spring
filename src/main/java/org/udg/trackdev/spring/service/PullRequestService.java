@@ -23,7 +23,6 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     @Transactional
     public PullRequest create(String prNodeId, String url, Long taskId) {
         PullRequest pr = new PullRequest(url, prNodeId);
-        // TODO: remove the if, taskId never should be null
         if (taskId != null) {
             Task task = taskService.get(taskId);
             pr.setTask(task);

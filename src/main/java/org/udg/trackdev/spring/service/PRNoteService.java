@@ -14,15 +14,4 @@ public class PRNoteService extends BaseServiceLong<PRNote, PRNoteRepository> {
     @Autowired
     UserService userService;
 
-    /**@Transactional
-    public PRNote create(String prNodeId, String subjectId, String authorId, String url, Integer level, String type) {
-        PullRequest pr = prService.getByNodeId(prNodeId);
-        User subject = userService.getByGithubName(subjectId);
-        User author = userService.getByGithubName(authorId);
-        PRNote prNote = new PRNote(pr, subject, author, url, level, type);
-        // pr.setTask(task);
-        this.repo.save(prNote);
-        return prNote;
-    }**/
-
 }

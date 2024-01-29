@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
+import org.udg.trackdev.spring.controller.exceptions.ControllerException;
 import org.udg.trackdev.spring.entity.Sprint;
 import org.udg.trackdev.spring.entity.sprintchanges.SprintChange;
 import org.udg.trackdev.spring.entity.views.EntityLevelViews;
@@ -14,6 +15,7 @@ import org.udg.trackdev.spring.model.MergePatchSprint;
 import org.udg.trackdev.spring.service.AccessChecker;
 import org.udg.trackdev.spring.service.SprintChangeService;
 import org.udg.trackdev.spring.service.SprintService;
+import org.udg.trackdev.spring.utils.ErrorConstants;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -55,6 +57,11 @@ public class SprintController extends CrudController<Sprint, SprintService> {
     public Sprint editSprint(Principal principal,
                          @PathVariable(name = "id") Long id,
                          @Valid @RequestBody MergePatchSprint sprintRequest) {
+        if (sprintRequest.name != null){
+            if (sprintRequest.name.get().isEmpty() || sprintRequest.name.get().length() > Sprint.NAME_LENGTH) {
+                throw new ControllerException(ErrorConstants.INVALID_SPRINT_NAME_LENGTH);
+            }
+        }
         String userId = super.getUserId(principal);
         return service.editSprint(id, sprintRequest, userId);
     }
