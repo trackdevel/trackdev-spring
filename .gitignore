@@ -3,3 +3,7 @@
 .gradle/
 build/
 out/
+.env
+.DS_Store
+bin
+.vscode/
