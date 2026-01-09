@@ -1,0 +1,90 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+      # ddl-auto: update
+      # database-platform: org.hibernate.dialect.MariaDBDialect
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    # show-sql: true
+  flyway:
+    # Initialize schema history table for existing database
+    baseline-on-migrate: true
+    # Set baseline version
+    baseline-version: 0
+    # Enable Flyway
+    enabled: true
+  mvc:
+    # Disable RFC 7807 Problem Details format to use custom error responses
+    problemdetails:
+      enabled: false
+  main:
+    # Allow bean overriding for locale resolver customization
+    allow-bean-definition-overriding: true
+  web:
+    resources:
+      add-mappings: false
+
+logging:
+  level:
+    "[org.springframework.web.filter.CommonsRequestLoggingFilter]": DEBUG
+    root: INFO
+
+# HTTP server configuration (SSL handled by nginx reverse proxy)
+server:
+  port: 8080
+  ssl:
+    enabled: false
+  servlet:
+    session:
+      cookie:
+        # Session cookie settings (secure=false since nginx handles SSL termination)
+        http-only: true
+        secure: false
+  error:
+    # Disable default error page
+    whitelabel:
+      enabled: false
+    # Include exception details in error responses
+    include-message: always
+    include-exception: false
+    include-stacktrace: never
+
+# Mail configuration - credentials from environment variables
+mail:
+  host: ${MAIL_HOST:smtp.gmail.com}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME:}
+  password: ${MAIL_PASSWORD:}
+
+trackdev:
+  cors:
+    allowed-origin: http://localhost:3000
+  auth:
+    # Token lifetime in minutes (1 hour) - sliding session extends this on each API call
+    token-lifetime-in-minutes: ${JWT_TOKEN_LIFETIME:60}
+    # Secret key - MUST be set via environment variable in production
+    secret-key-base: ${JWT_SECRET_KEY:}
+
+# GitHub webhook configuration
+app:
+  webhook:
+    # Base URL where the API is publicly accessible (for webhook callbacks)
+    # For development with ngrok: run "ngrok http 8080" and paste the URL below
+    # For production: set WEBHOOK_BASE_URL environment variable
+    url: ${WEBHOOK_BASE_URL:https://unisolationist-ronan-ravishingly.ngrok-free.dev}
+    # Global webhook secret (deprecated - per-repo secrets are now generated automatically)
+    secret: ${WEBHOOK_SECRET:}
+
+---
+# Profile: mysqldb
+spring:
+  config:
+    activate:
+      on-profile: mysqldb
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect

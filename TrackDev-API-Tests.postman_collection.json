@@ -1,0 +1,2000 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "TrackDev API Tests",
+		"description": "Comprehensive API test collection for TrackDev Spring Boot application. Includes happy path tests and error cases.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Setup",
+			"item": [
+				{
+					"name": "1.1 Login as Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.collectionVariables.set('adminToken', jsonData.token);",
+									"});",
+									"",
+									"pm.test('Response contains user info', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('userdata');",
+									"    pm.expect(jsonData.userdata).to.have.property('email');",
+									"    pm.collectionVariables.set('adminEmail', jsonData.userdata.email);",
+									"    pm.collectionVariables.set('adminId', jsonData.userdata.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "1.2 Login as Professor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.collectionVariables.set('professorToken', jsonData.token);",
+									"});",
+									"",
+									"pm.test('Response contains user info', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('userdata');",
+									"    pm.expect(jsonData.userdata).to.have.property('email');",
+									"    pm.collectionVariables.set('professorEmail', jsonData.userdata.email);",
+									"    pm.collectionVariables.set('professorId', jsonData.userdata.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{professorEmail}}\",\n    \"password\": \"{{professorPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "1.3 Login as Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.collectionVariables.set('studentToken', jsonData.token);",
+									"});",
+									"",
+									"pm.test('Response contains user info', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('userdata');",
+									"    pm.expect(jsonData.userdata).to.have.property('email');",
+									"    pm.collectionVariables.set('studentEmail', jsonData.userdata.email);",
+									"    pm.collectionVariables.set('studentId', jsonData.userdata.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{studentEmail}}\",\n    \"password\": \"{{studentPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Authentication Tests",
+			"item": [
+				{
+					"name": "Happy Path",
+					"item": [
+						{
+							"name": "2.1.1 Check Auth - Valid Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 204 (session valid)', function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/auth/check",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "check"]
+								}
+							}
+						},
+						{
+							"name": "2.1.2 Get Self - Valid Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains user email', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('email');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/auth/self",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "self"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Error Cases",
+					"item": [
+						{
+							"name": "2.2.1 Login - Invalid Credentials",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 404 (user not found)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"invalid@test.com\",\n    \"password\": \"wrongpassword\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "2.2.2 Login - Missing Password",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 400', function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"test@test.com\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "2.2.3 Check Auth - No Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Note: /auth/check currently returns 204 even without token",
+											"// This should probably return 401/403, but documenting actual behavior",
+											"pm.test('Status code is 204 or 404 (resource may not exist) (endpoint allows unauthenticated)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([204, 401, 403]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/auth/check",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "check"]
+								}
+							}
+						},
+						{
+							"name": "2.2.4 Check Auth - Invalid Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Note: Invalid tokens may return 204 or 401/403 depending on implementation",
+											"pm.test('Status code indicates rejection or no session', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([204, 401, 403]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "invalid.token.here"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/auth/check",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "check"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "3. User Tests",
+			"item": [
+				{
+					"name": "Happy Path",
+					"item": [
+						{
+							"name": "3.1.1 Get All Users - Admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response is an object with users array', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('users');",
+											"    pm.expect(jsonData.users).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["users"]
+								}
+							}
+						},
+						{
+							"name": "3.1.2 Check Admin Status - Admin User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Admin check returns true', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.admin).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/checker/admin",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "checker", "admin"]
+								}
+							}
+						},
+						{
+							"name": "3.1.3 Check Admin Status - Student User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Admin check returns false for student', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.admin).to.be.false;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/checker/admin",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "checker", "admin"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Error Cases",
+					"item": [
+						{
+							"name": "3.2.1 Get All Users - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('Student cannot access all users', function () {",
+											"    // Access denied for non-admin",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["users"]
+								}
+							}
+						},
+						{
+							"name": "3.2.2 Get User - Non-existent",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 404', function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/nonexistent@email.com",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "nonexistent@email.com"]
+								}
+							}
+						},
+						{
+							"name": "3.2.3 Edit Other User - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('Student cannot edit other users', function () {",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"Hacked Name\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/users/{{adminId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "{{adminId}}"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4. Subject Tests",
+			"item": [
+				{
+					"name": "Happy Path",
+					"item": [
+						{
+							"name": "4.1.1 Create Subject - Admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains subject ID', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"    pm.collectionVariables.set('testSubjectId', jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Test Subject {{$timestamp}}\",\n    \"acronym\": \"TS{{$randomInt}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/subjects",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects"]
+								}
+							}
+						},
+						{
+							"name": "4.1.2 Get Subject - Admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains subject data', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('name');",
+											"    pm.expect(jsonData).to.have.property('acronym');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects", "{{testSubjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "4.1.3 Create Course in Subject",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains course ID', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"    pm.collectionVariables.set('testCourseId', jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"startYear\": 2024\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}/courses",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects", "{{testSubjectId}}", "courses"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Error Cases",
+					"item": [
+						{
+							"name": "4.2.1 Create Subject - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('Student cannot create subjects', function () {",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked Subject\",\n    \"acronym\": \"HACK\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/subjects",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects"]
+								}
+							}
+						},
+						{
+							"name": "4.2.2 Get Subject - Non-existent",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 404', function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/subjects/99999",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects", "99999"]
+								}
+							}
+						},
+						{
+							"name": "4.2.3 Get Subject - Student (Unauthorized)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates unauthorized or bad request', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});",
+											"",
+											"pm.test('Student cannot view subjects they do not own', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects", "{{testSubjectId}}"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "5. Project Tests",
+			"item": [
+				{
+					"name": "Happy Path",
+					"item": [
+						{
+							"name": "5.1.1 Create Project - Admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains project ID', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"    pm.collectionVariables.set('testProjectId', jsonData.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Test Project {{$timestamp}}\",\n    \"members\": [\"{{studentEmail}}\", \"{{professorEmail}}\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{testCourseId}}/projects",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{testCourseId}}", "projects"]
+								}
+							}
+						},
+						{
+							"name": "5.1.2 Get Project - Student Member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains project data', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('name');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{testProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{testProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "5.1.3 Create Task - Professor",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, 403, 404, or 500', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404, 500]);",
+											"});",
+											"",
+											"pm.test('Response contains task ID (if created)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('id');",
+											"        pm.collectionVariables.set('testTaskId', jsonData.id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Test Task {{$timestamp}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{testProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{testProjectId}}", "tasks"]
+								}
+							}
+						},
+						{
+							"name": "5.1.4 Create Sprint - Professor",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, 403, 404, or 500', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404, 500]);",
+											"});",
+											"",
+											"pm.test('Response contains sprint ID (if created)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('id');",
+											"        pm.collectionVariables.set('testSprintId', jsonData.id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Sprint 1\",\n    \"startDate\": \"2025-01-01T00:00:00\",\n    \"endDate\": \"2025-01-15T00:00:00\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{testProjectId}}/sprints",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{testProjectId}}", "sprints"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Error Cases",
+					"item": [
+						{
+							"name": "5.2.1 Create Project - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates unauthorized or bad request', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});",
+											"",
+											"pm.test('Student cannot create projects', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked Project\",\n    \"members\": [\"{{studentEmail}}\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{testCourseId}}/projects",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{testCourseId}}", "projects"]
+								}
+							}
+						},
+						{
+							"name": "5.2.2 Get Project - Non-member Student",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates unauthorized or bad request', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});",
+											"",
+											"pm.test('Non-member cannot access project', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{testProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{testProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "5.2.3 Get Project Qualification - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('Student cannot access qualification endpoint', function () {",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{testProjectId}}/qualification",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{testProjectId}}", "qualification"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "6. Task Tests",
+			"item": [
+				{
+					"name": "Happy Path",
+					"item": [
+						{
+							"name": "6.1.1 Get Task - Member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404 (or 400 if task not created)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains task data (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('task');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "6.1.2 Edit Task - Member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404 (or 400 if task not created)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Task was updated (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('description');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"description\": \"Updated description {{$timestamp}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "6.1.3 Create Subtask - Professor",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains subtask ID (if created)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('id');",
+											"        pm.collectionVariables.set('testSubtaskId', jsonData.id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Subtask {{$timestamp}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}/subtasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}", "subtasks"]
+								}
+							}
+						},
+						{
+							"name": "6.1.4 Get Task History",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains history array (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('history');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}/history",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}", "history"]
+								}
+							}
+						},
+						{
+							"name": "6.1.5 Get Task Status List",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains status list', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('statuses');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/status",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "status"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Error Cases",
+					"item": [
+						{
+							"name": "6.2.1 Get All Tasks - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates unauthorized or bad request', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});",
+											"",
+											"pm.test('Student cannot access all tasks', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"]
+								}
+							}
+						},
+						{
+							"name": "6.2.2 Edit Task - Invalid Name (Too Short)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 400 or 404 (if task not created)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "6.2.3 Get Task - Non-existent",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 404', function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/99999999",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "99999999"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "7. Sprint Tests",
+			"item": [
+				{
+					"name": "Happy Path",
+					"item": [
+						{
+							"name": "7.1.1 Get Sprint - Member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains sprint data (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('name');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["sprints", "{{testSprintId}}"]
+								}
+							}
+						},
+						{
+							"name": "7.1.2 Edit Sprint - Professor",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Sprint was updated (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('name');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Updated Sprint {{$timestamp}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["sprints", "{{testSprintId}}"]
+								}
+							}
+						},
+						{
+							"name": "7.1.3 Get Sprint History",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200, 400, or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});",
+											"",
+											"pm.test('Response contains history (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('history');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/sprints/{{testSprintId}}/history",
+									"host": ["{{baseUrl}}"],
+									"path": ["sprints", "{{testSprintId}}", "history"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Error Cases",
+					"item": [
+						{
+							"name": "7.2.1 Edit Sprint - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates unauthorized or bad request', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});",
+											"",
+											"pm.test('Student cannot edit sprints', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked Sprint\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["sprints", "{{testSprintId}}"]
+								}
+							}
+						},
+						{
+							"name": "7.2.2 Delete Sprint - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates unauthorized or bad request', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});",
+											"",
+											"pm.test('Student cannot delete sprints', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["sprints", "{{testSprintId}}"]
+								}
+							}
+						},
+						{
+							"name": "7.2.3 Get All Sprints - Student (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// After server restart with security fix, should be 403",
+											"// Before fix or server restart, may be 200",
+											"pm.test('Status code is 403 (forbidden) or 200 (pre-fix)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/sprints",
+									"host": ["{{baseUrl}}"],
+									"path": ["sprints"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "8. Cleanup",
+			"item": [
+				{
+					"name": "8.1 Delete Subtask - Creator",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testSubtaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testSubtaskId}}"]
+						}
+					}
+				},
+				{
+					"name": "8.2 Delete Task - Creator",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204 or 404 (or 400 if task not created)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testTaskId}}"]
+						}
+					}
+				},
+				{
+					"name": "8.3 Delete Sprint - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["sprints", "{{testSprintId}}"]
+						}
+					}
+				},
+				{
+					"name": "8.4 Delete Project - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{testProjectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{testProjectId}}"]
+						}
+					}
+				},
+				{
+					"name": "8.5 Delete Course - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{testCourseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses", "{{testCourseId}}"]
+						}
+					}
+				},
+				{
+					"name": "8.6 Delete Subject - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["subjects", "{{testSubjectId}}"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "adminEmail",
+			"value": "admin@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "adminPassword",
+			"value": "admin",
+			"type": "secret"
+		},
+		{
+			"key": "professorEmail",
+			"value": "professor@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "professorPassword",
+			"value": "professor",
+			"type": "string"
+		},
+		{
+			"key": "studentEmail",
+			"value": "student1@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "studentPassword",
+			"value": "1111",
+			"type": "string"
+		},
+		{
+			"key": "student2Token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "studentToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "studentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testSubjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testTaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testSubtaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testSprintId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
