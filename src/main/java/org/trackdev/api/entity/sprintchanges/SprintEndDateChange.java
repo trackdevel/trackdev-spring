@@ -6,7 +6,7 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import java.util.Date;
 
-import org.trackdev.api.service.Global;
+import org.trackdev.api.configuration.DateFormattingConfiguration;
 
 @Entity
 @DiscriminatorValue(value = SprintEndDateChange.CHANGE_TYPE_NAME)
@@ -27,7 +27,7 @@ public class SprintEndDateChange extends SprintChange {
         return CHANGE_TYPE_NAME;
     }
 
-    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
     public Date getEndDate() {
         return this.endDate;
     }

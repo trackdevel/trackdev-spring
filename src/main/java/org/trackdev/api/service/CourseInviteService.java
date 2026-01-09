@@ -2,6 +2,7 @@ package org.trackdev.api.service;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.configuration.UserType;
@@ -43,7 +44,7 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
     private EmailSenderService emailSenderService;
 
     @Autowired
-    private Global global;
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Create and send invitations for a list of emails.
@@ -140,7 +141,7 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             }
             
             String username = email.split("@")[0];
-            user = new User(username, email, global.getPasswordEncoder().encode(password));
+            user = new User(username, email, passwordEncoder.encode(password));
             user.setChangePassword(false);
             user.setEnabled(true);
             Role studentRole = roleService.get(UserType.STUDENT);

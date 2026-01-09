@@ -9,8 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
+import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.model.ErrorEntity;
-import org.trackdev.api.service.Global;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +61,8 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
             
             cookieManager.removeCookie(request, response, "trackdev_JWT");
 
-            ErrorEntity errorEntityResponse = new ErrorEntity(Global.dateFormat.format(new Date()), HttpStatus.FORBIDDEN.value(), "Security error", e.getMessage());
+            SimpleDateFormat dateFormat = new SimpleDateFormat(DateFormattingConfiguration.SIMPLE_DATE_FORMAT);
+            ErrorEntity errorEntityResponse = new ErrorEntity(dateFormat.format(new Date()), HttpStatus.FORBIDDEN.value(), "Security error", e.getMessage());
 
             response.setStatus(HttpStatus.FORBIDDEN.value());
             PrintWriter out = response.getWriter();

@@ -6,8 +6,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
 
+import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.entity.BaseEntityLong;
-import org.trackdev.api.service.Global;
 
 @MappedSuperclass
 public abstract class EntityLogChange extends BaseEntityLong {
@@ -39,7 +39,7 @@ public abstract class EntityLogChange extends BaseEntityLong {
 
     public Long getEntity() { return this.entityid; }
 
-    @JsonFormat(pattern = Global.SIMPLE_DATE_FORMAT)
+    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
     public LocalDateTime getChangedAt() { return this.changedAt; }
 
     public abstract String getType();

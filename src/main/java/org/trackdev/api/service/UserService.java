@@ -3,6 +3,7 @@ package org.trackdev.api.service;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.configuration.UserType;
@@ -36,7 +37,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     private AccessChecker accessChecker;
 
     @Autowired
-    Global global;
+    private PasswordEncoder passwordEncoder;
     
     public User matchPassword(String email, String password) {
         User user = this.getByEmail(email);
@@ -44,14 +45,14 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if (user == null) throw new ServiceException(ErrorConstants.LOGIN_KO);
         if (!user.getEnabled()) throw new SecurityException(ErrorConstants.USER_DISABLED);
 
-        if (global.getPasswordEncoder().matches(password, user.getPassword()))
+        if (passwordEncoder.matches(password, user.getPassword()))
             return user;
         else
             throw new ServiceException(ErrorConstants.LOGIN_KO);
     }
 
     public boolean matchRecoveryCode(User user, String code) {
-        return global.getPasswordEncoder().matches(code, user.getRecoveryCode());
+        return passwordEncoder.matches(code, user.getRecoveryCode());
     }
 
     @Transactional
@@ -61,7 +62,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
             String tempPassword = RandomStringUtils.randomAlphanumeric(8);
 
-            User user = new User(username, email, global.getPasswordEncoder().encode(tempPassword));
+            User user = new User(username, email, passwordEncoder.encode(tempPassword));
             user.setChangePassword(true);
             user.setEnabled(true);
             user.addRole(roleService.get(UserType.STUDENT));
@@ -146,7 +147,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public void changePassword(User user, String newpassword) {
-        user.setPassword(global.getPasswordEncoder().encode(newpassword));
+        user.setPassword(passwordEncoder.encode(newpassword));
         user.setChangePassword(false);
         repo().save(user);
     }
@@ -159,7 +160,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public void changePasswordWithVerification(String userId, String oldPassword, String newPassword) {
         User user = get(userId);
         matchPassword(user.getEmail(), oldPassword);
-        user.setPassword(global.getPasswordEncoder().encode(newPassword));
+        user.setPassword(passwordEncoder.encode(newPassword));
         user.setChangePassword(false);
         repo().save(user);
     }
@@ -174,7 +175,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if (!matchRecoveryCode(user, code)) {
             throw new ServiceException(ErrorConstants.RECOVERY_CODE_NOT_MATCH);
         }
-        user.setPassword(global.getPasswordEncoder().encode(newPassword));
+        user.setPassword(passwordEncoder.encode(newPassword));
         user.setChangePassword(false);
         user.setRecoveryCode(null);
         repo().save(user);
@@ -225,7 +226,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public String generateRecoveryCode(User user) {
         String code = RandomStringUtils.randomAlphanumeric(8);
-        user.setRecoveryCode(global.getPasswordEncoder().encode(code));
+        user.setRecoveryCode(passwordEncoder.encode(code));
         repo().save(user);
         return code;
     }

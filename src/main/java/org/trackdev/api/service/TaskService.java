@@ -510,9 +510,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         
         // Build specification with filters
         org.springframework.data.jpa.domain.Specification<Task> spec = 
-            org.springframework.data.jpa.domain.Specification.where(
-                (root, query, cb) -> root.get("project").in(accessibleProjects)
-            );
+            (root, query, cb) -> root.get("project").in(accessibleProjects);
         
         if (type != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("type"), type));

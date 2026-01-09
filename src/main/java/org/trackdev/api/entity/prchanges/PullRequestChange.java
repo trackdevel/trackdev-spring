@@ -4,7 +4,8 @@ import org.trackdev.api.entity.BaseEntityLong;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import org.trackdev.api.service.Global;
+import org.trackdev.api.configuration.DateFormattingConfiguration;
+import org.trackdev.api.entity.BaseEntityLong;
 
 import java.time.LocalDateTime;
 
@@ -56,7 +57,7 @@ public abstract class PullRequestChange extends BaseEntityLong {
         return githubUser;
     }
 
-    @JsonFormat(pattern = Global.SIMPLE_DATE_FORMAT)
+    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
     public LocalDateTime getChangedAt() {
         return changedAt;
     }

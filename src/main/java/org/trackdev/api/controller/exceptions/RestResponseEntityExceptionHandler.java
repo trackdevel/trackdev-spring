@@ -35,12 +35,13 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.model.ErrorEntity;
-import org.trackdev.api.service.Global;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 /**
@@ -231,7 +232,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         }
         
         ErrorEntity error = new ErrorEntity(
-                Global.AppDateFormatter.format(ZonedDateTime.now()),
+                DateTimeFormatter.ofPattern(DateFormattingConfiguration.APP_DATE_FORMAT).format(ZonedDateTime.now()),
                 statusCode.value(),
                 httpStatus.getReasonPhrase(),
                 ex.getMessage() != null ? ex.getMessage() : "An error occurred"
@@ -329,7 +330,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         }
         
         ErrorEntity error = new ErrorEntity(
-                Global.AppDateFormatter.format(ZonedDateTime.now()),
+                DateTimeFormatter.ofPattern(DateFormattingConfiguration.APP_DATE_FORMAT).format(ZonedDateTime.now()),
                 status.value(),
                 errorName,
                 message,

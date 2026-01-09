@@ -3,6 +3,7 @@ package org.trackdev.api.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.entity.*;
@@ -58,7 +59,7 @@ public class DemoDataSeeder {
     );
 
     @Autowired
-    Global global;
+    PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserService userService;
@@ -95,7 +96,7 @@ public class DemoDataSeeder {
         User admin = userService.addUserInternal(
             "TrackDev Admin", 
             "admin@trackdev.com", 
-            global.getPasswordEncoder().encode("admin"), 
+            passwordEncoder.encode("admin"), 
             List.of(UserType.ADMIN, UserType.PROFESSOR)
         );
         
@@ -103,7 +104,7 @@ public class DemoDataSeeder {
         User professor = userService.addUserInternal(
             "Professor Demo", 
             "professor@trackdev.com", 
-            global.getPasswordEncoder().encode("professor"), 
+            passwordEncoder.encode("professor"), 
             List.of(UserType.PROFESSOR)
         );
 
@@ -354,7 +355,7 @@ public class DemoDataSeeder {
         int index = 1;
         for (String name : names) {
             String email = "student" + index + "@trackdev.com";
-            String password = global.getPasswordEncoder().encode("student" + index);
+            String password = passwordEncoder.encode("student" + index);
             User student = userService.addUserInternal(name, email, password, List.of(UserType.STUDENT));
             students.add(student);
             index++;
