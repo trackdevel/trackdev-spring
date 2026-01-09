@@ -56,10 +56,8 @@ public class GenericSpecificationsBuilder<U> {
         for (int idx = 1; idx < specs.size(); idx++) {
             result = params.get(idx)
                     .isOrPredicate()
-                    ? Specification.where(result)
-                    .or(specs.get(idx))
-                    : Specification.where(result)
-                    .and(specs.get(idx));
+                    ? result.or(specs.get(idx))
+                    : result.and(specs.get(idx));
         }
 
         return result;
@@ -80,11 +78,9 @@ public class GenericSpecificationsBuilder<U> {
                 Specification<U> operand1 = specStack.pop();
                 Specification<U> operand2 = specStack.pop();
                 if (mayBeOperand.equals(SearchOperation.AND_OPERATOR))
-                    specStack.push(Specification.where(operand1)
-                            .and(operand2));
+                    specStack.push(operand1.and(operand2));
                 else if (mayBeOperand.equals(SearchOperation.OR_OPERATOR))
-                    specStack.push(Specification.where(operand1)
-                            .or(operand2));
+                    specStack.push(operand1.or(operand2));
             }
 
         }

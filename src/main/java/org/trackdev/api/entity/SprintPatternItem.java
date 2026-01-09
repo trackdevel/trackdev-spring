@@ -3,8 +3,8 @@ package org.trackdev.api.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
+import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.serializer.JsonDateSerializer;
-import org.trackdev.api.service.Global;
 
 import jakarta.persistence.*;
 import java.util.Date;
@@ -59,7 +59,7 @@ public class SprintPatternItem extends BaseEntityLong {
         this.name = name;
     }
 
-    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
     public Date getStartDate() {
         return startDate;
     }
@@ -68,7 +68,7 @@ public class SprintPatternItem extends BaseEntityLong {
         this.startDate = startDate;
     }
 
-    @JsonFormat(pattern = Global.SIMPLE_LOCALDATE_FORMAT)
+    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
     public Date getEndDate() {
         return endDate;
     }
