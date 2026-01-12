@@ -25,6 +25,9 @@ public class Course extends BaseEntityLong {
 
     private String githubOrganization;
 
+    @Column(length = 5)
+    private String language = "en"; // Default language: English
+
     @ManyToOne
     private Subject subject;
 
@@ -62,6 +65,10 @@ public class Course extends BaseEntityLong {
     public String getGithubOrganization() { return this.githubOrganization; }
 
     public void setGithubOrganization(String githubOrganization) { this.githubOrganization = githubOrganization; }
+
+    public String getLanguage() { return this.language; }
+
+    public void setLanguage(String language) { this.language = language; }
 
     public User getOwner() { return this.owner; }
 

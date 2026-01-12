@@ -151,7 +151,7 @@ public class CourseController extends BaseController {
         }
         String userId = super.getUserId(principal);
         return courseMapper.toCompleteDTO(service.editCourse(courseId, courseRequest.startYear, courseRequest.subjectId,
-                courseRequest.githubOrganization, userId));
+                courseRequest.githubOrganization, courseRequest.language, userId));
     }
 
     @Operation(summary = "Delete specific course", description = "Delete specific course")
@@ -211,5 +211,6 @@ public class CourseController extends BaseController {
         public Integer startYear;
         public Long subjectId;
         public String githubOrganization;
+        public String language;
     }
 }

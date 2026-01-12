@@ -67,13 +67,16 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
     }
 
     @Transactional
-    public Course editCourse(Long courseId, Integer startYear, Long subjectId, String organization, String userId){
+    public Course editCourse(Long courseId, Integer startYear, Long subjectId, String organization, String language, String userId){
         Course course = get(courseId);
         accessChecker.checkCanManageCourse(course, userId);
         course.setStartYear(startYear);
         Subject subject = subjectService.getSubject(subjectId);
         course.setSubject(subject);
         course.setGithubOrganization(organization);
+        if (language != null) {
+            course.setLanguage(language);
+        }
         repo.save(course);
         return course;
     }

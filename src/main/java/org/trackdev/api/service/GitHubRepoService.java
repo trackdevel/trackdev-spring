@@ -38,10 +38,10 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${app.webhook.url:}")
+    @Value("${trackdev.webhook.url:}")
     private String webhookBaseUrl;
 
-    @Value("${app.webhook.secret:}")
+    @Value("${trackdev.webhook.secret:}")
     private String webhookSecret;
 
     public GitHubRepoService() {
@@ -239,13 +239,13 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
 
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
-                throw new ServiceException(ErrorConstants.GITHUB_REPO_ACCESS_DENIED);
+                throw new ServiceException(ErrorConstants.GITHUB_REPO_ACCESS_DENIED, e);
             }
-            throw new ServiceException(ErrorConstants.GITHUB_WEBHOOK_CREATE_FAILED);
+            throw new ServiceException(ErrorConstants.GITHUB_WEBHOOK_CREATE_FAILED, e);
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException(ErrorConstants.GITHUB_WEBHOOK_CREATE_FAILED);
+            throw new ServiceException(ErrorConstants.GITHUB_WEBHOOK_CREATE_FAILED, e);
         }
     }
 
@@ -364,13 +364,13 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
 
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                throw new ServiceException(ErrorConstants.GITHUB_TOKEN_INVALID);
+                throw new ServiceException(ErrorConstants.GITHUB_TOKEN_INVALID, e);
             } else if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
-                throw new ServiceException(ErrorConstants.GITHUB_REPO_ACCESS_DENIED);
+                throw new ServiceException(ErrorConstants.GITHUB_REPO_ACCESS_DENIED, e);
             } else if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new ServiceException(ErrorConstants.GITHUB_REPO_NOT_FOUND);
+                throw new ServiceException(ErrorConstants.GITHUB_REPO_NOT_FOUND, e);
             }
-            throw new ServiceException(ErrorConstants.API_GITHUB_KO);
+            throw new ServiceException(ErrorConstants.API_GITHUB_KO, e);
         }
     }
 
@@ -403,7 +403,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
                 gitHubRepo.setWebhookActive(false);
                 repo.save(gitHubRepo);
             } else {
-                throw new ServiceException(ErrorConstants.GITHUB_WEBHOOK_DELETE_FAILED);
+                throw new ServiceException(ErrorConstants.GITHUB_WEBHOOK_DELETE_FAILED, e);
             }
         }
     }
@@ -428,7 +428,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
             return objectMapper.readValue(response.getBody(), Map.class);
 
         } catch (Exception e) {
-            throw new ServiceException(ErrorConstants.API_GITHUB_KO);
+            throw new ServiceException(ErrorConstants.API_GITHUB_KO, e);
         }
     }
 
@@ -450,7 +450,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
             return objectMapper.readValue(response.getBody(), List.class);
 
         } catch (Exception e) {
-            throw new ServiceException(ErrorConstants.API_GITHUB_KO);
+            throw new ServiceException(ErrorConstants.API_GITHUB_KO, e);
         }
     }
 
@@ -471,7 +471,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
             return objectMapper.readValue(response.getBody(), List.class);
 
         } catch (Exception e) {
-            throw new ServiceException(ErrorConstants.API_GITHUB_KO);
+            throw new ServiceException(ErrorConstants.API_GITHUB_KO, e);
         }
     }
 }

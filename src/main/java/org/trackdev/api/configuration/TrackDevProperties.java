@@ -7,27 +7,15 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "trackdev")
 public class TrackDevProperties {
 
-    private final Cors cors = new Cors();
     private final Auth auth = new Auth();
-
-    public Cors getCors() {
-        return cors;
-    }
+    private final Admin admin = new Admin();
 
     public Auth getAuth() {
         return auth;
     }
 
-    public static class Cors {
-        private String allowedOrigin;
-
-        public String getAllowedOrigin() {
-            return allowedOrigin;
-        }
-
-        public void setAllowedOrigin(String allowedOrigin) {
-            this.allowedOrigin = allowedOrigin;
-        }
+    public Admin getAdmin() {
+        return admin;
     }
 
     public static class Auth {
@@ -48,6 +36,36 @@ public class TrackDevProperties {
 
         public void setSecretKeyBase(String secretKeyBase) {
             this.secretKeyBase = secretKeyBase;
+        }
+    }
+
+    public static class Admin {
+        private String username;
+        private String email;
+        private String password;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 }

@@ -22,7 +22,6 @@ import org.trackdev.api.service.SecurityAuditLogger;
 import org.trackdev.api.service.UserService;
 import org.trackdev.api.utils.ErrorConstants;
 
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -167,13 +166,13 @@ public class AuthController extends BaseController {
 
     @Operation(summary = "Get recovery code", description = "Get recovery code for user")
     @PostMapping(path="/recovery")
-    public ResponseEntity<Void> recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) throws MessagingException {
+    public ResponseEntity<Void> recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) {
         User user = userService.getByEmail(userBody.email);
         if(user == null) {
             throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
         }
         String tempCode = userService.generateRecoveryCode(user);
-        emailSenderService.sendRecoveryEmail(userBody.email, tempCode);
+        emailSenderService.sendRecoveryEmail(userBody.email, tempCode, "en");
         return okNoContent();
     }
 

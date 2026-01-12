@@ -69,5 +69,13 @@ public final class ErrorConstants {
     // Project errors
     public static final String CANNOT_GENERATE_UNIQUE_SLUG = "Unable to generate a unique project ID. Please try again.";
     
+    // User deletion errors
+    public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "Cannot delete user who owns subjects";
+    public static final String CANNOT_DELETE_USER_HAS_REPORTED_TASKS = "Cannot delete user who has reported tasks";
+    public static final String CANNOT_DELETE_USER_HAS_ASSIGNED_TASKS = "Cannot delete user who has assigned tasks";
+    public static final String CANNOT_DELETE_USER_HAS_COMMENTS = "Cannot delete user who has authored comments";
+    public static final String CANNOT_DELETE_USER_HAS_SENT_INVITES = "Cannot delete user who has sent course invites";
+    public static final String CANNOT_DELETE_USER_HAS_OWNED_COURSES = "Cannot delete user who owns courses";
+    
     public static final String EMPTY = "";
 }

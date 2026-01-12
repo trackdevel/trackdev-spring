@@ -11,16 +11,16 @@ import java.util.Properties;
 @Configuration
 public class EmailConfig {
 
-    @Value("${mail.host}")
+    @Value("${trackdev.mail.host}")
     private String host;
 
-    @Value("${mail.username}")
+    @Value("${trackdev.mail.username}")
     private String user;
 
-    @Value("${mail.password}")
+    @Value("${trackdev.mail.password}")
     private String password;
 
-    @Value("${mail.port}")
+    @Value("${trackdev.mail.port}")
     private int port;
 
     @Bean

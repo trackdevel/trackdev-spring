@@ -13,7 +13,7 @@ public class MinioConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(MinioConfiguration.class);
 
     @Bean
-    @ConditionalOnProperty(prefix = "todospring.minio", name = {"url", "access-key", "secret-key", "bucket"})
+    @ConditionalOnProperty(prefix = "trackdev.minio", name = {"url", "access-key", "secret-key", "bucket"})
     public MinioClient minioClient(MinioProperties minioProperties) {
         logger.info("Initializing MinIO client with URL: {}", minioProperties.getUrl());
         

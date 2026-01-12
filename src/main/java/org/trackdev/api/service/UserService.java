@@ -56,24 +56,22 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User register(String username, String email) {
+    public User register(String username, String email, String password, UserType userType) {
         try{
             checkIfExists(email);
 
-            String tempPassword = RandomStringUtils.randomAlphanumeric(8);
-
-            User user = new User(username, email, passwordEncoder.encode(tempPassword));
-            user.setChangePassword(true);
+            User user = new User(username, email, passwordEncoder.encode(password));
+            user.setChangePassword(false);
             user.setEnabled(true);
-            user.addRole(roleService.get(UserType.STUDENT));
+            user.addRole(roleService.get(userType));
             repo().save(user);
 
-            emailSenderService.sendRegisterEmail(username,email,tempPassword);
+            emailSenderService.sendRegisterEmail(username, email, password, "en");
 
             return user;
         }
         catch (Exception e) {
-            throw new ServiceException(ErrorConstants.REGISTER_KO + email);
+            throw new ServiceException(ErrorConstants.REGISTER_KO + ": " + email, e);
         }
 
     }
@@ -237,6 +235,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     /**
+     * Get all users with a specific user type.
+     */
+    public List<User> getUsersByType(UserType userType) {
+        return repo.findByRoles_UserType(userType);
+    }
+
+    /**
      * Edit own user profile.
      * All operations in a single transaction.
      */
@@ -271,6 +276,73 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public boolean isUserAdmin(String userId) {
         User user = get(userId);
         return accessChecker.isUserAdmin(user);
+    }
+
+    /**
+     * Delete a user after checking for dependencies.
+     * A user can only be deleted if they have no:
+     * - Owned subjects
+     * - Reported tasks
+     * - Assigned tasks
+     * - Authored comments
+     * - Sent course invites
+     * - Owned courses
+     * 
+     * Users are automatically removed from:
+     * - Project memberships (ManyToMany)
+     * - Course enrollments (ManyToMany)
+     * 
+     * @param userId The ID of the user to delete
+     * @throws ServiceException if user has dependencies that prevent deletion
+     */
+    @Transactional
+    public void deleteUser(String userId) {
+        User user = get(userId);
+        
+        // Check for owned subjects (field is subjectsOwns, not private getter)
+        long ownedSubjectsCount = repo().countSubjectsOwnedByUser(userId);
+        if (ownedSubjectsCount > 0) {
+            throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_SUBJECTS);
+        }
+        
+        // Check for reported tasks
+        long reportedTasksCount = repo().countTasksReportedByUser(userId);
+        if (reportedTasksCount > 0) {
+            throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_REPORTED_TASKS);
+        }
+        
+        // Check for assigned tasks
+        long assignedTasksCount = repo().countTasksAssignedToUser(userId);
+        if (assignedTasksCount > 0) {
+            throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_ASSIGNED_TASKS);
+        }
+        
+        // Check for authored comments (field is comments, final field)
+        long commentsCount = repo().countCommentsAuthoredByUser(userId);
+        if (commentsCount > 0) {
+            throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_COMMENTS);
+        }
+        
+        // Check for sent course invites
+        long sentInvitesCount = repo().countInvitesSentByUser(userId);
+        if (sentInvitesCount > 0) {
+            throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_SENT_INVITES);
+        }
+        
+        // Check for owned courses
+        long ownedCoursesCount = repo().countCoursesOwnedByUser(userId);
+        if (ownedCoursesCount > 0) {
+            throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_OWNED_COURSES);
+        }
+        
+        // Remove from all project memberships (ManyToMany will handle)
+        for (Project project : user.getProjects()) {
+            project.getMembers().remove(user);
+        }
+        user.getProjects().clear();
+        
+        // Delete the user (cascade will handle GithubInfo, PointsReview)
+        repo().delete(user);
     }
 
 }
