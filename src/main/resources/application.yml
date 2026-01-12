@@ -64,6 +64,8 @@ mail:
 trackdev:
   cors:
     allowed-origin: http://localhost:3000
+  frontend:
+    url: http://localhost:3000
   auth:
     # Token lifetime in minutes (1 hour) - sliding session extends this on each API call
     token-lifetime-in-minutes: ${JWT_TOKEN_LIFETIME:60}
