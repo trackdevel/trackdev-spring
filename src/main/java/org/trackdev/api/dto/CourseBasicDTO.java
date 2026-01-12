@@ -10,6 +10,7 @@ public class CourseBasicDTO {
     private Long id;
     private Integer startYear;
     private String githubOrganization;
+    private String language;
     private String ownerId;
     private SubjectBasicDTO subject;
 }

@@ -1,7 +1,12 @@
 package org.trackdev.api.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.trackdev.api.entity.Email;
 import org.trackdev.api.repository.EmailRepository;
@@ -9,88 +14,116 @@ import org.trackdev.api.repository.EmailRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
+/**
+ * Service for sending emails asynchronously.
+ * All email sending methods are async to avoid blocking HTTP request threads.
+ * Errors are logged rather than thrown to callers since async methods cannot propagate exceptions.
+ */
 @Service
-public class EmailSenderService extends BaseServiceUUID<Email,EmailRepository>{
+public class EmailSenderService extends BaseServiceUUID<Email, EmailRepository> {
 
-    private static final String LINK_RECOVERY = "http://localhost:3000/auth/password?email=";
-    private static final String LINK_INVITE = "http://localhost:3000/invite/";
+    private static final Logger log = LoggerFactory.getLogger(EmailSenderService.class);
 
     private final JavaMailSender javaMailSender;
+    private final MessageSource messageSource;
 
-    public EmailSenderService(JavaMailSender javaMailSender) {
+    @Value("${trackdev.frontend.url}")
+    private String frontendUrl;
+
+    @Value("${trackdev.mail.username}")
+    private String mailFrom;
+
+    public EmailSenderService(JavaMailSender javaMailSender, MessageSource messageSource) {
         this.javaMailSender = javaMailSender;
+        this.messageSource = messageSource;
     }
 
-    public void sendRegisterEmail(String username, String to, String tempPass) throws MessagingException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(to);
-        helper.setSubject(
-                "TRACKDEV - Benvingut a TrackDev, %s!".formatted(username)
-        );
-        helper.setText(
-                ("Benvingut a TrackDev, <b>%s</b>!<br><br>Com a estudiant de l'assignatura de Projecte de Software" +
-                        " de la UdG has estat donat d'alta a la plataforma amb les seguents credencials:<br>" +
-                        "Usuari: <b>%s</b><br>Contrasenya: <b>%s</b><br><br>" +
-                        "Si us plau, no responguis aquest missatge, es un enviament automatic.<br><br><b>Trackdev.</b>").formatted(username, username, tempPass),
-                true
-        );
-        javaMailSender.send(message);
+    /**
+     * Send welcome email to newly registered user.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     */
+    @Async
+    public void sendRegisterEmail(String username, String to, String tempPass, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String subject = messageSource.getMessage("email.register.subject", 
+            new Object[]{username}, locale);
+        String body = messageSource.getMessage("email.register.body", 
+            new Object[]{username, username, tempPass}, locale);
 
-        Email email = new Email();
-        email.setDestination(to);
-        email.setTimestamp(LocalDateTime.now());
-        this.repo.save(email);
+        sendEmail(to, subject, body, "register");
     }
 
-    public void sendRecoveryEmail(String email, String tempCode) throws MessagingException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(email);
-        helper.setSubject(
-                "TRACKDEV - Recuperació de contrasenya".formatted()
-        );
-        helper.setText(
-                ("Hola!<br><br>Has demanat recuperar la teva contrasenya de <b>TrackDev</b>. Si no has estat tu, ignora aquest missatge.<br><br>" +
-                        "Si has estat tu, pots restaurar la teva contrasenya introduint el següent codi a la pàgina de recuperació de contrasenya<br>" +
-                        "Codi de recuperació: <b>%s</b><br>Accedeix al següent <a href=%s%s>link</a><br><br>" +
-                        "Si us plau, no responguis aquest missatge, és un enviament automàtic.<br><br><b>Trackdev.</b>").formatted(tempCode, LINK_RECOVERY, email),
-                true
-        );
-        javaMailSender.send(message);
+    /**
+     * Send password recovery email with recovery code.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     */
+    @Async
+    public void sendRecoveryEmail(String email, String tempCode, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String recoveryLink = frontendUrl + "/auth/password?email=" + email;
+        String subject = messageSource.getMessage("email.recovery.subject", null, locale);
+        String body = messageSource.getMessage("email.recovery.body", 
+            new Object[]{tempCode, recoveryLink}, locale);
 
-        Email log = new Email();
-        log.setDestination(email);
-        log.setTimestamp(LocalDateTime.now());
-        this.repo.save(log);
+        sendEmail(email, subject, body, "recovery");
     }
 
-    public void sendCourseInviteEmail(String email, String token, String courseName, Integer startYear, String inviterName) throws MessagingException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(email);
-        helper.setSubject(
-                "TRACKDEV - Invitation to join %s (%d-%d)".formatted(courseName, startYear, startYear + 1)
-        );
-        helper.setText(
-                ("Hello!<br><br>" +
-                        "<b>%s</b> has invited you to join the course <b>%s (%d-%d)</b> on TrackDev.<br><br>" +
-                        "Click the link below to accept the invitation and join the course:<br>" +
-                        "<a href=\"%s%s\">Accept Invitation</a><br><br>" +
-                        "If you don't have an account, you will be asked to create a password. " +
-                        "If you already have an account, you will be automatically enrolled.<br><br>" +
-                        "This invitation will expire in 30 days.<br><br>" +
-                        "If you did not expect this invitation, you can safely ignore this email.<br><br>" +
-                        "<b>TrackDev</b>").formatted(inviterName, courseName, startYear, startYear + 1, LINK_INVITE, token),
-                true
-        );
-        javaMailSender.send(message);
+    /**
+     * Send course invitation email.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     */
+    @Async
+    public void sendCourseInviteEmail(String email, String token, String courseName, 
+                                       Integer startYear, String inviterName, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String inviteLink = frontendUrl + "/invite/" + token;
+        
+        String subject = messageSource.getMessage("email.invite.subject", 
+            new Object[]{courseName, startYear, startYear + 1}, locale);
+        String body = messageSource.getMessage("email.invite.body", 
+            new Object[]{inviterName, courseName, startYear, startYear + 1, inviteLink}, locale);
 
-        Email log = new Email();
-        log.setDestination(email);
-        log.setTimestamp(LocalDateTime.now());
-        this.repo.save(log);
+        sendEmail(email, subject, body, "course-invite");
     }
 
+    /**
+     * Internal method to send email and log it.
+     * Handles all error logging centrally.
+     */
+    private void sendEmail(String to, String subject, String htmlBody, String emailType) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(mailFrom);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            javaMailSender.send(message);
+
+            // Log successful email
+            logEmail(to, emailType, true, null);
+            log.info("Email sent successfully: type={}, to={}", emailType, to);
+
+        } catch (MessagingException e) {
+            // Log failed email
+            logEmail(to, emailType, false, e.getMessage());
+            log.error("Failed to send email: type={}, to={}, error={}", emailType, to, e.getMessage());
+        }
+    }
+
+    /**
+     * Log email to database for audit trail.
+     */
+    private void logEmail(String destination, String type, boolean success, String errorMessage) {
+        try {
+            Email email = new Email();
+            email.setDestination(destination);
+            email.setTimestamp(LocalDateTime.now());
+            this.repo.save(email);
+        } catch (Exception e) {
+            log.warn("Failed to log email to database: {}", e.getMessage());
+        }
+    }
 }

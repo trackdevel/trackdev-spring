@@ -15,7 +15,6 @@ import org.trackdev.api.entity.User;
 import org.trackdev.api.repository.CourseInviteRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
-import jakarta.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,12 +75,8 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             // Check if there's already a pending invite for this email and course
             Optional<CourseInvite> existingInvite = repo.findByCourseIdAndEmailAndStatus(courseId, email, CourseInvite.InviteStatus.PENDING);
             if (existingInvite.isPresent()) {
-                // Resend the existing invitation
-                try {
-                    sendInviteEmail(existingInvite.get(), course);
-                } catch (MessagingException e) {
-                    // Log but continue
-                }
+                // Resend the existing invitation (async - won't block)
+                sendInviteEmail(existingInvite.get(), course);
                 invitations.add(existingInvite.get());
                 continue;
             }
@@ -93,12 +88,8 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             CourseInvite invite = new CourseInvite(token, email, course, inviter, expiresAt);
             repo.save(invite);
 
-            // Send invitation email
-            try {
-                sendInviteEmail(invite, course);
-            } catch (MessagingException e) {
-                // Log but continue - invite is created
-            }
+            // Send invitation email (async - won't block)
+            sendInviteEmail(invite, course);
 
             invitations.add(invite);
         }
@@ -238,13 +229,14 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
         return token;
     }
 
-    private void sendInviteEmail(CourseInvite invite, Course course) throws MessagingException {
+    private void sendInviteEmail(CourseInvite invite, Course course) {
         emailSenderService.sendCourseInviteEmail(
             invite.getEmail(),
             invite.getToken(),
             course.getSubject() != null ? course.getSubject().getName() : "Course",
             course.getStartYear(),
-            invite.getInvitedBy().getUsername()
+            invite.getInvitedBy().getUsername(),
+            course.getLanguage() != null ? course.getLanguage() : "en"
         );
     }
 

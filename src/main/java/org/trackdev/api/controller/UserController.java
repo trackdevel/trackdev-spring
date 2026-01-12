@@ -14,6 +14,7 @@ import org.trackdev.api.dto.UserWithGithubTokenDTO;
 import org.trackdev.api.dto.UserWithProjectsDTO;
 import org.trackdev.api.dto.UsersResponseDTO;
 import org.trackdev.api.entity.User;
+import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.mapper.UserMapper;
 import org.trackdev.api.model.response.AdminCheckResponse;
 import org.trackdev.api.service.AccessChecker;
@@ -23,6 +24,7 @@ import org.trackdev.api.utils.ErrorConstants;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.security.Principal;
@@ -102,7 +104,7 @@ public class UserController extends BaseController {
                     .collect(Collectors.toList());
             throw new ControllerException(String.join(". ", errors));
         }
-        userService.register(ru.username, ru.email);
+        userService.register(ru.username, ru.email, ru.password, ru.userType);
         return okNoContent();
     }
 
@@ -114,7 +116,7 @@ public class UserController extends BaseController {
             if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
             }
-            if (!userRequest.username.get().matches("^[a-zA-ZÀ-ÖØ-öø-ÿ ]+$")) {
+            if (!userRequest.username.get().matches(User.USERNAME_PATTERN)) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_FORMAT);
             }
         }
@@ -134,7 +136,7 @@ public class UserController extends BaseController {
             if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
             }
-            if (!userRequest.username.get().matches("^[a-zA-ZÀ-ÖØ-öø-ÿ ]+$")) {
+            if (!userRequest.username.get().matches(User.USERNAME_PATTERN)) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_FORMAT);
             }
         }
@@ -160,7 +162,7 @@ public class UserController extends BaseController {
                 message = ErrorConstants.INVALID_USERNAME_SIZE
         )
         @Pattern(
-                regexp = "^[a-zA-ZÀ-ÖØ-öø-ÿ ]+$",
+                regexp = User.USERNAME_PATTERN,
                 message = ErrorConstants.INVALID_USERNAME_FORMAT
         )
         public String username;
@@ -173,6 +175,13 @@ public class UserController extends BaseController {
                 message = ErrorConstants.INVALID_MAIL_SIZE
         )
         public String email;
+
+        @NotBlank
+        @Size(min = 8, message = "Password must be at least 8 characters")
+        public String password;
+
+        @NotNull
+        public UserType userType;
 
     }
 
@@ -189,6 +198,22 @@ public class UserController extends BaseController {
         public Optional<String> githubToken;
 
         public Optional<Boolean> enabled;
+    }
+
+    /**
+     * Delete a user. Only admins can delete users.
+     * User can only be deleted if they have no dependencies.
+     */
+    @Operation(summary = "Delete user", description = "Delete a user if they have no dependencies")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void> deleteUser(Principal principal, @PathVariable String id) {
+        String userId = getUserId(principal);
+        User currentUser = userService.get(userId);
+        accessChecker.checkIsUserAdmin(currentUser);
+        
+        userService.deleteUser(id);
+        return okNoContent();
     }
 
 }

@@ -20,6 +20,7 @@ public class User extends BaseEntityUUID {
   public static final int MIN_EMAIL_LENGHT = 4;
   public static final int EMAIL_LENGTH = 128;
   public static final int CAPITAL_LETTERS_LENGTH = 2;
+  public static final String USERNAME_PATTERN = "^[a-zA-Z0-9_-]+$";
 
   public User() {}
 

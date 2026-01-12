@@ -5,7 +5,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
       # ddl-auto: update
       # database-platform: org.hibernate.dialect.MariaDBDialect
       naming:
@@ -32,7 +32,7 @@ spring:
 
 logging:
   level:
-    "[org.springframework.web.filter.CommonsRequestLoggingFilter]": INFO
+    "[org.springframework.web.filter.CommonsRequestLoggingFilter]": DEBUG
     root: INFO
 
 # HTTP server configuration (SSL handled by nginx reverse proxy)
@@ -55,16 +55,13 @@ server:
     include-exception: false
     include-stacktrace: never
 
-# Mail configuration - credentials from environment variables
-mail:
-  host: ${MAIL_HOST}
-  port: ${MAIL_PORT}
-  username: ${MAIL_USERNAME}
-  password: ${MAIL_PASSWORD}
-
 trackdev:
-  cors:
-    allowed-origin: trackdev.org
+  # Mail configuration - credentials from environment variables
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
   auth:
     # Token lifetime in minutes (1 hour) - sliding session extends this on each API call
     token-lifetime-in-minutes: ${JWT_TOKEN_LIFETIME:60}

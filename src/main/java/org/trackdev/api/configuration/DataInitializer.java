@@ -5,30 +5,91 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.trackdev.api.configuration.UserType;
+import org.trackdev.api.entity.User;
 import org.trackdev.api.service.DemoDataSeeder;
+import org.trackdev.api.service.UserService;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Initializes demo data on application startup.
+ * Initializes data on application startup.
  * Separated from configuration to follow Single Responsibility Principle.
  * 
- * Only runs when profile is NOT 'prod' (runs in dev, test, default, etc.)
+ * Behavior:
+ * - Non-prod profiles: Seeds demo data for development/testing
+ * - Prod profile: Creates initial admin user if none exists
  */
 @Component
-@Profile("!prod")
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
     @Autowired
+    private Environment environment;
+
+    @Autowired
     @Lazy
     private DemoDataSeeder demoDataSeeder;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TrackDevProperties trackDevProperties;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
-        logger.info("Initializing demo data...");
-        demoDataSeeder.seedDemoData();
-        logger.info("Demo data initialization complete");
+        List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
+        boolean isProdProfile = activeProfiles.contains("prod");
+
+        if (!isProdProfile) {
+            // Development/test mode: seed demo data
+            logger.info("Initializing demo data for development environment...");
+            demoDataSeeder.seedDemoData();
+            logger.info("Demo data initialization complete");
+        } else {
+            // Production mode: ensure admin user exists
+            logger.info("Running in production mode - checking for admin user...");
+            ensureAdminUserExists();
+        }
+    }
+
+    private void ensureAdminUserExists() {
+        // Check if any admin user exists
+        List<User> adminUsers = userService.getUsersByType(UserType.ADMIN);
+        
+        if (adminUsers.isEmpty()) {
+            logger.info("No admin user found. Creating initial admin user...");
+            
+            String username = trackDevProperties.getAdmin().getUsername();
+            String email = trackDevProperties.getAdmin().getEmail();
+            String password = trackDevProperties.getAdmin().getPassword();
+            
+            if (username == null || username.isBlank() || 
+                email == null || email.isBlank() || 
+                password == null || password.isBlank()) {
+                logger.error("Admin credentials not configured! Set trackdev.admin.username, trackdev.admin.email and trackdev.admin.password");
+                throw new IllegalStateException("Admin credentials must be configured in production");
+            }
+            
+            User adminUser = userService.addUserInternal(
+                username,
+                email,
+                passwordEncoder.encode(password),
+                List.of(UserType.ADMIN)
+            );
+            
+            logger.info("Admin user created successfully: {}", username);
+        } else {
+            logger.info("Admin user already exists. Skipping creation.");
+        }
     }
 }

@@ -42,6 +42,10 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +72,16 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             message += ". Supported: " + String.join(", ", ex.getSupportedMethods());
         }
         log.warn("Method not supported: {}", message);
-        return createErrorResponse("Method not allowed", HttpStatus.METHOD_NOT_ALLOWED, message, "METHOD_NOT_ALLOWED", request);
+        
+        ErrorEntity error = createErrorEntity("Method not allowed", HttpStatus.METHOD_NOT_ALLOWED, message, "METHOD_NOT_ALLOWED", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("requestedMethod", ex.getMethod());
+        if (ex.getSupportedMethods() != null) {
+            details.put("supportedMethods", ex.getSupportedMethods());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @Override
@@ -77,7 +90,20 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpStatusCode status, WebRequest request) {
         String message = "Media type '" + ex.getContentType() + "' is not supported";
         log.warn("Media type not supported: {}", message);
-        return createErrorResponse("Unsupported media type", HttpStatus.UNSUPPORTED_MEDIA_TYPE, message, "UNSUPPORTED_MEDIA_TYPE", request);
+        
+        ErrorEntity error = createErrorEntity("Unsupported media type", HttpStatus.UNSUPPORTED_MEDIA_TYPE, message, "UNSUPPORTED_MEDIA_TYPE", request);
+        Map<String, Object> details = new HashMap<>();
+        if (ex.getContentType() != null) {
+            details.put("requestedMediaType", ex.getContentType().toString());
+        }
+        if (!ex.getSupportedMediaTypes().isEmpty()) {
+            details.put("supportedMediaTypes", ex.getSupportedMediaTypes().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList()));
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @Override
@@ -85,8 +111,18 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpMediaTypeNotAcceptableException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
         log.warn("Media type not acceptable");
-        return createErrorResponse("Not acceptable", HttpStatus.NOT_ACCEPTABLE, 
+        
+        ErrorEntity error = createErrorEntity("Not acceptable", HttpStatus.NOT_ACCEPTABLE, 
                 "Could not find acceptable representation", "NOT_ACCEPTABLE", request);
+        Map<String, Object> details = new HashMap<>();
+        if (!ex.getSupportedMediaTypes().isEmpty()) {
+            details.put("supportedMediaTypes", ex.getSupportedMediaTypes().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList()));
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @Override
@@ -95,7 +131,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpStatusCode status, WebRequest request) {
         String message = "Missing path variable: " + ex.getVariableName();
         log.warn(message);
-        return createErrorResponse("Missing path variable", HttpStatus.BAD_REQUEST, message, "MISSING_PATH_VARIABLE", request);
+        
+        ErrorEntity error = createErrorEntity("Missing path variable", HttpStatus.BAD_REQUEST, message, "MISSING_PATH_VARIABLE", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("variableName", ex.getVariableName());
+        details.put("parameterType", ex.getParameter().getParameterType().getSimpleName());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -104,7 +147,18 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpStatusCode status, WebRequest request) {
         String message = "Required parameter '" + ex.getParameterName() + "' is missing";
         log.warn(message);
-        return createErrorResponse("Missing parameter", HttpStatus.BAD_REQUEST, message, "MISSING_PARAMETER", request);
+        
+        ErrorEntity error = createErrorEntity("Missing parameter", HttpStatus.BAD_REQUEST, message, "MISSING_PARAMETER", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("parameterName", ex.getParameterName());
+        details.put("parameterType", ex.getParameterType());
+        error.setDetails(details);
+        
+        List<ErrorEntity.FieldError> fieldErrors = new ArrayList<>();
+        fieldErrors.add(new ErrorEntity.FieldError(ex.getParameterName(), null, "is required", "Required"));
+        error.setFieldErrors(fieldErrors);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -113,7 +167,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpStatusCode status, WebRequest request) {
         String message = "Required request part '" + ex.getRequestPartName() + "' is missing";
         log.warn(message);
-        return createErrorResponse("Missing request part", HttpStatus.BAD_REQUEST, message, "MISSING_REQUEST_PART", request);
+        
+        ErrorEntity error = createErrorEntity("Missing request part", HttpStatus.BAD_REQUEST, message, "MISSING_REQUEST_PART", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("partName", ex.getRequestPartName());
+        error.setDetails(details);
+        
+        List<ErrorEntity.FieldError> fieldErrors = new ArrayList<>();
+        fieldErrors.add(new ErrorEntity.FieldError(ex.getRequestPartName(), null, "is required", "Required"));
+        error.setFieldErrors(fieldErrors);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -121,27 +185,90 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             ServletRequestBindingException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
         log.warn("Request binding error: {}", ex.getMessage());
-        return createErrorResponse("Request binding error", HttpStatus.BAD_REQUEST, ex.getMessage(), "BINDING_ERROR", request);
+        
+        ErrorEntity error = createErrorEntity("Request binding error", HttpStatus.BAD_REQUEST, ex.getMessage(), "BINDING_ERROR", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getCause() != null) {
+            details.put("cause", ex.getCause().getMessage());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+        
+        List<ErrorEntity.FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> new ErrorEntity.FieldError(
+                        error.getField(),
+                        error.getRejectedValue(),
+                        error.getDefaultMessage(),
+                        error.getCode()
+                ))
+                .collect(Collectors.toList());
+        
+        String message = fieldErrors.stream()
+                .map(fe -> fe.getField() + ": " + fe.getMessage())
                 .collect(Collectors.joining(", "));
+        
         log.warn("Validation failed: {}", message);
-        return createErrorResponse("Validation error", HttpStatus.BAD_REQUEST, message, "VALIDATION_ERROR", request);
+        
+        ErrorEntity error = createErrorEntity("Validation error", HttpStatus.BAD_REQUEST, message, "VALIDATION_ERROR", request);
+        error.setFieldErrors(fieldErrors);
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("errorCount", fieldErrors.size());
+        details.put("objectName", ex.getBindingResult().getObjectName());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
     protected ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
-        log.warn("Handler method validation failed: {}", ex.getMessage());
-        return createErrorResponse("Validation error", HttpStatus.BAD_REQUEST, 
-                "Request validation failed", "VALIDATION_ERROR", request);
+        
+        List<ErrorEntity.FieldError> fieldErrors = new ArrayList<>();
+        ex.getAllErrors().forEach(error -> {
+            String fieldName = "unknown";
+            // Try to extract field name from error codes
+            String[] codes = error.getCodes();
+            if (codes != null && codes.length > 0) {
+                String lastCode = codes[codes.length - 1];
+                int lastDot = lastCode.lastIndexOf('.');
+                if (lastDot >= 0) {
+                    fieldName = lastCode.substring(lastDot + 1);
+                }
+            }
+            fieldErrors.add(new ErrorEntity.FieldError(
+                    fieldName,
+                    null,
+                    error.getDefaultMessage(),
+                    codes != null && codes.length > 0 ? codes[0] : null
+            ));
+        });
+        
+        String message = fieldErrors.stream()
+                .map(fe -> fe.getField() + ": " + fe.getMessage())
+                .collect(Collectors.joining(", "));
+        
+        if (message.isEmpty()) {
+            message = "Request validation failed";
+        }
+        
+        log.warn("Handler method validation failed: {}", message);
+        
+        ErrorEntity error = createErrorEntity("Validation error", HttpStatus.BAD_REQUEST, message, "VALIDATION_ERROR", request);
+        if (!fieldErrors.isEmpty()) {
+            error.setFieldErrors(fieldErrors);
+        }
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -150,7 +277,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpStatusCode status, WebRequest request) {
         String message = "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL();
         log.warn(message);
-        return createErrorResponse("Not found", HttpStatus.NOT_FOUND, message, "ENDPOINT_NOT_FOUND", request);
+        
+        ErrorEntity error = createErrorEntity("Not found", HttpStatus.NOT_FOUND, message, "ENDPOINT_NOT_FOUND", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("httpMethod", ex.getHttpMethod());
+        details.put("requestUrl", ex.getRequestURL());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @Override
@@ -159,7 +293,13 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpStatusCode status, WebRequest request) {
         String message = "Resource not found: " + ex.getResourcePath();
         log.warn(message);
-        return createErrorResponse("Not found", HttpStatus.NOT_FOUND, message, "RESOURCE_NOT_FOUND", request);
+        
+        ErrorEntity error = createErrorEntity("Not found", HttpStatus.NOT_FOUND, message, "RESOURCE_NOT_FOUND", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("resourcePath", ex.getResourcePath());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @Override
@@ -167,8 +307,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             AsyncRequestTimeoutException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
         log.warn("Async request timeout");
-        return createErrorResponse("Request timeout", HttpStatus.SERVICE_UNAVAILABLE, 
+        
+        ErrorEntity error = createErrorEntity("Request timeout", HttpStatus.SERVICE_UNAVAILABLE, 
                 "The request timed out", "REQUEST_TIMEOUT", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
@@ -176,19 +322,35 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpMessageNotReadableException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
         String message = "Request body is missing or malformed";
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
         
         // Try to get more specific error message
         Throwable cause = ex.getCause();
         if (cause instanceof InvalidFormatException ife) {
-            message = "Invalid value for field: " + ife.getPath().stream()
+            String fieldPath = ife.getPath().stream()
                     .map(JsonMappingException.Reference::getFieldName)
                     .collect(Collectors.joining("."));
+            message = "Invalid value for field: " + fieldPath;
+            details.put("field", fieldPath);
+            details.put("invalidValue", ife.getValue());
+            details.put("targetType", ife.getTargetType().getSimpleName());
         } else if (cause instanceof JsonMappingException jme) {
             message = "JSON parsing error: " + jme.getOriginalMessage();
+            String fieldPath = jme.getPath().stream()
+                    .map(JsonMappingException.Reference::getFieldName)
+                    .collect(Collectors.joining("."));
+            if (!fieldPath.isEmpty()) {
+                details.put("field", fieldPath);
+            }
         }
         
         log.warn("Message not readable: {}", ex.getMessage());
-        return createErrorResponse("Malformed request", HttpStatus.BAD_REQUEST, message, "MALFORMED_REQUEST", request);
+        
+        ErrorEntity error = createErrorEntity("Malformed request", HttpStatus.BAD_REQUEST, message, "MALFORMED_REQUEST", request);
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -196,8 +358,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             HttpMessageNotWritableException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
         log.error("Message not writable: {}", ex.getMessage());
-        return createErrorResponse("Internal error", HttpStatus.INTERNAL_SERVER_ERROR, 
+        
+        ErrorEntity error = createErrorEntity("Internal error", HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Error writing response", "WRITE_ERROR", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getCause() != null) {
+            details.put("cause", ex.getCause().getClass().getSimpleName());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -205,8 +376,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             MaxUploadSizeExceededException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
         log.warn("Max upload size exceeded");
-        return createErrorResponse("File too large", HttpStatus.PAYLOAD_TOO_LARGE, 
+        
+        ErrorEntity error = createErrorEntity("File too large", HttpStatus.PAYLOAD_TOO_LARGE, 
                 "The uploaded file exceeds the maximum allowed size", "FILE_TOO_LARGE", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("maxUploadSize", ex.getMaxUploadSize());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
     /**
@@ -231,12 +408,23 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         
+        String path = null;
+        if (request instanceof ServletWebRequest servletRequest) {
+            path = servletRequest.getRequest().getRequestURI();
+        }
+        
         ErrorEntity error = new ErrorEntity(
                 DateTimeFormatter.ofPattern(DateFormattingConfiguration.APP_DATE_FORMAT).format(ZonedDateTime.now()),
                 statusCode.value(),
                 httpStatus.getReasonPhrase(),
-                ex.getMessage() != null ? ex.getMessage() : "An error occurred"
+                ex.getMessage() != null ? ex.getMessage() : "An error occurred",
+                "UNHANDLED_SPRING_EXCEPTION",
+                path
         );
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        error.setDetails(details);
         
         return new ResponseEntity<>(error, headers, statusCode);
     }
@@ -246,36 +434,107 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler(ServiceException.class)
     protected ResponseEntity<Object> handleServiceException(ServiceException ex, WebRequest request) {
         log.info("Service exception: {}", ex.getMessage());
-        return createErrorResponse("Service error", HttpStatus.BAD_REQUEST, ex.getMessage(), "SERVICE_ERROR", request);
+        
+        ErrorEntity error = createErrorEntity("Service error", HttpStatus.BAD_REQUEST, ex.getMessage(), 
+                ex.getErrorCode() != null ? ex.getErrorCode() : "SERVICE_ERROR", request);
+        
+        // Merge exception details with base details
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getDetails() != null) {
+            details.putAll(ex.getDetails());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ControllerException.class)
     protected ResponseEntity<Object> handleControllerException(ControllerException ex, WebRequest request) {
         log.info("Controller exception: {}", ex.getMessage());
-        return createErrorResponse("Controller error", HttpStatus.BAD_REQUEST, ex.getMessage(), "CONTROLLER_ERROR", request);
+        
+        ErrorEntity error = createErrorEntity("Controller error", HttpStatus.BAD_REQUEST, ex.getMessage(), 
+                ex.getErrorCode() != null ? ex.getErrorCode() : "CONTROLLER_ERROR", request);
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getDetails() != null) {
+            details.putAll(ex.getDetails());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EntityException.class)
     protected ResponseEntity<Object> handleEntityException(EntityException ex, WebRequest request) {
         log.info("Entity exception: {}", ex.getMessage());
-        return createErrorResponse("Entity error", HttpStatus.BAD_REQUEST, ex.getMessage(), "ENTITY_ERROR", request);
+        
+        ErrorEntity error = createErrorEntity("Entity error", HttpStatus.BAD_REQUEST, ex.getMessage(), 
+                ex.getErrorCode() != null ? ex.getErrorCode() : "ENTITY_ERROR", request);
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getDetails() != null) {
+            details.putAll(ex.getDetails());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EntityNotFound.class)
     protected ResponseEntity<Object> handleEntityNotFound(EntityNotFound ex, WebRequest request) {
         log.info("Entity not found: {}", ex.getMessage());
-        return createErrorResponse("Not found", HttpStatus.NOT_FOUND, ex.getMessage(), "NOT_FOUND", request);
+        
+        ErrorEntity error = createErrorEntity("Not found", HttpStatus.NOT_FOUND, ex.getMessage(), 
+                ex.getErrorCode() != null ? ex.getErrorCode() : "NOT_FOUND", request);
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getDetails() != null) {
+            details.putAll(ex.getDetails());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     // ========== Validation exceptions ==========
 
     @ExceptionHandler(ConstraintViolationException.class)
     protected ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
-        String message = ex.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
+        List<ErrorEntity.FieldError> fieldErrors = ex.getConstraintViolations().stream()
+                .map(violation -> new ErrorEntity.FieldError(
+                        extractPropertyPath(violation),
+                        violation.getInvalidValue(),
+                        violation.getMessage(),
+                        extractConstraintCode(violation)
+                ))
+                .collect(Collectors.toList());
+        
+        String message = fieldErrors.stream()
+                .map(fe -> fe.getField() + ": " + fe.getMessage())
                 .collect(Collectors.joining(", "));
+        
         log.warn("Constraint violation: {}", message);
-        return createErrorResponse("Validation error", HttpStatus.BAD_REQUEST, message, "CONSTRAINT_VIOLATION", request);
+        
+        ErrorEntity error = createErrorEntity("Validation error", HttpStatus.BAD_REQUEST, message, "CONSTRAINT_VIOLATION", request);
+        error.setFieldErrors(fieldErrors);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    
+    private String extractPropertyPath(ConstraintViolation<?> violation) {
+        String path = violation.getPropertyPath().toString();
+        // Extract just the field name if it's nested (e.g., "methodName.paramName" -> "paramName")
+        int lastDot = path.lastIndexOf('.');
+        return lastDot >= 0 ? path.substring(lastDot + 1) : path;
+    }
+    
+    private String extractConstraintCode(ConstraintViolation<?> violation) {
+        String annotationType = violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName();
+        return annotationType;
     }
 
     // ========== Security exceptions ==========
@@ -283,8 +542,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler(AccessDeniedException.class)
     protected ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
         log.warn("Access denied: {}", ex.getMessage());
-        return createErrorResponse("Access denied", HttpStatus.FORBIDDEN, 
+        
+        ErrorEntity error = createErrorEntity("Access denied", HttpStatus.FORBIDDEN, 
                 "You do not have permission to access this resource", "ACCESS_DENIED", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     // ========== Database exceptions ==========
@@ -292,15 +557,52 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler(DataIntegrityViolationException.class)
     protected ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
         log.error("Data integrity violation", ex);
-        return createErrorResponse("Data integrity error", HttpStatus.CONFLICT, 
+        
+        ErrorEntity error = createErrorEntity("Data integrity error", HttpStatus.CONFLICT, 
                 "Database constraint violation", "DATA_INTEGRITY_VIOLATION", request);
+        
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        
+        // Try to extract more meaningful information from the root cause
+        Throwable rootCause = ex.getRootCause();
+        if (rootCause != null) {
+            String rootMessage = rootCause.getMessage();
+            details.put("rootCause", rootCause.getClass().getSimpleName());
+            
+            // Parse common database constraint messages
+            if (rootMessage != null) {
+                if (rootMessage.contains("Duplicate entry")) {
+                    error.setMessage("A record with this value already exists");
+                    details.put("constraintType", "UNIQUE");
+                } else if (rootMessage.contains("foreign key constraint")) {
+                    error.setMessage("Referenced record does not exist or cannot be deleted");
+                    details.put("constraintType", "FOREIGN_KEY");
+                } else if (rootMessage.contains("cannot be null")) {
+                    error.setMessage("Required field is missing");
+                    details.put("constraintType", "NOT_NULL");
+                }
+            }
+        }
+        
+        error.setDetails(details);
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(InvalidDataAccessApiUsageException.class)
     protected ResponseEntity<Object> handleInvalidDataAccess(InvalidDataAccessApiUsageException ex, WebRequest request) {
         log.error("Invalid data access", ex);
-        return createErrorResponse("Data access error", HttpStatus.BAD_REQUEST, 
+        
+        ErrorEntity error = createErrorEntity("Data access error", HttpStatus.BAD_REQUEST, 
                 "Error processing request", "INVALID_DATA_ACCESS", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        if (ex.getCause() != null) {
+            details.put("cause", ex.getCause().getClass().getSimpleName());
+        }
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -308,7 +610,26 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         String message = "Parameter '" + ex.getName() + "' should be of type " +
                 (ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
         log.warn("Type mismatch: {}", message);
-        return createErrorResponse("Type mismatch", HttpStatus.BAD_REQUEST, message, "TYPE_MISMATCH", request);
+        
+        ErrorEntity error = createErrorEntity("Type mismatch", HttpStatus.BAD_REQUEST, message, "TYPE_MISMATCH", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("parameterName", ex.getName());
+        details.put("invalidValue", ex.getValue());
+        if (ex.getRequiredType() != null) {
+            details.put("requiredType", ex.getRequiredType().getSimpleName());
+        }
+        error.setDetails(details);
+        
+        List<ErrorEntity.FieldError> fieldErrors = new ArrayList<>();
+        fieldErrors.add(new ErrorEntity.FieldError(
+                ex.getName(), 
+                ex.getValue(), 
+                "should be of type " + (ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown"),
+                "TypeMismatch"
+        ));
+        error.setFieldErrors(fieldErrors);
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     // ========== Catch-all ==========
@@ -316,20 +637,32 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<Object> handleAllUncaughtException(Exception ex, WebRequest request) {
         log.error("Unhandled exception: {}", ex.getClass().getName(), ex);
-        return createErrorResponse("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR, 
+        
+        ErrorEntity error = createErrorEntity("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR, 
                 "An unexpected error occurred", "INTERNAL_ERROR", request);
+        Map<String, Object> details = new HashMap<>();
+        details.put("exceptionType", ex.getClass().getSimpleName());
+        error.setDetails(details);
+        
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // ========== Helper method ==========
+    // ========== Helper methods ==========
 
     private ResponseEntity<Object> createErrorResponse(String errorName, HttpStatus status, 
                                                         String message, String code, WebRequest request) {
+        ErrorEntity error = createErrorEntity(errorName, status, message, code, request);
+        return new ResponseEntity<>(error, status);
+    }
+    
+    private ErrorEntity createErrorEntity(String errorName, HttpStatus status, 
+                                           String message, String code, WebRequest request) {
         String path = null;
         if (request instanceof ServletWebRequest servletRequest) {
             path = servletRequest.getRequest().getRequestURI();
         }
         
-        ErrorEntity error = new ErrorEntity(
+        return new ErrorEntity(
                 DateTimeFormatter.ofPattern(DateFormattingConfiguration.APP_DATE_FORMAT).format(ZonedDateTime.now()),
                 status.value(),
                 errorName,
@@ -337,6 +670,5 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
                 code,
                 path
         );
-        return new ResponseEntity<>(error, status);
     }
 }

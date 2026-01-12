@@ -4,24 +4,24 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties("trackdev.cors")
+@ConfigurationProperties("trackdev.frontend")
 public class CorsConfiguration {
 
-    private String allowedOrigin;
+    private String url;
 
     public boolean isEnabled() {
-        return allowedOrigin != null && !allowedOrigin.equals("");
+        return url != null && !url.equals("");
     }
 
     public String getAllowedOrigin() {
-        return allowedOrigin;
+        return url;
     }
 
-    public void setAllowedOrigin(String allowedOrigin) {
-        this.allowedOrigin = allowedOrigin;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public boolean isAllowedOrigin(String origin) {
-        return this.isEnabled() && origin != null && origin.equals(this.allowedOrigin);
+        return this.isEnabled() && origin != null && origin.equals(this.url);
     }
 }
