@@ -56,6 +56,10 @@ server:
     include-stacktrace: never
 
 trackdev:
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN}
+  frontend:
+    url: ${FRONTEND_URL}
   # Mail configuration - credentials from environment variables
   mail:
     host: ${MAIL_HOST}
