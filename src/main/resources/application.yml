@@ -55,13 +55,13 @@ server:
     include-stacktrace: never
 
 # Mail configuration - credentials from environment variables
-mail:
-  host: ${MAIL_HOST:smtp.gmail.com}
-  port: ${MAIL_PORT:587}
-  username: ${MAIL_USERNAME:}
-  password: ${MAIL_PASSWORD:}
-
 trackdev:
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
   cors:
     allowed-origin: http://localhost:3000
   frontend:
@@ -70,7 +70,7 @@ trackdev:
     # Token lifetime in minutes (1 hour) - sliding session extends this on each API call
     token-lifetime-in-minutes: ${JWT_TOKEN_LIFETIME:60}
     # Secret key - MUST be set via environment variable in production
-    secret-key-base: ${JWT_SECRET_KEY:}
+    secret-key-base: "${JWT_SECRET_KEY}"
 
 # GitHub webhook configuration
 app:
