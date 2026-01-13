@@ -21,10 +21,9 @@ public class SprintPattern extends BaseEntityLong {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "courseId")
     private Course course;
 
-    @Column(name = "courseId", insertable = false, updatable = false)
+    @Column(name = "course_id", insertable = false, updatable = false)
     private Long courseId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "sprintPattern", orphanRemoval = true, fetch = FetchType.LAZY)

@@ -35,10 +35,9 @@ public class GitHubRepo extends BaseEntityLong {
     private String accessToken;
 
     @ManyToOne
-    @JoinColumn(name = "projectId")
     private Project project;
 
-    @Column(name = "projectId", insertable = false, updatable = false)
+    @Column(name = "project_id", insertable = false, updatable = false)
     private Long projectId;
 
     private Date createdAt;

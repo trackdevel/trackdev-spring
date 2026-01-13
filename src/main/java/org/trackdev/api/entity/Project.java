@@ -32,10 +32,14 @@ public class Project extends BaseEntityLong {
     private String slug;
 
     @ManyToOne
-    @JoinColumn(name = "courseId")
     private Course course;
 
     @ManyToMany(cascade = CascadeType.PERSIST)
+    @JoinTable(
+        name = "projects_members",
+        joinColumns = @JoinColumn(name = "project_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private Set<User> members = new HashSet<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

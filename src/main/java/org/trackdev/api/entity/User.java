@@ -54,6 +54,11 @@ public class User extends BaseEntityUUID {
   private Collection<Project> projects = new ArrayList<>();
 
   @ManyToMany()
+  @JoinTable(
+      name = "users_roles",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "role_id")
+  )
   private Set<Role> roles = new HashSet<>();
 
   private String color;
