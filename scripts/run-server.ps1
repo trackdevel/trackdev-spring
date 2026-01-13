@@ -1,73 +1,61 @@
 # TrackDev Spring Boot Server Startup Script (PowerShell)
 # Loads environment variables from .env and starts the server
 #
-# Usage: .\run-server.ps1 [-RootDir <path>] [-EnvFile <path>]
-#   -RootDir: Path to Spring Boot project root (default: parent of script directory)
-#   -EnvFile: Path to environment file (default: .env in project root directory)
+# Usage: .\run-server.ps1 [-EnvFile <path>] [-SpringProfile <profile>]
+#   -EnvFile: Path to environment file (default: .env)
+#   -SpringProfile: Spring Boot profile to activate (default: dev)
 #
 # Examples:
-#   .\run-server.ps1                                              # Uses defaults
-#   .\run-server.ps1 -RootDir C:\projects\my-spring-app           # Custom project root
-#   .\run-server.ps1 -RootDir .                                   # Use current directory as root
-#   .\run-server.ps1 -EnvFile .env.production                     # Uses .env.production from project root
-#   .\run-server.ps1 -RootDir . -EnvFile C:\path\to\.env          # Both custom
+#   .\run-server.ps1                                    # Uses .env, dev profile
+#   .\run-server.ps1 -EnvFile .env.prod                 # Uses .env.prod, dev profile
+#   .\run-server.ps1 -EnvFile .env.prod -SpringProfile prod  # Uses .env.prod, prod profile
 
 param(
     [Parameter()]
-    [string]$RootDir,
-    
+    [string]$EnvFile = ".env",
+
     [Parameter()]
-    [string]$EnvFile = ".env"
+    [string]$SpringProfile = "dev"
 )
 
 $ErrorActionPreference = "Stop"
 
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-# Resolve project root directory
-if (-not $PSBoundParameters.ContainsKey('RootDir') -or [string]::IsNullOrWhiteSpace($RootDir)) {
-    # Default to parent of script directory (scripts/../)
-    $ProjectRoot = Split-Path -Parent $ScriptDir
-} elseif ([System.IO.Path]::IsPathRooted($RootDir)) {
-    $ProjectRoot = $RootDir
-} else {
-    # Resolve relative path from current working directory
-    $ProjectRoot = (Resolve-Path -Path $RootDir -ErrorAction SilentlyContinue).Path
-    if (-not $ProjectRoot) {
-        $ProjectRoot = Join-Path (Get-Location) $RootDir
-    }
-}
-
-# Verify project root exists and has gradlew
-if (-not (Test-Path $ProjectRoot)) {
-    Write-Host "Error: Project root directory not found at $ProjectRoot" -ForegroundColor Red
-    exit 1
-}
-
-$GradlewPath = Join-Path $ProjectRoot "gradlew.bat"
-if (-not (Test-Path $GradlewPath)) {
-    Write-Host "Error: gradlew.bat not found in $ProjectRoot" -ForegroundColor Red
-    Write-Host "Please ensure you're pointing to a valid Spring Boot project root." -ForegroundColor Yellow
-    exit 1
-}
-
-# Resolve environment file path (relative to project root, not script directory)
+# Resolve environment file path (relative to current directory or absolute)
 if ([System.IO.Path]::IsPathRooted($EnvFile)) {
     $EnvFilePath = $EnvFile
 } else {
-    $EnvFilePath = Join-Path $ProjectRoot $EnvFile
+    $EnvFilePath = Join-Path (Get-Location) $EnvFile
 }
 
-# Check if .env file exists
+# Check if environment file exists
 if (-not (Test-Path $EnvFilePath)) {
     Write-Host "Error: Environment file not found at $EnvFilePath" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Usage: .\run-server.ps1 [-EnvFile <path>]"
+    Write-Host "Usage: .\run-server.ps1 [-EnvFile <path>] [-SpringProfile <profile>]"
     Write-Host "  -EnvFile: Path to environment file (default: .env)"
+    Write-Host "  -SpringProfile: Spring Boot profile (default: dev)"
     Write-Host ""
     Write-Host "Please create an environment file with the following variables:"
     Write-Host "  JWT_SECRET_KEY=your-secret-key"
-    Write-Host "  JWT_TOKEN_LIFETIME=480"
+    Write-Host "  JWT_TOKEN_LIFETIME=60"
+    Write-Host "  MAIL_HOST=smtp.gmail.com"
+    Write-Host "  MAIL_PORT=587"
+    Write-Host "  MAIL_USERNAME=your-email@gmail.com"
+    Write-Host "  MAIL_PASSWORD=your-app-password"
+    Write-Host "  DB_URL=jdbc:mysql://localhost:3306/trackdev"
+    Write-Host "  DB_USERNAME=trackdev"
+    Write-Host "  DB_PASSWORD=trackdev"
+    exit 1
+}
+
+# Project root is the directory containing the environment file
+$ProjectRoot = Split-Path -Parent $EnvFilePath
+
+# Verify project root has gradlew
+$GradlewPath = Join-Path $ProjectRoot "gradlew.bat"
+if (-not (Test-Path $GradlewPath)) {
+    Write-Host "Error: gradlew.bat not found in $ProjectRoot" -ForegroundColor Red
+    Write-Host "Please ensure the environment file is in a valid Spring Boot project root." -ForegroundColor Yellow
     exit 1
 }
 
@@ -89,11 +77,16 @@ Get-Content $EnvFilePath | ForEach-Object {
     }
 }
 
+# Set Spring profile as environment variable
+[Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", $SpringProfile, "Process")
+Write-Host "  Loaded: SPRING_PROFILES_ACTIVE" -ForegroundColor Green
+
 Write-Host ""
 Write-Host "Starting TrackDev Spring Boot Server..." -ForegroundColor Yellow
 Write-Host "  Project root: $ProjectRoot" -ForegroundColor Cyan
+Write-Host "  Spring profile: $SpringProfile" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Yellow
 
 # Change to project root directory and run the Spring Boot application
 Set-Location $ProjectRoot
-& .\gradlew.bat bootRun @args
+& .\gradlew.bat bootRun
