@@ -25,7 +25,7 @@ public abstract class EntityLogChange extends BaseEntityLong {
     private Long entityid;
 
     // Used for specifications
-    @Column(name = "entityId", insertable = false, updatable = false)
+    @Column(name = "entity_id", insertable = false, updatable = false)
     private Long entityId;
 
     @Column(columnDefinition = "TIMESTAMP")

@@ -21,10 +21,9 @@ public class Subject extends BaseEntityLong {
 
     @NonNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ownerId")
     private User owner;
 
-    @Column(name = "ownerId", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
+    @Column(name = "owner_id", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "subject")

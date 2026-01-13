@@ -17,11 +17,9 @@ public class Comment extends BaseEntityLong {
     private String content;
 
     @ManyToOne
-    @JoinColumn(name = "authorId")
     private User author;
 
     @ManyToOne
-    @JoinColumn(name = "taskId")
     private Task task;
 
     @JsonSerialize(using = JsonDateSerializer.class)

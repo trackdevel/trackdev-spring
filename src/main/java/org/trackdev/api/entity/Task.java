@@ -38,7 +38,6 @@ public class Task extends BaseEntityLong {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "projectId")
     private Project project;
 
     @ManyToOne
@@ -66,10 +65,9 @@ public class Task extends BaseEntityLong {
     private Collection<Task> childTasks;
 
     @ManyToOne
-    @JoinColumn(name = "parentTaskId")
     private Task parentTask;
 
-    @Column(name = "parentTaskId", insertable = false, updatable = false)
+    @Column(name = "parent_task_id", insertable = false, updatable = false)
     private Long parentTaskId;
 
     @ManyToMany(mappedBy = "activeTasks")
@@ -83,7 +81,7 @@ public class Task extends BaseEntityLong {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "task_pull_requests",
+        name = "tasks_pull_requests",
         joinColumns = @JoinColumn(name = "task_id"),
         inverseJoinColumns = @JoinColumn(name = "pull_request_id")
     )

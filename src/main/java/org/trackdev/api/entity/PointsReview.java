@@ -17,11 +17,9 @@ public class PointsReview extends BaseEntityLong {
     private String comment;
 
     @ManyToOne
-    @JoinColumn(name = "task_id")
     private Task task;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
     private User user;
 
     public PointsReview() {}

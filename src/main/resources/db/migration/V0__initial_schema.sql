@@ -18,67 +18,69 @@
 CREATE TABLE IF NOT EXISTS `comments` (
   `date` datetime(6) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `taskId` bigint DEFAULT NULL,
-  `authorId` varchar(36) DEFAULT NULL,
+  `task_id` bigint DEFAULT NULL,
+  `author_id` varchar(36) DEFAULT NULL,
   `content` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKh5st5bkq2g2sspr2kdf5dl7j5` (`authorId`),
-  KEY `FKt3w846972daa8c2htbdy2g4a2` (`taskId`),
-  CONSTRAINT `FKh5st5bkq2g2sspr2kdf5dl7j5` FOREIGN KEY (`authorId`) REFERENCES `users` (`id`),
-  CONSTRAINT `FKt3w846972daa8c2htbdy2g4a2` FOREIGN KEY (`taskId`) REFERENCES `tasks` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `FKn2na60ukhs76ibtpt9burkm27` (`author_id`),
+  KEY `FKi7pp0331nbiwd2844kg78kfwb` (`task_id`),
+  CONSTRAINT `FKi7pp0331nbiwd2844kg78kfwb` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`),
+  CONSTRAINT `FKn2na60ukhs76ibtpt9burkm27` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.courses
 CREATE TABLE IF NOT EXISTS `courses` (
-  `startYear` int DEFAULT NULL,
+  `start_year` int DEFAULT NULL,
   `language` varchar(5) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   `subject_id` bigint DEFAULT NULL,
-  `ownerId` varchar(36) DEFAULT NULL,
-  `githubOrganization` varchar(255) DEFAULT NULL,
+  `owner_id` varchar(36) DEFAULT NULL,
+  `github_organization` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FK99ycw96efvoqgi2wl53vcw9gk` (`ownerId`),
+  KEY `FK3jkpttw97v8c2yuqx4prsm4m9` (`owner_id`),
   KEY `FK5tckdihu5akp5nkxiacx1gfhi` (`subject_id`),
-  CONSTRAINT `FK5tckdihu5akp5nkxiacx1gfhi` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`),
-  CONSTRAINT `FK99ycw96efvoqgi2wl53vcw9gk` FOREIGN KEY (`ownerId`) REFERENCES `users` (`id`)
+  CONSTRAINT `FK3jkpttw97v8c2yuqx4prsm4m9` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FK5tckdihu5akp5nkxiacx1gfhi` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table trackdev.courses_students
+CREATE TABLE IF NOT EXISTS `courses_students` (
+  `course_id` bigint NOT NULL,
+  `student_id` varchar(36) NOT NULL,
+  PRIMARY KEY (`course_id`,`student_id`),
+  KEY `FK9u2re1bdq1hmsyds5rfoliq35` (`student_id`),
+  CONSTRAINT `FK9u2re1bdq1hmsyds5rfoliq35` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKcj1bvqj437mdtgllmwcd41f2u` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.course_invites
 CREATE TABLE IF NOT EXISTS `course_invites` (
-  `acceptedAt` datetime(6) DEFAULT NULL,
-  `courseId` bigint DEFAULT NULL,
-  `createdAt` datetime(6) NOT NULL,
-  `expiresAt` datetime(6) DEFAULT NULL,
+  `accepted_at` datetime(6) DEFAULT NULL,
+  `course_id` bigint DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `expires_at` datetime(6) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `acceptedBy` varchar(36) DEFAULT NULL,
-  `invitedBy` varchar(36) DEFAULT NULL,
+  `accepted_by` varchar(36) DEFAULT NULL,
+  `accepted_by_id` varchar(36) DEFAULT NULL,
+  `invited_by` varchar(36) DEFAULT NULL,
+  `invited_by_id` varchar(36) NOT NULL,
   `token` varchar(64) NOT NULL,
   `email` varchar(128) NOT NULL,
   `status` enum('ACCEPTED','CANCELLED','EXPIRED','PENDING') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UKpb2xa5qbqpk8qvhlny59dkrq9` (`token`),
-  KEY `FKtkchrxuo69nyn1vs66cwgl662` (`acceptedBy`),
-  KEY `FK5s29kw5n6dmbt4eq240o6os9b` (`courseId`),
-  KEY `FKbu73653na07nf65lxtum6705n` (`invitedBy`),
-  CONSTRAINT `FK5s29kw5n6dmbt4eq240o6os9b` FOREIGN KEY (`courseId`) REFERENCES `courses` (`id`),
-  CONSTRAINT `FKbu73653na07nf65lxtum6705n` FOREIGN KEY (`invitedBy`) REFERENCES `users` (`id`),
-  CONSTRAINT `FKtkchrxuo69nyn1vs66cwgl662` FOREIGN KEY (`acceptedBy`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Data exporting was unselected.
-
--- Dumping structure for table trackdev.course_students
-CREATE TABLE IF NOT EXISTS `course_students` (
-  `course_id` bigint NOT NULL,
-  `student_id` varchar(36) NOT NULL,
-  PRIMARY KEY (`course_id`,`student_id`),
-  KEY `FKcedy62b1kx0ll1ggwkh25ubxh` (`student_id`),
-  CONSTRAINT `FKcedy62b1kx0ll1ggwkh25ubxh` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `FKj5fbpmgy0y0es0gvk0311jor3` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`)
+  KEY `FK3i71gu2e7a351pqjkiht51cea` (`accepted_by_id`),
+  KEY `FKtm14w3jgoj6ak131ptn269b59` (`course_id`),
+  KEY `FKp3dpxm1xi8ny8gdiivmwrrjk3` (`invited_by_id`),
+  CONSTRAINT `FK3i71gu2e7a351pqjkiht51cea` FOREIGN KEY (`accepted_by_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKp3dpxm1xi8ny8gdiivmwrrjk3` FOREIGN KEY (`invited_by_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKtm14w3jgoj6ak131ptn269b59` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -93,42 +95,24 @@ CREATE TABLE IF NOT EXISTS `emails` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table trackdev.flyway_schema_history
-CREATE TABLE IF NOT EXISTS `flyway_schema_history` (
-  `installed_rank` int NOT NULL,
-  `version` varchar(50) DEFAULT NULL,
-  `description` varchar(200) NOT NULL,
-  `type` varchar(20) NOT NULL,
-  `script` varchar(1000) NOT NULL,
-  `checksum` int DEFAULT NULL,
-  `installed_by` varchar(100) NOT NULL,
-  `installed_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `execution_time` int NOT NULL,
-  `success` tinyint(1) NOT NULL,
-  PRIMARY KEY (`installed_rank`),
-  KEY `flyway_schema_history_s_idx` (`success`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- Data exporting was unselected.
-
 -- Dumping structure for table trackdev.github_repos
 CREATE TABLE IF NOT EXISTS `github_repos` (
-  `webhookActive` bit(1) NOT NULL,
-  `createdAt` datetime(6) DEFAULT NULL,
+  `webhook_active` bit(1) NOT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `lastSyncAt` datetime(6) DEFAULT NULL,
-  `projectId` bigint DEFAULT NULL,
-  `webhookId` bigint DEFAULT NULL,
+  `last_sync_at` datetime(6) DEFAULT NULL,
+  `project_id` bigint DEFAULT NULL,
+  `webhook_id` bigint DEFAULT NULL,
   `name` varchar(200) NOT NULL,
   `owner` varchar(200) DEFAULT NULL,
-  `repoName` varchar(200) DEFAULT NULL,
-  `accessToken` varchar(500) DEFAULT NULL,
+  `repo_name` varchar(200) DEFAULT NULL,
+  `access_token` varchar(500) DEFAULT NULL,
   `url` varchar(500) NOT NULL,
-  `webhookSecret` varchar(500) DEFAULT NULL,
-  `webhookUrl` varchar(500) DEFAULT NULL,
+  `webhook_secret` varchar(500) DEFAULT NULL,
+  `webhook_url` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKm35tdidl5hj60g89iek30kdpy` (`projectId`),
-  CONSTRAINT `FKm35tdidl5hj60g89iek30kdpy` FOREIGN KEY (`projectId`) REFERENCES `projects` (`id`)
+  KEY `FK9sxogdop2jjndemkqoib00n03` (`project_id`),
+  CONSTRAINT `FK9sxogdop2jjndemkqoib00n03` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -164,16 +148,16 @@ CREATE TABLE IF NOT EXISTS `points_reviews` (
 
 -- Dumping structure for table trackdev.projects
 CREATE TABLE IF NOT EXISTS `projects` (
-  `nextTaskNumber` int DEFAULT NULL,
+  `next_task_number` int DEFAULT NULL,
   `qualification` double DEFAULT NULL,
-  `courseId` bigint DEFAULT NULL,
+  `course_id` bigint DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `slug` varchar(120) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UKcxqk67qijm09gpgig8a997mb0` (`slug`),
-  KEY `FK2ye5s75ppfyno3viij85danu8` (`courseId`),
-  CONSTRAINT `FK2ye5s75ppfyno3viij85danu8` FOREIGN KEY (`courseId`) REFERENCES `courses` (`id`),
+  KEY `FKpefksuunh3nqudnug39tn30rh` (`course_id`),
+  CONSTRAINT `FKpefksuunh3nqudnug39tn30rh` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`),
   CONSTRAINT `projects_chk_1` CHECK ((`qualification` <= 10))
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -181,12 +165,12 @@ CREATE TABLE IF NOT EXISTS `projects` (
 
 -- Dumping structure for table trackdev.projects_members
 CREATE TABLE IF NOT EXISTS `projects_members` (
-  `projects_id` bigint NOT NULL,
-  `members_id` varchar(36) NOT NULL,
-  PRIMARY KEY (`projects_id`,`members_id`),
-  KEY `FK6ebvqqi6hao0mn5yqjkjqqrwl` (`members_id`),
-  CONSTRAINT `FK2d29ofunhi7r0y87h18hjptfa` FOREIGN KEY (`projects_id`) REFERENCES `projects` (`id`),
-  CONSTRAINT `FK6ebvqqi6hao0mn5yqjkjqqrwl` FOREIGN KEY (`members_id`) REFERENCES `users` (`id`)
+  `project_id` bigint NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  PRIMARY KEY (`project_id`,`user_id`),
+  KEY `FK1aaecn2fdeir463r9ppdsje67` (`user_id`),
+  CONSTRAINT `FK1aaecn2fdeir463r9ppdsje67` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKkv2pepk8xy0u74k3l61if6efq` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -196,17 +180,17 @@ CREATE TABLE IF NOT EXISTS `pr_notes` (
   `level` int DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   `author_id` varchar(36) DEFAULT NULL,
-  `pullRequest_id` varchar(36) DEFAULT NULL,
+  `pull_request_id` varchar(36) DEFAULT NULL,
   `subject_id` varchar(36) DEFAULT NULL,
   `type` varchar(255) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKi2m0sddqck59d1etbdtlq1o1a` (`author_id`),
-  KEY `FKpe45wbisjngwgpp1a87ypmpnr` (`pullRequest_id`),
+  KEY `FK5rik8ir3ef26s7cim8b9v12dh` (`pull_request_id`),
   KEY `FK8nhlsjg4wo7ctk1kjkf2a5rly` (`subject_id`),
+  CONSTRAINT `FK5rik8ir3ef26s7cim8b9v12dh` FOREIGN KEY (`pull_request_id`) REFERENCES `pull_requests` (`id`),
   CONSTRAINT `FK8nhlsjg4wo7ctk1kjkf2a5rly` FOREIGN KEY (`subject_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `FKi2m0sddqck59d1etbdtlq1o1a` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `FKpe45wbisjngwgpp1a87ypmpnr` FOREIGN KEY (`pullRequest_id`) REFERENCES `pull_requests` (`id`)
+  CONSTRAINT `FKi2m0sddqck59d1etbdtlq1o1a` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -214,14 +198,14 @@ CREATE TABLE IF NOT EXISTS `pr_notes` (
 -- Dumping structure for table trackdev.pull_requests
 CREATE TABLE IF NOT EXISTS `pull_requests` (
   `merged` bit(1) DEFAULT NULL,
-  `prNumber` int DEFAULT NULL,
-  `createdAt` datetime(6) DEFAULT NULL,
-  `updatedAt` datetime(6) DEFAULT NULL,
+  `pr_number` int DEFAULT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
+  `updated_at` datetime(6) DEFAULT NULL,
   `state` varchar(20) DEFAULT NULL,
-  `nodeId` varchar(32) NOT NULL,
+  `node_id` varchar(32) NOT NULL,
   `author_id` varchar(36) DEFAULT NULL,
   `id` varchar(36) NOT NULL,
-  `repoFullName` varchar(200) DEFAULT NULL,
+  `repo_full_name` varchar(200) DEFAULT NULL,
   `url` varchar(500) NOT NULL,
   `title` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -234,15 +218,15 @@ CREATE TABLE IF NOT EXISTS `pull_requests` (
 -- Dumping structure for table trackdev.pull_request_changes
 CREATE TABLE IF NOT EXISTS `pull_request_changes` (
   `merged` bit(1) DEFAULT NULL,
-  `prNumber` int DEFAULT NULL,
-  `changedAt` timestamp NULL DEFAULT NULL,
+  `pr_number` int DEFAULT NULL,
+  `changed_at` timestamp NULL DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   `type` varchar(31) NOT NULL,
-  `pullRequestId` varchar(36) DEFAULT NULL,
-  `githubUser` varchar(100) DEFAULT NULL,
-  `mergedBy` varchar(100) DEFAULT NULL,
-  `repoFullName` varchar(200) DEFAULT NULL,
-  `prTitle` varchar(255) DEFAULT NULL,
+  `pull_request_id` varchar(36) DEFAULT NULL,
+  `github_user` varchar(100) DEFAULT NULL,
+  `merged_by` varchar(100) DEFAULT NULL,
+  `repo_full_name` varchar(200) DEFAULT NULL,
+  `pr_title` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -250,11 +234,11 @@ CREATE TABLE IF NOT EXISTS `pull_request_changes` (
 
 -- Dumping structure for table trackdev.role
 CREATE TABLE IF NOT EXISTS `role` (
-  `userType` tinyint NOT NULL,
+  `user_type` tinyint NOT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `UK7hpbvn4q6p2jbr2uauyalhkdq` (`userType`),
-  CONSTRAINT `role_chk_1` CHECK ((`userType` between 0 and 2))
+  UNIQUE KEY `UKkl1an1fehf1xcgpo3wrrbojbh` (`user_type`),
+  CONSTRAINT `role_chk_1` CHECK ((`user_type` between 0 and 2))
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -262,27 +246,27 @@ CREATE TABLE IF NOT EXISTS `role` (
 -- Dumping structure for table trackdev.sprints
 CREATE TABLE IF NOT EXISTS `sprints` (
   `status` tinyint DEFAULT NULL,
-  `endDate` datetime(6) DEFAULT NULL,
+  `end_date` datetime(6) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `projectId` bigint DEFAULT NULL,
-  `startDate` datetime(6) DEFAULT NULL,
+  `project_id` bigint DEFAULT NULL,
+  `start_date` datetime(6) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKb0h008f7uquegsu4d05jyf6rn` (`projectId`),
-  CONSTRAINT `FKb0h008f7uquegsu4d05jyf6rn` FOREIGN KEY (`projectId`) REFERENCES `projects` (`id`),
+  KEY `FKke5a9e380ibc0xugykeqaktp4` (`project_id`),
+  CONSTRAINT `FKke5a9e380ibc0xugykeqaktp4` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`),
   CONSTRAINT `sprints_chk_1` CHECK ((`status` between 0 and 2))
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table trackdev.sprints_activetasks
-CREATE TABLE IF NOT EXISTS `sprints_activetasks` (
-  `activeSprints_id` bigint NOT NULL,
-  `activeTasks_id` bigint NOT NULL,
-  KEY `FK2hrc8tk62vpn5tdt83eabekrx` (`activeTasks_id`),
-  KEY `FKhl16tk2k7n1qeunixs0tt6i3l` (`activeSprints_id`),
-  CONSTRAINT `FK2hrc8tk62vpn5tdt83eabekrx` FOREIGN KEY (`activeTasks_id`) REFERENCES `tasks` (`id`),
-  CONSTRAINT `FKhl16tk2k7n1qeunixs0tt6i3l` FOREIGN KEY (`activeSprints_id`) REFERENCES `sprints` (`id`)
+-- Dumping structure for table trackdev.sprints_active_tasks
+CREATE TABLE IF NOT EXISTS `sprints_active_tasks` (
+  `sprint_id` bigint NOT NULL,
+  `task_id` bigint NOT NULL,
+  KEY `FKfkmb83ugy72xn1sk487lkljbr` (`task_id`),
+  KEY `FKm4wqkk1em38y8983rlm6vpjs3` (`sprint_id`),
+  CONSTRAINT `FKfkmb83ugy72xn1sk487lkljbr` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`),
+  CONSTRAINT `FKm4wqkk1em38y8983rlm6vpjs3` FOREIGN KEY (`sprint_id`) REFERENCES `sprints` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -290,11 +274,12 @@ CREATE TABLE IF NOT EXISTS `sprints_activetasks` (
 -- Dumping structure for table trackdev.sprint_changes
 CREATE TABLE IF NOT EXISTS `sprint_changes` (
   `status` tinyint DEFAULT NULL,
-  `changedAt` timestamp NULL DEFAULT NULL,
-  `endDate` datetime(6) DEFAULT NULL,
-  `entityId` bigint DEFAULT NULL,
+  `changed_at` timestamp NULL DEFAULT NULL,
+  `end_date` datetime(6) DEFAULT NULL,
+  `entity_id` bigint DEFAULT NULL,
+  `entityid` bigint DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `startDate` datetime(6) DEFAULT NULL,
+  `start_date` datetime(6) DEFAULT NULL,
   `task_id` bigint DEFAULT NULL,
   `type` varchar(31) NOT NULL,
   `author` varchar(255) DEFAULT NULL,
@@ -309,27 +294,27 @@ CREATE TABLE IF NOT EXISTS `sprint_changes` (
 
 -- Dumping structure for table trackdev.sprint_patterns
 CREATE TABLE IF NOT EXISTS `sprint_patterns` (
-  `courseId` bigint DEFAULT NULL,
+  `course_id` bigint DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKb0el78m6hl6p2fmholrk4gf84` (`courseId`),
-  CONSTRAINT `FKb0el78m6hl6p2fmholrk4gf84` FOREIGN KEY (`courseId`) REFERENCES `courses` (`id`)
+  KEY `FK8mqggoll94kxo6kgkil004ejo` (`course_id`),
+  CONSTRAINT `FK8mqggoll94kxo6kgkil004ejo` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.sprint_pattern_items
 CREATE TABLE IF NOT EXISTS `sprint_pattern_items` (
-  `orderIndex` int DEFAULT NULL,
-  `endDate` datetime(6) DEFAULT NULL,
+  `order_index` int DEFAULT NULL,
+  `end_date` datetime(6) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `sprintPatternId` bigint DEFAULT NULL,
-  `startDate` datetime(6) DEFAULT NULL,
+  `sprint_pattern_id` bigint DEFAULT NULL,
+  `start_date` datetime(6) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKrl2bfyk3chf4onnt62s2iky44` (`sprintPatternId`),
-  CONSTRAINT `FKrl2bfyk3chf4onnt62s2iky44` FOREIGN KEY (`sprintPatternId`) REFERENCES `sprint_patterns` (`id`)
+  KEY `FK7m06m912ideqrimd92m7jcqye` (`sprint_pattern_id`),
+  CONSTRAINT `FK7m06m912ideqrimd92m7jcqye` FOREIGN KEY (`sprint_pattern_id`) REFERENCES `sprint_patterns` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
@@ -337,115 +322,116 @@ CREATE TABLE IF NOT EXISTS `sprint_pattern_items` (
 -- Dumping structure for table trackdev.subjects
 CREATE TABLE IF NOT EXISTS `subjects` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `ownerId` varchar(36) DEFAULT NULL,
+  `owner_id` varchar(36) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `acronym` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKfpayf125mxopij143r5xclwgw` (`ownerId`),
-  CONSTRAINT `FKfpayf125mxopij143r5xclwgw` FOREIGN KEY (`ownerId`) REFERENCES `users` (`id`)
+  KEY `FKjrjxaoibkgf8f8wtdy2y1dbb8` (`owner_id`),
+  CONSTRAINT `FKjrjxaoibkgf8f8wtdy2y1dbb8` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.tasks
 CREATE TABLE IF NOT EXISTS `tasks` (
-  `estimationPoints` int DEFAULT NULL,
+  `estimation_points` int DEFAULT NULL,
   `rank` int DEFAULT NULL,
   `status` tinyint DEFAULT NULL,
-  `taskNumber` int DEFAULT NULL,
+  `task_number` int DEFAULT NULL,
   `type` tinyint DEFAULT NULL,
-  `createdAt` datetime(6) DEFAULT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `parentTaskId` bigint DEFAULT NULL,
-  `projectId` bigint DEFAULT NULL,
-  `taskKey` varchar(10) DEFAULT NULL,
+  `parent_task_id` bigint DEFAULT NULL,
+  `project_id` bigint DEFAULT NULL,
+  `task_key` varchar(10) DEFAULT NULL,
   `assignee_id` varchar(36) DEFAULT NULL,
   `reporter_id` varchar(36) DEFAULT NULL,
   `name` varchar(100) DEFAULT NULL,
   `description` text,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `UKha8p7qolvi7cr2reyfm2cpsln` (`taskKey`),
+  UNIQUE KEY `UKhvssn5g17tcsicd74yodxa923` (`task_key`),
   KEY `FKekr1dgiqktpyoip3qmp6lxsit` (`assignee_id`),
-  KEY `FK3toapvqycdlf99yr2fjsbl0gr` (`parentTaskId`),
-  KEY `FKqvrx3xl2fyrppj222wn0eh3tx` (`projectId`),
+  KEY `FK76tiq4q248au3u79a8nkexoth` (`parent_task_id`),
+  KEY `FKsfhn82y57i3k9uxww1s007acc` (`project_id`),
   KEY `FKbvjdsa9y725wovwlq4sjhodyk` (`reporter_id`),
-  CONSTRAINT `FK3toapvqycdlf99yr2fjsbl0gr` FOREIGN KEY (`parentTaskId`) REFERENCES `tasks` (`id`),
+  CONSTRAINT `FK76tiq4q248au3u79a8nkexoth` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`),
   CONSTRAINT `FKbvjdsa9y725wovwlq4sjhodyk` FOREIGN KEY (`reporter_id`) REFERENCES `users` (`id`),
   CONSTRAINT `FKekr1dgiqktpyoip3qmp6lxsit` FOREIGN KEY (`assignee_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `FKqvrx3xl2fyrppj222wn0eh3tx` FOREIGN KEY (`projectId`) REFERENCES `projects` (`id`),
+  CONSTRAINT `FKsfhn82y57i3k9uxww1s007acc` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`),
   CONSTRAINT `tasks_chk_1` CHECK ((`status` between 0 and 5)),
   CONSTRAINT `tasks_chk_2` CHECK ((`type` between 0 and 2))
 ) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table trackdev.task_changes
-CREATE TABLE IF NOT EXISTS `task_changes` (
-  `changedAt` timestamp NULL DEFAULT NULL,
-  `entityId` bigint DEFAULT NULL,
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `type` varchar(31) NOT NULL,
-  `author` varchar(255) DEFAULT NULL,
-  `newValue` varchar(255) DEFAULT NULL,
-  `oldValue` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+-- Dumping structure for table trackdev.tasks_pull_requests
+CREATE TABLE IF NOT EXISTS `tasks_pull_requests` (
+  `task_id` bigint NOT NULL,
+  `pull_request_id` varchar(36) NOT NULL,
+  PRIMARY KEY (`task_id`,`pull_request_id`),
+  KEY `FKkkhm4xhv8iegsi0vnfkewg1vf` (`pull_request_id`),
+  CONSTRAINT `FK12y3efvrepjiu5u4bxnmyfiik` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`),
+  CONSTRAINT `FKkkhm4xhv8iegsi0vnfkewg1vf` FOREIGN KEY (`pull_request_id`) REFERENCES `pull_requests` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table trackdev.task_pull_requests
-CREATE TABLE IF NOT EXISTS `task_pull_requests` (
-  `task_id` bigint NOT NULL,
-  `pull_request_id` varchar(36) NOT NULL,
-  PRIMARY KEY (`task_id`,`pull_request_id`),
-  KEY `FKrfmlvsimrjsxnxtia8wpms26c` (`pull_request_id`),
-  CONSTRAINT `FKinv4r54e7vv1695yak8373wt4` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`),
-  CONSTRAINT `FKrfmlvsimrjsxnxtia8wpms26c` FOREIGN KEY (`pull_request_id`) REFERENCES `pull_requests` (`id`)
+-- Dumping structure for table trackdev.task_changes
+CREATE TABLE IF NOT EXISTS `task_changes` (
+  `changed_at` timestamp NULL DEFAULT NULL,
+  `entity_id` bigint DEFAULT NULL,
+  `entityid` bigint DEFAULT NULL,
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `type` varchar(31) NOT NULL,
+  `author` varchar(255) DEFAULT NULL,
+  `new_value` varchar(255) DEFAULT NULL,
+  `old_value` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.users
 CREATE TABLE IF NOT EXISTS `users` (
-  `capitalLetters` varchar(2) DEFAULT NULL,
-  `changePassword` bit(1) NOT NULL,
+  `capital_letters` varchar(2) DEFAULT NULL,
+  `change_password` bit(1) NOT NULL,
   `enabled` bit(1) NOT NULL,
-  `currentProject` bigint DEFAULT NULL,
-  `lastLogin` datetime(6) DEFAULT NULL,
-  `githubInfoId` varchar(36) DEFAULT NULL,
+  `current_project` bigint DEFAULT NULL,
+  `last_login` datetime(6) DEFAULT NULL,
+  `github_info_id` varchar(36) DEFAULT NULL,
   `id` varchar(36) NOT NULL,
   `username` varchar(50) NOT NULL,
   `email` varchar(128) NOT NULL,
   `color` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
-  `recoveryCode` varchar(255) DEFAULT NULL,
+  `recovery_code` varchar(255) DEFAULT NULL,
   `random` varbinary(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UK6dotkott2kjsp8vw4d0m25fb7` (`email`),
-  UNIQUE KEY `UKrqi41m9hby21b7k4jn4jjg8fl` (`githubInfoId`),
-  CONSTRAINT `FKfi3wsm8hjjjhb3ig9tomgnhqb` FOREIGN KEY (`githubInfoId`) REFERENCES `github_users_info` (`id`)
+  UNIQUE KEY `UKkbpq45a8lit3ih8226owpcx52` (`github_info_id`),
+  CONSTRAINT `FK30gxix6jj5jq40rqgeefs4ovs` FOREIGN KEY (`github_info_id`) REFERENCES `github_users_info` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.users_roles
 CREATE TABLE IF NOT EXISTS `users_roles` (
-  `roles_id` bigint NOT NULL,
-  `User_id` varchar(36) NOT NULL,
-  PRIMARY KEY (`roles_id`,`User_id`),
-  KEY `FKe6k7h92pkxjim6t1176b7h95x` (`User_id`),
-  CONSTRAINT `FKbeupe7ttpx0k7tf46jfgq2nkf` FOREIGN KEY (`roles_id`) REFERENCES `role` (`id`),
-  CONSTRAINT `FKe6k7h92pkxjim6t1176b7h95x` FOREIGN KEY (`User_id`) REFERENCES `users` (`id`)
+  `role_id` bigint NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  PRIMARY KEY (`role_id`,`user_id`),
+  KEY `FK2o0jvgh89lemvvo17cbqvdxaa` (`user_id`),
+  CONSTRAINT `FK2o0jvgh89lemvvo17cbqvdxaa` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKt4v0rrweyk393bdgt107vdx0x` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table trackdev.work_logs
 CREATE TABLE IF NOT EXISTS `work_logs` (
-  `timeSeconds` int DEFAULT NULL,
+  `time_seconds` int DEFAULT NULL,
   `id` bigint NOT NULL AUTO_INCREMENT,
   `task_id` bigint DEFAULT NULL,
-  `timeStamp` timestamp NULL DEFAULT NULL,
+  `time_stamp` timestamp NULL DEFAULT NULL,
   `author_id` varchar(36) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKk09kchrte8yopfx4jkkl0e8j2` (`author_id`),

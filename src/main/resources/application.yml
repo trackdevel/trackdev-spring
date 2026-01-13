@@ -9,7 +9,7 @@ spring:
       # ddl-auto: update
       # database-platform: org.hibernate.dialect.MariaDBDialect
       naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        physical-strategy: io.hypersistence.utils.hibernate.naming.CamelCaseToSnakeCaseNamingStrategy
     # show-sql: true
   flyway:
     # Disable Flyway in development environment

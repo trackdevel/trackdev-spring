@@ -29,18 +29,16 @@ public class CourseInvite extends BaseEntityLong {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "courseId")
     private Course course;
 
-    @Column(name = "courseId", insertable = false, updatable = false)
+    @Column(name = "course_id", insertable = false, updatable = false)
     private Long courseId;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invitedBy")
     private User invitedBy;
 
-    @Column(name = "invitedBy", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
+    @Column(name = "invited_by", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String invitedById;
 
     @NotNull
@@ -55,10 +53,9 @@ public class CourseInvite extends BaseEntityLong {
     private LocalDateTime acceptedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "acceptedBy")
     private User acceptedBy;
 
-    @Column(name = "acceptedBy", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
+    @Column(name = "accepted_by", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String acceptedById;
 
     public CourseInvite() {

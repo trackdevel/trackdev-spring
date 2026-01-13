@@ -33,10 +33,14 @@ public class Sprint extends BaseEntityLong {
     private SprintStatus status;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "sprints_active_tasks",
+        joinColumns = @JoinColumn(name = "sprint_id"),
+        inverseJoinColumns = @JoinColumn(name = "task_id")
+    )
     private Collection<Task> activeTasks = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "projectId")
     private Project project;
 
     //--- CONSTRUCTOR

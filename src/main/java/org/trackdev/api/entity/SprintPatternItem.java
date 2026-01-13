@@ -35,10 +35,9 @@ public class SprintPatternItem extends BaseEntityLong {
     private Integer orderIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sprintPatternId")
     private SprintPattern sprintPattern;
 
-    @Column(name = "sprintPatternId", insertable = false, updatable = false)
+    @Column(name = "sprint_pattern_id", insertable = false, updatable = false)
     private Long sprintPatternId;
 
     public SprintPatternItem() {}
