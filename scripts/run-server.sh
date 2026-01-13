@@ -8,25 +8,28 @@
 #
 # Examples:
 #   ./run-server.sh                                    # Uses defaults
-#   ./run-server.sh /path/to/spring-app                # Custom project root
-#   ./run-server.sh "" .env.production                 # Default root, custom env file
-#   ./run-server.sh /path/to/spring-app .env.prod      # Both custom
+#   ./run-server.sh env-file spring-profile            # Custom env file
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Get project root from first parameter or default to parent of script directory
 if [ -n "$1" ]; then
-    # If parameter is absolute path, use it directly; otherwise, relative to current dir
-    if [[ "$1" = /* ]]; then
-        PROJECT_ROOT="$1"
-    else
-        PROJECT_ROOT="$(pwd)/$1"
-    fi
+    PROJECT_ROOT="$(cd "$(dirname "$1")" && pwd)"
+    ENV_FILE="$1"
 else
-    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    ENV_FILE="$PROJECT_ROOT/.env"
 fi
+
+if [ -n "$2" ]; then
+    SPRING_PROFILE="$2"
+else
+    SPRING_PROFILE="dev"
+fi
+
+echo "PROJECT_ROOT: $PROJECT_ROOT"
+echo "ENV_FILE: $ENV_FILE"
+echo "SPRING_PROFILE: $SPRING_PROFILE"
 
 # Verify project root exists and has gradlew
 if [ ! -d "$PROJECT_ROOT" ]; then
@@ -34,22 +37,12 @@ if [ ! -d "$PROJECT_ROOT" ]; then
     exit 1
 fi
 
+cd "$PROJECT_ROOT"
+
 if [ ! -f "$PROJECT_ROOT/gradlew" ]; then
     echo "Error: gradlew not found in $PROJECT_ROOT"
     echo "Please ensure you're pointing to a valid Spring Boot project root."
     exit 1
-fi
-
-# Get environment file from second parameter or use default
-if [ -n "$2" ]; then
-    # If parameter is absolute path, use it directly; otherwise, relative to script dir
-    if [[ "$2" = /* ]]; then
-        ENV_FILE="$2"
-    else
-        ENV_FILE="$SCRIPT_DIR/$2"
-    fi
-else
-    ENV_FILE="$SCRIPT_DIR/.env"
 fi
 
 # Check if .env file exists
@@ -59,9 +52,6 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "Usage: $0 [env-file]"
     echo "  env-file: Path to environment file (default: .env)"
     echo ""
-    echo "Please create an environment file with the following variables:"
-    echo "  JWT_SECRET_KEY=your-secret-key"
-    echo "  JWT_TOKEN_LIFETIME=480"
     exit 1
 fi
 
@@ -87,4 +77,4 @@ echo "========================================="
 
 # Run the Spring Boot application from project root
 cd "$PROJECT_ROOT"
-./gradlew bootRun "$@"
+./gradlew bootRun --args="--spring.profiles.active=$SPRING_PROFILE"

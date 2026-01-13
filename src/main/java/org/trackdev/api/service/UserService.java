@@ -223,7 +223,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public String generateRecoveryCode(User user) {
-        String code = RandomStringUtils.randomAlphanumeric(8);
+        String code = RandomStringUtils.secure().nextAlphanumeric(8);
         user.setRecoveryCode(passwordEncoder.encode(code));
         repo().save(user);
         return code;

@@ -69,14 +69,14 @@ public class DataInitializer implements CommandLineRunner {
         if (adminUsers.isEmpty()) {
             logger.info("No admin user found. Creating initial admin user...");
             
-            String username = trackDevProperties.getAdmin().getUsername();
-            String email = trackDevProperties.getAdmin().getEmail();
-            String password = trackDevProperties.getAdmin().getPassword();
+            String username = environment.getProperty("ADMIN_USERNAME");
+            String email = environment.getProperty("ADMIN_EMAIL");
+            String password = environment.getProperty("ADMIN_PASSWORD");
             
             if (username == null || username.isBlank() || 
                 email == null || email.isBlank() || 
                 password == null || password.isBlank()) {
-                logger.error("Admin credentials not configured! Set trackdev.admin.username, trackdev.admin.email and trackdev.admin.password");
+                logger.error("Admin credentials not configured! Set ADMIN_USERNAME, ADMIN_EMAIL and ADMIN_PASSWORD environment variables");
                 throw new IllegalStateException("Admin credentials must be configured in production");
             }
             

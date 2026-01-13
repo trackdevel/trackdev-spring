@@ -5,19 +5,17 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: none
-      # ddl-auto: update
+      ddl-auto: validate
       # database-platform: org.hibernate.dialect.MariaDBDialect
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     # show-sql: true
   flyway:
-    # Initialize schema history table for existing database
-    baseline-on-migrate: true
-    # Set baseline version
-    baseline-version: 0
     # Enable Flyway
     enabled: true
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    clean-disabled: true
   mvc:
     # Disable RFC 7807 Problem Details format to use custom error responses
     problemdetails:
