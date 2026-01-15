@@ -1,6 +1,8 @@
 package org.trackdev.api.entity.prchanges;
 
-import jakarta.persistence.Column;
+import org.trackdev.api.entity.PullRequest;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -14,8 +16,8 @@ public class PullRequestReopenedChange extends PullRequestChange {
 
     public PullRequestReopenedChange() {}
 
-    public PullRequestReopenedChange(String pullRequestId, String githubUser) {
-        super(pullRequestId, githubUser);
+    public PullRequestReopenedChange(User author, PullRequest pullRequest, String githubUser) {
+        super(author, pullRequest, githubUser);
     }
 
     @Override

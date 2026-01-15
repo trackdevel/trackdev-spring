@@ -1,5 +1,8 @@
 package org.trackdev.api.entity.prchanges;
 
+import org.trackdev.api.entity.PullRequest;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -14,8 +17,8 @@ public class PullRequestMergedChange extends PullRequestChange {
 
     public PullRequestMergedChange() {}
 
-    public PullRequestMergedChange(String pullRequestId, String githubUser, String mergedBy) {
-        super(pullRequestId, githubUser);
+    public PullRequestMergedChange(User author, PullRequest pullRequest, String githubUser, String mergedBy) {
+        super(author, pullRequest, githubUser);
         this.mergedBy = mergedBy;
     }
 

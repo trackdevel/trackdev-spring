@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import java.util.Date;
 
 import org.trackdev.api.configuration.DateFormattingConfiguration;
+import org.trackdev.api.entity.Sprint;
+import org.trackdev.api.entity.User;
 
 @Entity
 @DiscriminatorValue(value = SprintStartDateChange.CHANGE_TYPE_NAME)
@@ -15,7 +17,7 @@ public class SprintStartDateChange extends SprintChange {
 
     public SprintStartDateChange() {}
 
-    public SprintStartDateChange(String author, Long sprint, Date value) {
+    public SprintStartDateChange(User author, Sprint sprint, Date value) {
         super(author, sprint);
         this.startDate = value;
     }

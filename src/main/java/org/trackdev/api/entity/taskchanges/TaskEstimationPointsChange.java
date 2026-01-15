@@ -1,5 +1,8 @@
 package org.trackdev.api.entity.taskchanges;
 
+import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -11,8 +14,8 @@ public class TaskEstimationPointsChange extends TaskChange {
 
     public TaskEstimationPointsChange() { }
 
-    public TaskEstimationPointsChange(String user, Long taskId, Integer oldValue, Integer newValue) {
-        super(user, taskId);
+    public TaskEstimationPointsChange(User author, Task task, Integer oldValue, Integer newValue) {
+        super(author, task);
         this.oldValue = oldValue == null ? null : oldValue.toString();
         this.newValue = newValue == null ? null : newValue.toString();
     }

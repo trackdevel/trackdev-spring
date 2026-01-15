@@ -1,5 +1,8 @@
 package org.trackdev.api.entity.sprintchanges;
 
+import org.trackdev.api.entity.Sprint;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -10,7 +13,7 @@ public class SprintNameChange extends SprintChange {
 
     public SprintNameChange() {}
 
-    public SprintNameChange(String author, Long sprint, String name) {
+    public SprintNameChange(User author, Sprint sprint, String name) {
         super(author, sprint);
         this.name = name;
     }

@@ -1,13 +1,11 @@
 package org.trackdev.api.entity.prchanges;
 
-import org.trackdev.api.entity.BaseEntityLong;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.trackdev.api.entity.PullRequest;
+import org.trackdev.api.entity.User;
+import org.trackdev.api.entity.changes.EntityLogChange;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import org.trackdev.api.configuration.DateFormattingConfiguration;
-import org.trackdev.api.entity.BaseEntityLong;
-
-import java.time.LocalDateTime;
 
 /**
  * Base class for tracking changes to Pull Requests.
@@ -17,49 +15,42 @@ import java.time.LocalDateTime;
 @Table(name = "pull_request_changes")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type")
-public abstract class PullRequestChange extends BaseEntityLong {
+public abstract class PullRequestChange extends EntityLogChange {
 
     public PullRequestChange() {}
 
-    public PullRequestChange(String pullRequestId, String githubUser) {
-        this.pullRequestId = pullRequestId;
+    public PullRequestChange(User author, PullRequest pullRequest, String githubUser) {
+        super(author);
+        this.pullRequest = pullRequest;
         this.githubUser = githubUser;
-        this.changedAt = LocalDateTime.now();
     }
 
-    /**
-     * The UUID of the PullRequest entity
-     */
-    @Column(length = 36)
-    private String pullRequestId;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pull_request_id")
+    private PullRequest pullRequest;
 
     /**
-     * The GitHub username who performed the action
+     * The GitHub username who performed the action (may differ from system user)
      */
     @Column(length = 100)
     private String githubUser;
 
-    /**
-     * When this change occurred
-     */
-    @Column(columnDefinition = "TIMESTAMP")
-    private LocalDateTime changedAt;
-
-    // Used for specifications
-    @Column(name = "type", insertable = false, updatable = false)
-    private String typeColumn;
+    @JsonIgnore
+    public PullRequest getPullRequest() {
+        return pullRequest;
+    }
 
     public String getPullRequestId() {
-        return pullRequestId;
+        try {
+            return pullRequest != null ? pullRequest.getId() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public String getGithubUser() {
         return githubUser;
-    }
-
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
-    public LocalDateTime getChangedAt() {
-        return changedAt;
     }
 
     public abstract String getType();

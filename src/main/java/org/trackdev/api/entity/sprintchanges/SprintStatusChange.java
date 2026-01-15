@@ -1,6 +1,8 @@
 package org.trackdev.api.entity.sprintchanges;
 
+import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.SprintStatus;
+import org.trackdev.api.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -13,7 +15,7 @@ public class SprintStatusChange extends SprintChange {
 
     public SprintStatusChange() { }
 
-    public SprintStatusChange(String author, Long sprint, SprintStatus status) {
+    public SprintStatusChange(User author, Sprint sprint, SprintStatus status) {
         super(author, sprint);
         this.status = status;
     }

@@ -1,5 +1,8 @@
 package org.trackdev.api.entity.taskchanges;
 
+import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -10,8 +13,8 @@ public class TaskTypeChange extends TaskChange {
 
     public TaskTypeChange() {}
 
-    public TaskTypeChange(String author, Long taskId, String oldValue, String newValue) {
-        super(author, taskId);
+    public TaskTypeChange(User author, Task task, String oldValue, String newValue) {
+        super(author, task);
         this.oldValue = oldValue;
         this.newValue = newValue;
     }
