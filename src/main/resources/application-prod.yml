@@ -32,6 +32,8 @@ logging:
   level:
     "[org.springframework.web.filter.CommonsRequestLoggingFilter]": DEBUG
     root: INFO
+    org:
+      flywaydb: DEBUG
 
 # HTTP server configuration (SSL handled by nginx reverse proxy)
 server:
@@ -39,6 +41,7 @@ server:
   ssl:
     enabled: false
   servlet:
+    context-path: /api
     session:
       cookie:
         # Session cookie settings (secure=false since nginx handles SSL termination)
