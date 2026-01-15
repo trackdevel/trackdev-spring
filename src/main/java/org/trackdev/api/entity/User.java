@@ -20,22 +20,29 @@ public class User extends BaseEntityUUID {
   public static final int MIN_EMAIL_LENGHT = 4;
   public static final int EMAIL_LENGTH = 128;
   public static final int CAPITAL_LETTERS_LENGTH = 2;
-  public static final String USERNAME_PATTERN = "^[a-zA-Z0-9_-]+$";
+  public static final String USERNAME_PATTERN = "^[a-zA-Z0-9_\\-#]+$";
+  public static final int MIN_FULL_NAME_LENGTH = 1;
+  public static final int FULL_NAME_LENGTH = 100;
 
   public User() {}
 
-  public User(String username, String email, String password) {
+  public User(String username, String fullName, String email, String password) {
     this.username = username;
+    this.fullName = fullName;
     this.email = email;
     this.password = password;
     this.color = randomColorGenerator();
     this.githubInfo = new GithubInfo();
-    this.capitalLetters = generateCapitalLetters(username);
+    this.capitalLetters = generateCapitalLetters(fullName);
   }
 
   @NotNull
   @Column(length=USERNAME_LENGTH)
   private String username;
+
+  @NotNull
+  @Column(length=FULL_NAME_LENGTH)
+  private String fullName;
 
   @NotNull
   @Column(unique=true, length=EMAIL_LENGTH)
@@ -86,6 +93,12 @@ public class User extends BaseEntityUUID {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<PointsReview> pointsReviewList = new ArrayList<>();
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  private Workspace workspace;
+
+  @Column(name = "workspace_id", insertable = false, updatable = false)
+  private Long workspaceId;
+
   private Random random = new Random();
 
  // -- GETTERS AND SETTERS
@@ -108,7 +121,15 @@ public class User extends BaseEntityUUID {
 
   public void setUsername(String username) {
     this.username = username;
-    this.capitalLetters = generateCapitalLetters(username);
+  }
+
+  public String getFullName() {
+    return fullName;
+  }
+
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+    this.capitalLetters = generateCapitalLetters(fullName);
   }
 
   public Long getCurrentProject() { return currentProject; }
@@ -145,6 +166,12 @@ public class User extends BaseEntityUUID {
   public List<PointsReview> getPointsReviewList() { return pointsReviewList; }
 
   public void addPointsReview(PointsReview pointsReview) { this.pointsReviewList.add(pointsReview); }
+
+  public Workspace getWorkspace() { return workspace; }
+
+  public void setWorkspace(Workspace workspace) { this.workspace = workspace; }
+
+  public Long getWorkspaceId() { return workspaceId; }
 
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
 
