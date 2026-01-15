@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
+import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.dto.UserWithGithubTokenDTO;
 import org.trackdev.api.dto.UserWithProjectsDTO;
 import org.trackdev.api.dto.UsersResponseDTO;
@@ -59,7 +60,7 @@ public class UserController extends BaseController {
      */
     @Operation(summary = "Get user by id", description = "Get user by id")
     @GetMapping(path = "/uuid/{id}")
-    public UserWithProjectsDTO getPublic(Principal principal, @PathVariable String id) {
+    public UserWithProjectsDTO getPublic(Principal principal, @PathVariable(name = "id") String id) {
         super.checkLoggedIn(principal);
         return userMapper.toWithProjectsDTO(userService.get(id));
     }
@@ -72,7 +73,7 @@ public class UserController extends BaseController {
      */
     @Operation(summary = "Get user by email", description = "Get user by email")
     @GetMapping(path = "/{email}")
-    public UserWithProjectsDTO getUserEmail(Principal principal, @PathVariable String email) {
+    public UserWithProjectsDTO getUserEmail(Principal principal, @PathVariable(name = "email") String email) {
         super.checkLoggedIn(principal);
         return userMapper.toWithProjectsDTO(userService.getByEmail(email));
     }
@@ -88,23 +89,41 @@ public class UserController extends BaseController {
         return new UsersResponseDTO(userMapper.toWithProjectsDTOList(userService.findAll()));
     }
 
-    @Operation(summary = "Register user", description = "Register user, only admins can do this")
+    @Operation(summary = "Get workspace users", description = "Get WORKSPACE_ADMIN and PROFESSOR users from the current user's workspace. Only workspace admins can do this.")
+    @GetMapping(path = "/workspace")
+    @PreAuthorize("hasRole('WORKSPACE_ADMIN')")
+    public UsersResponseDTO getWorkspaceUsers(Principal principal) {
+        String userId = super.getUserId(principal);
+        User currentUser = userService.get(userId);
+        
+        // Check that user has a workspace
+        if (currentUser.getWorkspace() == null) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        Long workspaceId = currentUser.getWorkspace().getId();
+        return new UsersResponseDTO(userMapper.toWithProjectsDTOList(userService.getWorkspaceUsers(workspaceId)));
+    }
+
+    @Operation(summary = "Register user", description = "Register user. Admins can create any user type. Workspace admins can create professors and students in their workspace. Professors can create students for their courses.")
     @PostMapping(path = "/register")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> register(Principal principal, @Valid @RequestBody RegisterU ru,
                                          BindingResult result) {
         checkLoggedIn(principal);
-        // Double-check with AccessChecker for defense in depth
-        if (!accessChecker.isUserAdmin(userService.get(principal.getName()))) {
-            throw new SecurityException(ErrorConstants.UNAUTHORIZED);
-        }
+        String userId = getUserId(principal);
+        User currentUser = userService.get(userId);
+        
+        // Use AccessChecker for authorization
+        accessChecker.checkCanCreateUser(currentUser, ru.userType, ru.workspaceId, ru.courseId);
+        
         if (result.hasErrors()) {
             List<String> errors = result.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .collect(Collectors.toList());
             throw new ControllerException(String.join(". ", errors));
         }
-        userService.register(ru.username, ru.email, ru.password, ru.userType);
+        userService.register(ru.username, ru.fullName, ru.email, ru.password, ru.userType, ru.workspaceId, ru.courseId);
         return okNoContent();
     }
 
@@ -131,7 +150,7 @@ public class UserController extends BaseController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserWithProjectsDTO editUser(Principal principal,
                             @Valid @RequestBody EditU userRequest,
-                            @PathVariable String id) {
+                            @PathVariable(name = "id") String id) {
         if (userRequest.username != null){
             if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
                 throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
@@ -168,6 +187,14 @@ public class UserController extends BaseController {
         public String username;
 
         @NotBlank
+        @Size(
+                min = User.MIN_FULL_NAME_LENGTH,
+                max = User.FULL_NAME_LENGTH,
+                message = ErrorConstants.INVALID_FULL_NAME_SIZE
+        )
+        public String fullName;
+
+        @NotBlank
         @Email(message = ErrorConstants.INVALID_MAIL_FORMAT)
         @Size(
                 min = User.MIN_EMAIL_LENGHT,
@@ -182,6 +209,12 @@ public class UserController extends BaseController {
 
         @NotNull
         public UserType userType;
+
+        // Optional: workspace ID for WORKSPACE_ADMIN creating users in their workspace
+        public Long workspaceId;
+
+        // Optional: course ID for PROFESSOR creating students for their course
+        public Long courseId;
 
     }
 
@@ -201,19 +234,51 @@ public class UserController extends BaseController {
     }
 
     /**
-     * Delete a user. Only admins can delete users.
+     * Delete a user. Admins can delete any user.
+     * Workspace admins can delete PROFESSOR users from their workspace.
      * User can only be deleted if they have no dependencies.
      */
     @Operation(summary = "Delete user", description = "Delete a user if they have no dependencies")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN')")
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteUser(Principal principal, @PathVariable String id) {
+    public ResponseEntity<Void> deleteUser(Principal principal, @PathVariable(name = "id") String id) {
         String userId = getUserId(principal);
         User currentUser = userService.get(userId);
-        accessChecker.checkIsUserAdmin(currentUser);
+        User targetUser = userService.get(id);
+        
+        accessChecker.checkCanManageWorkspaceUser(currentUser, targetUser);
         
         userService.deleteUser(id);
         return okNoContent();
+    }
+
+    /**
+     * Edit a user. Admins can edit any user.
+     * Workspace admins can edit PROFESSOR users from their workspace.
+     */
+    @Operation(summary = "Edit user by workspace admin", description = "Edit a user from the workspace")
+    @PatchMapping(path = "/workspace/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN')")
+    public UserWithProjectsDTO editWorkspaceUser(Principal principal,
+                            @Valid @RequestBody EditU userRequest,
+                            @PathVariable String id) {
+        if (userRequest.username != null){
+            if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
+            }
+            if (!userRequest.username.get().matches(User.USERNAME_PATTERN)) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_FORMAT);
+            }
+        }
+        String userId = super.getUserId(principal);
+        User currentUser = userService.get(userId);
+        User targetUser = userService.get(id);
+        
+        accessChecker.checkCanManageWorkspaceUser(currentUser, targetUser);
+        
+        return userMapper.toWithProjectsDTO(userService.editMyUser(currentUser, targetUser, 
+            userRequest.username, userRequest.color, userRequest.capitalLetters, 
+            userRequest.changePassword, userRequest.githubToken, userRequest.enabled));
     }
 
 }
