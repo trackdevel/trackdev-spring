@@ -645,7 +645,7 @@ Windows PowerShell
 - Subjects
     - Name: 1-100 characters
     - Description: optional
-    - Created by a ADMIN or PROFESSOR user
+    - Created by a WORKSPACE_ADMIN user
     - A Subject can have multiple Courses
 
 - Courses
@@ -657,6 +657,14 @@ Windows PowerShell
     - A Course can have multiple enrolled STUDENT users
     - A Course can have multiple Projects
 
+- Workspaces
+    - Name: 1-100 characters
+    - Description: optional
+    - Created by an ADMIN user
+    - A Workspace can have multiple PROFESSOR users as members
+    - A Workspace can have multiple Subjects
+    - Users from one Workspace cannot access resources from another Workspace
+
 - Projects
     - Name: 1-100 characters
     - Description: optional
@@ -666,7 +674,28 @@ Windows PowerShell
     - When a SprintPattern is applied, multiple Sprints are created for the Project, one for any SprintPatternItem in the SprintPattern
     - A Project can have multiple Tasks
 
-
+-  Users
+    - Username: unique, 3-50 characters
+    - Email: unique, valid email format
+    - Password: stored as bcrypt hash
+    - UserType: Enum (ADMIN, WORKSPACE_ADMIN, PROFESSOR, STUDENT)
+    - User creation constraints (it works for UI and API):
+        - If as ADMIN I create a new ADMIN, no need of additional information
+        - If as ADMIN I create a new WORKSPACE_ADMIN, I only need to select the Workspace to which it will be associated
+        - As an ADMIN, I don't want to create STUDENT or PROFESSORS
+        - If as a WORKSPACE_ADMIN I want to create a new PROFESSOR, it will be assigned to the admin Workspace, no need to select additional information
+        - As a WORKSPACE_ADMIN, I only must be able to create new PROFESSOR
+        - As a PROFESSOR, I want to be able to create only STUDENT. I will need to provide the Course to which the STUDENT will be enrolled
+    - User editing constraints:
+        - Only ADMIN users can change the UserType of another user
+        - ADMIN can change/delete any info of WORKSPACE_ADMIN, PROFESSOR, STUDENT users
+        - WORKSPACE_ADMIN can change/delete any info of PROFESSOR and STUDENT users in their Workspace
+        - PROFESSOR can change/delete any info of STUDENT users in their Courses
+        - Additional editing contraints:
+            - WORKSPACE_ADMIN can add a PROFESSOR to a Course only if the PROFESSOR belongs to the same Workspace
+            - WORKSPACE_ADMIN can create Subjects only in their Workspace
+            - WORKSPACE_ADMIN can create Courses only in Subjects that belong to their Workspace
+            - PROFESSOR can create Projects only in their Courses
 ---
 
 ## User Roles and Permissions
