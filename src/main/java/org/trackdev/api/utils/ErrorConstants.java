@@ -24,7 +24,8 @@ public final class ErrorConstants {
     public static final String INVALID_MAIL_FORMAT = "Email address format is not valid";
     public static final String INVALID_MAIL_SIZE = "Email address length is not valid";
     public static final String INVALID_USERNAME_SIZE = "Username length must be between 1 and 50 characters";
-    public static final String INVALID_USERNAME_FORMAT = "Username contains invalid characters";
+    public static final String INVALID_USERNAME_FORMAT = "Username can only contain alphanumeric characters, hyphens (-), underscores (_), and hash (#)";
+    public static final String INVALID_FULL_NAME_SIZE = "Full name length must be between 1 and 100 characters";
     public static final String INVALID_PASSWORD_FORMAT = "Password must contain at least one lowercase letter, one uppercase letter, and one number";
     public static final String UNAUTHORIZED = "User is not authorized to perform this action or view this resource";
     public static final String TASK_ALREADY_REVIEWED = "This user has already reviewed the points for this task";
@@ -57,6 +58,20 @@ public final class ErrorConstants {
     public static final String SUBJECT_HAS_COURSES = "Cannot delete subject that has associated courses";
     public static final String COURSE_ALREADY_EXISTS = "A course already exists for this subject and year";
     
+    // Workspace errors
+    public static final String WORKSPACE_NOT_EXIST = "Workspace does not exist";
+    public static final String INVALID_WORKSPACE_NAME_LENGTH = "Workspace name must be between 1 and 100 characters";
+    public static final String WORKSPACE_ADMIN_CANNOT_CREATE_USER_TYPE = "Workspace administrators can only create Professor and Student users";
+    public static final String WORKSPACE_ADMIN_CAN_ONLY_CREATE_PROFESSOR = "Workspace administrators can only create Professor users";
+    public static final String WORKSPACE_REQUIRED = "Workspace ID is required for this operation";
+    
+    // Admin user creation errors
+    public static final String ADMIN_CAN_ONLY_CREATE_ADMIN_OR_WORKSPACE_ADMIN = "Administrators can only create Administrator or Workspace Administrator users";
+    
+    // Professor user creation errors
+    public static final String PROFESSOR_CAN_ONLY_CREATE_STUDENTS = "Professors can only create Student users";
+    public static final String COURSE_REQUIRED = "Course ID is required for this operation";
+    
     // Course invite errors
     public static final String INVITE_NOT_FOUND = "Invitation not found or invalid token";
     public static final String INVITE_ALREADY_USED = "This invitation has already been used";
@@ -76,6 +91,7 @@ public final class ErrorConstants {
     public static final String CANNOT_DELETE_USER_HAS_COMMENTS = "Cannot delete user who has authored comments";
     public static final String CANNOT_DELETE_USER_HAS_SENT_INVITES = "Cannot delete user who has sent course invites";
     public static final String CANNOT_DELETE_USER_HAS_OWNED_COURSES = "Cannot delete user who owns courses";
+    public static final String CANNOT_MANAGE_SELF = "You cannot delete or edit your own account from this interface";
     
     public static final String EMPTY = "";
 }
