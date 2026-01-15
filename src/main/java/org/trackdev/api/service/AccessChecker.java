@@ -9,6 +9,7 @@ import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Subject;
 import org.trackdev.api.entity.User;
+import org.trackdev.api.entity.Workspace;
 import org.trackdev.api.utils.ErrorConstants;
 
 /*
@@ -26,38 +27,71 @@ public class AccessChecker {
     @Lazy
     UserService userService;
 
+    @Autowired
+    @Lazy
+    CourseService courseService;
+
     // SUBJECTS
 
     /**
      * Check if user can create a subject.
-     * Only ADMIN users can create subjects.
+     * ADMIN can create subjects in any workspace.
+     * WORKSPACE_ADMIN can create subjects in their own workspace.
      */
     public void checkCanCreateSubject(User user) {
-        if (!user.isUserType(UserType.ADMIN)) {
+        if (!user.isUserType(UserType.ADMIN) && !user.isUserType(UserType.WORKSPACE_ADMIN)) {
             throw new ServiceException(ErrorConstants.UNAUTHORIZED);
         }
     }
 
     /**
      * Check if user can manage (edit/delete) a subject.
-     * Only ADMIN users can manage subjects.
+     * ADMIN can manage any subject.
+     * WORKSPACE_ADMIN can manage subjects in their workspace.
      */
     public void checkCanManageSubject(Subject subject, String userId) {
         User user = userService.get(userId);
-        if (!user.isUserType(UserType.ADMIN)) {
-            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        
+        // ADMIN can manage any subject
+        if (user.isUserType(UserType.ADMIN)) {
+            return;
         }
+        
+        // WORKSPACE_ADMIN can manage subjects in their workspace
+        if (user.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (subject.getWorkspace() != null && 
+                user.getWorkspace() != null && 
+                subject.getWorkspace().getId().equals(user.getWorkspace().getId())) {
+                return;
+            }
+        }
+        
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
     /**
      * Check if user can view a subject.
-     * ADMIN and PROFESSOR can view all subjects.
+     * ADMIN can view all subjects.
+     * WORKSPACE_ADMIN can view subjects in their workspace.
+     * PROFESSOR can view all subjects.
      */
     public void checkCanViewSubject(Subject subject, String userId) {
         User user = userService.get(userId);
+        
+        // ADMIN and PROFESSOR can view all subjects
         if (user.isUserType(UserType.ADMIN) || user.isUserType(UserType.PROFESSOR)) {
             return;
         }
+        
+        // WORKSPACE_ADMIN can view subjects in their workspace
+        if (user.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (subject.getWorkspace() != null && 
+                user.getWorkspace() != null && 
+                subject.getWorkspace().getId().equals(user.getWorkspace().getId())) {
+                return;
+            }
+        }
+        
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
@@ -81,6 +115,15 @@ public class AccessChecker {
         if (user.isUserType(UserType.ADMIN)) {
             return;
         }
+        // WORKSPACE_ADMIN can manage courses in their workspace
+        if (user.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (course.getSubject() != null && 
+                course.getSubject().getWorkspace() != null &&
+                user.getWorkspace() != null &&
+                course.getSubject().getWorkspace().getId().equals(user.getWorkspace().getId())) {
+                return;
+            }
+        }
         // Course owner can manage their own course
         if (course.getOwnerId() != null && course.getOwnerId().equals(userId)) {
             return;
@@ -93,6 +136,15 @@ public class AccessChecker {
         // Admin can view any course
         if (user.isUserType(UserType.ADMIN)) {
             return;
+        }
+        // WORKSPACE_ADMIN can view courses in their workspace
+        if (user.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (course.getSubject() != null && 
+                course.getSubject().getWorkspace() != null &&
+                user.getWorkspace() != null &&
+                course.getSubject().getWorkspace().getId().equals(user.getWorkspace().getId())) {
+                return;
+            }
         }
         // Course owner can view their course
         if (course.getOwnerId() != null && course.getOwnerId().equals(userId)) {
@@ -111,6 +163,15 @@ public class AccessChecker {
         // Admin can view all projects
         if (user.isUserType(UserType.ADMIN)) {
             return true;
+        }
+        // WORKSPACE_ADMIN can view all projects in courses from their workspace
+        if (user.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (course.getSubject() != null && 
+                course.getSubject().getWorkspace() != null &&
+                user.getWorkspace() != null &&
+                course.getSubject().getWorkspace().getId().equals(user.getWorkspace().getId())) {
+                return true;
+            }
         }
         // Course owner can view all projects in their course
         if (course.getOwnerId() != null && course.getOwnerId().equals(userId)) {
@@ -285,15 +346,20 @@ public class AccessChecker {
     /**
      * Check if user can modify the status of a task.
      * Only the assigned user can modify the status.
-     * Professors (subject owners) and admins can also modify status.
+     * Professors (subject owners and course owners) and admins can also modify status.
      */
     public void checkCanModifyTaskStatus(org.trackdev.api.entity.Task task, String userId) {
         // Assigned user can modify status
         if (isTaskAssignee(task, userId)) {
             return;
         }
+        // Course owner (professor) can modify status
+        Course course = task.getProject().getCourse();
+        if (course.getOwnerId().equals(userId)) {
+            return;
+        }
         // Subject owner (professor) can modify status
-        Subject subject = task.getProject().getCourse().getSubject();
+        Subject subject = course.getSubject();
         if (isSubjectOwner(subject, userId)) {
             return;
         }
@@ -320,15 +386,20 @@ public class AccessChecker {
 
     /**
      * Check if user can edit a task (name, description, estimation points, etc.).
-     * Only the assigned user, subject owner (professor), or admin can edit.
+     * Only the assigned user, course owner (professor), subject owner (professor), or admin can edit.
      */
     public void checkCanEditTask(org.trackdev.api.entity.Task task, String userId) {
         // Assigned user can edit
         if (isTaskAssignee(task, userId)) {
             return;
         }
+        // Course owner (professor) can edit
+        Course course = task.getProject().getCourse();
+        if (course.getOwnerId().equals(userId)) {
+            return;
+        }
         // Subject owner (professor) can edit
-        Subject subject = task.getProject().getCourse().getSubject();
+        Subject subject = course.getSubject();
         if (isSubjectOwner(subject, userId)) {
             return;
         }
@@ -347,8 +418,13 @@ public class AccessChecker {
         if (isTaskAssignee(task, userId)) {
             return true;
         }
+        // Course owner (professor) can edit
+        Course course = task.getProject().getCourse();
+        if (course.getOwnerId().equals(userId)) {
+            return true;
+        }
         // Subject owner (professor) can edit
-        Subject subject = task.getProject().getCourse().getSubject();
+        Subject subject = course.getSubject();
         if (isSubjectOwner(subject, userId)) {
             return true;
         }
@@ -384,6 +460,166 @@ public class AccessChecker {
         if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    // WORKSPACES
+
+    /**
+     * Check if user can view all workspaces.
+     * Only ADMIN users can view all workspaces.
+     */
+    public void checkCanViewAllWorkspaces(String userId) {
+        User user = userService.get(userId);
+        if (!user.isUserType(UserType.ADMIN)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Check if user can view a workspace.
+     * ADMIN can view any workspace.
+     * WORKSPACE_ADMIN and other users can view workspaces they belong to.
+     */
+    public void checkCanViewWorkspace(Workspace workspace, String userId) {
+        User user = userService.get(userId);
+        // Admin can view any workspace
+        if (user.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        // Users can view their own workspace
+        if (user.getWorkspaceId() != null && user.getWorkspaceId().equals(workspace.getId())) {
+            return;
+        }
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    /**
+     * Check if user can create a workspace.
+     * Only ADMIN users can create workspaces.
+     */
+    public void checkCanCreateWorkspace(String userId) {
+        User user = userService.get(userId);
+        if (!user.isUserType(UserType.ADMIN)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Check if user can manage (edit/delete) a workspace.
+     * ADMIN can manage any workspace.
+     * WORKSPACE_ADMIN can manage their own workspace.
+     */
+    public void checkCanManageWorkspace(Workspace workspace, String userId) {
+        User user = userService.get(userId);
+        // Admin can manage any workspace
+        if (user.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        // Workspace admin can manage their own workspace
+        if (user.isUserType(UserType.WORKSPACE_ADMIN) 
+            && user.getWorkspaceId() != null 
+            && user.getWorkspaceId().equals(workspace.getId())) {
+            return;
+        }
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    // USER CREATION
+
+    /**
+     * Check if user can create another user.
+     * According to entity constraints:
+     * - ADMIN can create ADMIN (no additional info) or WORKSPACE_ADMIN (needs workspace)
+     * - ADMIN cannot create STUDENT or PROFESSOR
+     * - WORKSPACE_ADMIN can only create PROFESSOR (auto-assigned to their workspace)
+     * - PROFESSOR can only create STUDENT for courses they own
+     */
+    public void checkCanCreateUser(User currentUser, UserType targetUserType, Long targetWorkspaceId, Long targetCourseId) {
+        // Admin can create ADMIN or WORKSPACE_ADMIN
+        if (currentUser.isUserType(UserType.ADMIN)) {
+            // Admin can only create ADMIN or WORKSPACE_ADMIN
+            if (targetUserType != UserType.ADMIN && targetUserType != UserType.WORKSPACE_ADMIN) {
+                throw new ServiceException(ErrorConstants.ADMIN_CAN_ONLY_CREATE_ADMIN_OR_WORKSPACE_ADMIN);
+            }
+            // WORKSPACE_ADMIN requires workspace selection
+            if (targetUserType == UserType.WORKSPACE_ADMIN && targetWorkspaceId == null) {
+                throw new ServiceException(ErrorConstants.WORKSPACE_REQUIRED);
+            }
+            return;
+        }
+        
+        // Workspace admin can only create PROFESSOR
+        if (currentUser.isUserType(UserType.WORKSPACE_ADMIN)) {
+            // Can only create PROFESSOR
+            if (targetUserType != UserType.PROFESSOR) {
+                throw new ServiceException(ErrorConstants.WORKSPACE_ADMIN_CAN_ONLY_CREATE_PROFESSOR);
+            }
+            // Professor is auto-assigned to the workspace admin's workspace, no workspace/course selection needed
+            return;
+        }
+        
+        // Professor can only create STUDENT for courses they own
+        if (currentUser.isUserType(UserType.PROFESSOR)) {
+            // Can only create STUDENT
+            if (targetUserType != UserType.STUDENT) {
+                throw new ServiceException(ErrorConstants.PROFESSOR_CAN_ONLY_CREATE_STUDENTS);
+            }
+            
+            // Must specify a course
+            if (targetCourseId == null) {
+                throw new ServiceException(ErrorConstants.COURSE_REQUIRED);
+            }
+            
+            // Must own the course
+            Course course = courseService.get(targetCourseId);
+            if (!course.getOwnerId().equals(currentUser.getId())) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+            
+            return;
+        }
+        
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    // USER MANAGEMENT
+
+    /**
+     * Check if current user can manage (edit/delete) a target user.
+     * - ADMIN can manage any user except themselves (for delete)
+     * - WORKSPACE_ADMIN can manage PROFESSOR users in their own workspace
+     */
+    public void checkCanManageWorkspaceUser(User currentUser, User targetUser) {
+        // Cannot delete/edit yourself (safety check)
+        if (currentUser.getId().equals(targetUser.getId())) {
+            throw new ServiceException(ErrorConstants.CANNOT_MANAGE_SELF);
+        }
+        
+        // ADMIN can manage any user
+        if (currentUser.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        
+        // WORKSPACE_ADMIN can manage PROFESSOR users in their workspace
+        if (currentUser.isUserType(UserType.WORKSPACE_ADMIN)) {
+            // Must be a PROFESSOR
+            if (!targetUser.isUserType(UserType.PROFESSOR)) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+            
+            // Must be in the same workspace
+            if (currentUser.getWorkspace() == null || targetUser.getWorkspace() == null) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+            
+            if (!currentUser.getWorkspace().getId().equals(targetUser.getWorkspace().getId())) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+            
+            return;
+        }
+        
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
