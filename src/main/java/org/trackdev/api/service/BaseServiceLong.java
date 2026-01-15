@@ -36,6 +36,10 @@ public class BaseServiceLong<T extends BaseEntityLong, Repo extends BaseReposito
         return repo.findAll();
     }
 
+    public T save(T entity) {
+        return repo.save(entity);
+    }
+
     protected Repo repo() { return repo; }
 
 }

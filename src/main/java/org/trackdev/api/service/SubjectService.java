@@ -1,6 +1,7 @@
 package org.trackdev.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.EntityNotFound;
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> {
 
     @Autowired
+    @Lazy
     UserService userService;
 
     @Autowired
@@ -43,7 +45,11 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     public Subject createSubject(String name, String acronym, String loggedInUserId) {
         User owner = userService.get(loggedInUserId);
         accessChecker.checkCanCreateSubject(owner);
-        Subject  subject = new Subject(name,acronym, owner);
+        Subject subject = new Subject(name, acronym, owner);
+        // Set workspace from owner's workspace (required for workspace admins)
+        if (owner.getWorkspace() != null) {
+            subject.setWorkspace(owner.getWorkspace());
+        }
         owner.addOwnCourse(subject);
         repo.save(subject);
         return subject;

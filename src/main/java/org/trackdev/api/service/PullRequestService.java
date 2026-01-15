@@ -138,21 +138,29 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
                                           String title, Integer prNumber, String repoFullName, Boolean merged) {
         PullRequestChange change = null;
         
+        // Try to find the system user who triggered this action
+        User systemUser = null;
+        try {
+            systemUser = userService.getByUsername(senderLogin);
+        } catch (Exception e) {
+            // User not found in system - continue without system user reference
+        }
+        
         switch (action) {
             case "opened":
-                change = new PullRequestOpenedChange(pr.getId(), senderLogin, title, prNumber, repoFullName);
+                change = new PullRequestOpenedChange(systemUser, pr, senderLogin, title, prNumber, repoFullName);
                 break;
             case "closed":
                 if (Boolean.TRUE.equals(merged)) {
                     // PR was merged - record as merge event
-                    change = new PullRequestMergedChange(pr.getId(), senderLogin, senderLogin);
+                    change = new PullRequestMergedChange(systemUser, pr, senderLogin, senderLogin);
                 } else {
                     // PR was closed without merge
-                    change = new PullRequestClosedChange(pr.getId(), senderLogin, false, null);
+                    change = new PullRequestClosedChange(systemUser, pr, senderLogin, false, null);
                 }
                 break;
             case "reopened":
-                change = new PullRequestReopenedChange(pr.getId(), senderLogin);
+                change = new PullRequestReopenedChange(systemUser, pr, senderLogin);
                 break;
             // Other actions (edited, synchronize) don't need change tracking
         }
@@ -166,7 +174,8 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
      * Get change history for a pull request.
      */
     public List<PullRequestChange> getPullRequestHistory(String pullRequestId) {
-        return pullRequestChangeRepository.findByPullRequestIdOrderByChangedAtDesc(pullRequestId);
+        PullRequest pr = get(pullRequestId);
+        return pullRequestChangeRepository.findByPullRequestOrderByChangedAtDesc(pr);
     }
 
     /**
@@ -174,10 +183,8 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
      */
     public List<PullRequestChange> getPullRequestHistoryForTask(Long taskId) {
         Task task = taskService.get(taskId);
-        List<String> prIds = task.getPullRequests().stream()
-                .map(PullRequest::getId)
-                .toList();
-        return pullRequestChangeRepository.findByPullRequestIdInOrderByChangedAtDesc(prIds);
+        List<PullRequest> prs = task.getPullRequests().stream().toList();
+        return pullRequestChangeRepository.findByPullRequestInOrderByChangedAtDesc(prs);
     }
 
     /**

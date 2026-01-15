@@ -2,6 +2,7 @@ package org.trackdev.api.service;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.EntityNotFound;
 import org.trackdev.api.controller.exceptions.SecurityException;
 import org.trackdev.api.controller.exceptions.ServiceException;
+import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.GithubInfo;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Role;
@@ -38,6 +40,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private WorkspaceService workspaceService;
+
+    @Autowired
+    @Lazy
+    private CourseService courseService;
     
     public User matchPassword(String email, String password) {
         User user = this.getByEmail(email);
@@ -56,17 +65,29 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User register(String username, String email, String password, UserType userType) {
+    public User register(String username, String fullName, String email, String password, UserType userType, Long workspaceId, Long courseId) {
         try{
             checkIfExists(email);
 
-            User user = new User(username, email, passwordEncoder.encode(password));
+            User user = new User(username, fullName, email, passwordEncoder.encode(password));
             user.setChangePassword(false);
             user.setEnabled(true);
             user.addRole(roleService.get(userType));
+            
+            // Set workspace if provided
+            if (workspaceId != null) {
+                user.setWorkspace(workspaceService.getWorkspace(workspaceId));
+            }
+            
             repo().save(user);
 
-            emailSenderService.sendRegisterEmail(username, email, password, "en");
+            // Enroll student in course if courseId is provided
+            if (courseId != null && userType == UserType.STUDENT) {
+                Course course = courseService.get(courseId);
+                course.addStudent(user);
+            }
+
+            emailSenderService.sendRegisterEmail(fullName, email, password, "en");
 
             return user;
         }
@@ -82,6 +103,34 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             return uo.get();
         else
             throw new EntityNotFound(ErrorConstants.USER_MAIL_NOT_FOUND.formatted(id));
+    }
+
+    /**
+     * Fetches user roles within a transaction to avoid lazy initialization issues.
+     * Use this method when you need to access roles outside of a service context.
+     * 
+     * @param userId the user ID
+     * @return list of role names
+     */
+    @Transactional(readOnly = true)
+    public List<String> getRoles(String userId) {
+        User user = get(userId);
+        // Eagerly initialize the roles collection within this transaction
+        return user.getRoles().stream()
+                .map(role -> role.getUserType().name())
+                .toList();
+    }
+
+    /**
+     * Fetches user email within a transaction.
+     * 
+     * @param userId the user ID
+     * @return user email
+     */
+    @Transactional(readOnly = true)
+    public String getEmail(String userId) {
+        User user = get(userId);
+        return user.getEmail();
     }
 
     public User getByUsername(String username) {
@@ -110,10 +159,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User addUserInternal(String username, String email, String password, List<UserType> roles) {
+    public User addUserInternal(String username, String fullName, String email, String password, List<UserType> roles) {
         checkIfExists(email);
 
-        User user = new User(username, email, password);
+        User user = new User(username, fullName, email, password);
         user.setChangePassword(false);
         user.setEnabled(true);
 
@@ -239,6 +288,14 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
      */
     public List<User> getUsersByType(UserType userType) {
         return repo.findByRoles_UserType(userType);
+    }
+
+    /**
+     * Get users in a workspace with specific roles (WORKSPACE_ADMIN and PROFESSOR only).
+     */
+    public List<User> getWorkspaceUsers(Long workspaceId) {
+        List<UserType> allowedTypes = List.of(UserType.WORKSPACE_ADMIN, UserType.PROFESSOR);
+        return repo.findByWorkspaceIdAndRolesIn(workspaceId, allowedTypes);
     }
 
     /**
