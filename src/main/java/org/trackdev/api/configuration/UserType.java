@@ -6,6 +6,7 @@ package org.trackdev.api.configuration;
  */
 public enum UserType {
     ADMIN("user.type.admin"),
+    WORKSPACE_ADMIN("user.type.workspace_admin"),
     PROFESSOR("user.type.professor"),
     STUDENT("user.type.student");
 

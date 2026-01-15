@@ -42,4 +42,7 @@ public interface UserRepository extends BaseRepositoryUUID<User> {
     @Query("SELECT COUNT(c) FROM Course c WHERE c.owner.id = :userId")
     long countCoursesOwnedByUser(@Param("userId") String userId);
 
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE u.workspace.id = :workspaceId AND r.userType IN :userTypes")
+    List<User> findByWorkspaceIdAndRolesIn(@Param("workspaceId") Long workspaceId, @Param("userTypes") List<UserType> userTypes);
+
 }

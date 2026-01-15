@@ -1,43 +1,72 @@
 package org.trackdev.api.entity.changes;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
 
 import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.entity.BaseEntityLong;
+import org.trackdev.api.entity.User;
 
+/**
+ * Base class for all entity change log entries.
+ * Provides common fields: author (User who made the change), changedAt timestamp, and type discriminator.
+ * Subclasses should add their own @ManyToOne relationship to the specific entity being tracked.
+ */
 @MappedSuperclass
 public abstract class EntityLogChange extends BaseEntityLong {
 
     public EntityLogChange() { }
 
-    public EntityLogChange(String author, Long entityid) {
+    public EntityLogChange(User author) {
         this.author = author;
-        this.entityid = entityid;
         this.changedAt = LocalDateTime.now();
     }
 
-    private String author;
-
-    private Long entityid;
-
-    // Used for specifications
-    @Column(name = "entity_id", insertable = false, updatable = false)
-    private Long entityId;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
 
     @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime changedAt;
 
-    // Used for specifications
+    // Used for specifications (read-only, managed by discriminator)
     @Column(name = "type", insertable = false, updatable = false)
-    private String type;
+    private String typeColumn;
 
-    public String getAuthor() { return this.author; }
+    @JsonIgnore
+    public User getAuthor() { return this.author; }
 
-    public Long getEntity() { return this.entityid; }
+    /**
+     * Returns the author's email for JSON serialization.
+     * This avoids serializing the entire User entity in change logs.
+     */
+    public String getAuthorEmail() {
+        try {
+            return this.author != null ? this.author.getEmail() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the author's username for JSON serialization.
+     * This avoids serializing the entire User entity in change logs.
+     */
+    public String getAuthorUsername() {
+        try {
+            return this.author != null ? this.author.getUsername() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
     public LocalDateTime getChangedAt() { return this.changedAt; }

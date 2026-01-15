@@ -12,7 +12,7 @@
 #
 
 param (
-    [string]$BaseUrl = "http://localhost:8080",
+    [string]$BaseUrl = "http://localhost:8080/api",
     [string]$OutputDir = ".\test-reports",
     [string]$EnvFile = "",
     [switch]$Help

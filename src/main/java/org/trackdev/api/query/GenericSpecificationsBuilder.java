@@ -75,6 +75,10 @@ public class GenericSpecificationsBuilder<U> {
             if (!(mayBeOperand instanceof String)) {
                 specStack.push(converter.apply((SpecSearchCriteria) mayBeOperand));
             } else {
+                // Operator (AND/OR) - need two operands
+                if (specStack.size() < 2) {
+                    throw new IllegalArgumentException("Invalid search expression: insufficient operands for operator");
+                }
                 Specification<U> operand1 = specStack.pop();
                 Specification<U> operand2 = specStack.pop();
                 if (mayBeOperand.equals(SearchOperation.AND_OPERATOR))
@@ -84,6 +88,15 @@ public class GenericSpecificationsBuilder<U> {
             }
 
         }
+        
+        // Ensure we have exactly one result specification
+        if (specStack.isEmpty()) {
+            throw new IllegalArgumentException("Invalid search expression: no valid criteria found");
+        }
+        if (specStack.size() > 1) {
+            throw new IllegalArgumentException("Invalid search expression: multiple unconnected criteria");
+        }
+        
         return specStack.pop();
 
     }

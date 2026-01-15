@@ -18,6 +18,7 @@ import org.trackdev.api.entity.TaskType;
 import org.trackdev.api.entity.prchanges.PullRequestChange;
 import org.trackdev.api.entity.taskchanges.TaskChange;
 import org.trackdev.api.mapper.CommentMapper;
+import org.trackdev.api.mapper.TaskChangeMapper;
 import org.trackdev.api.mapper.TaskMapper;
 import org.trackdev.api.model.CreateCommentRequest;
 import org.trackdev.api.model.MergePatchTask;
@@ -46,6 +47,9 @@ public class TaskController extends CrudController<Task, TaskService> {
     TaskChangeService taskChangeService;
 
     @Autowired
+    TaskChangeMapper taskChangeMapper;
+
+    @Autowired
     AccessChecker accessChecker;
 
     @Autowired
@@ -63,7 +67,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @Operation(summary = "Get information of tasks", description = "Get information of tasks")
     @GetMapping
     public TasksResponseDTO search(Principal principal,
-                         @RequestParam(required = false) String search) {
+                         @RequestParam(name = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         accessChecker.checkCanViewAllTasks(userId);
         return new TasksResponseDTO(taskMapper.toBasicDTOList(super.search(search)));
@@ -71,7 +75,7 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @Operation(summary = "Get information of a specific task", description = "Get information of a specific task")
     @GetMapping(path = "/{id}")
-    public TaskDetailDTO getTask(Principal principal, @PathVariable Long id) {
+    public TaskDetailDTO getTask(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         Task task = service.getTask(id, userId);
@@ -84,7 +88,7 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @Operation(summary = "Get comments of the task", description = "Get comments of the task")
     @GetMapping(path = "/{id}/comments")
-    public CommentsResponseDTO getComments(Principal principal, @PathVariable Long id) {
+    public CommentsResponseDTO getComments(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         return new CommentsResponseDTO(commentMapper.toDTOList(service.getComments(id, userId)), id);
@@ -94,7 +98,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @PostMapping(path = "/{id}/comments")
     @ResponseStatus(HttpStatus.CREATED)
     public CommentDTO addComment(Principal principal, 
-                                  @PathVariable Long id, 
+                                  @PathVariable(name = "id") Long id, 
                                   @Valid @RequestBody CreateCommentRequest request) {
         String userId = super.getUserId(principal);
         Comment comment = service.addComment(id, request.getContent(), userId);
@@ -104,7 +108,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @Operation(summary = "Edit task information", description = "Edit task information")
     @PatchMapping(path = "/{id}")
     public TaskCompleteDTO editTask(Principal principal,
-                           @PathVariable Long id,
+                           @PathVariable(name = "id") Long id,
                            @Valid @RequestBody MergePatchTask taskRequest) {
         if (taskRequest.name != null){
             if (taskRequest.name.get().isEmpty() || taskRequest.name.get().length() > Task.NAME_LENGTH) {
@@ -117,18 +121,19 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @Operation(summary = "Get history of logs of the task", description = "Get history of logs of the task")
     @GetMapping(path = "/{id}/history")
-    public HistoryResponseDTO<TaskChange> getHistory(Principal principal,
-                                       @PathVariable Long id,
-                                       @RequestParam(required = false) String search) {
+    public HistoryResponseDTO<TaskLogDTO> getHistory(Principal principal,
+                                       @PathVariable(name = "id") Long id,
+                                       @RequestParam(name = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         // Auth check and data retrieval in a single transaction
         List<TaskChange> history = service.getTaskHistory(id, userId, search);
-        return new HistoryResponseDTO<>(history, id);
+        List<TaskLogDTO> historyDTO = taskChangeMapper.toDTOList(history);
+        return new HistoryResponseDTO<>(historyDTO, id);
     }
 
     @Operation(summary = "Get PR change history for a task", description = "Get the history of all pull request changes linked to this task")
     @GetMapping(path = "/{id}/pr-history")
-    public HistoryResponseDTO<PullRequestChange> getPrHistory(Principal principal, @PathVariable Long id) {
+    public HistoryResponseDTO<PullRequestChange> getPrHistory(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         // Verify user can view this task
         service.getTask(id, userId);
@@ -139,7 +144,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @Operation(summary = "Create task of User Story", description = "Create task of User Story")
     @PostMapping(path = "/{id}/subtasks")
     public IdResponseDTO createSubtask(Principal principal,
-                                      @PathVariable Long id,
+                                      @PathVariable(name = "id") Long id,
                                       @Valid @RequestBody NewSubTask request,
                                       BindingResult result) {
         if (result.hasErrors()) {
@@ -154,7 +159,7 @@ public class TaskController extends CrudController<Task, TaskService> {
     @Operation(summary = "Delete specific task", description = "Delete specific task")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(Principal principal,
-                            @PathVariable Long id) {
+                            @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         service.deleteTask(id, userId);
         return okNoContent();
@@ -162,14 +167,14 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @Operation(summary = "Self-assign task to current user", description = "Allows a project member to assign an unassigned task to themselves")
     @PostMapping("/{id}/assign")
-    public TaskCompleteDTO selfAssignTask(Principal principal, @PathVariable Long id) {
+    public TaskCompleteDTO selfAssignTask(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         return taskMapper.toCompleteDTO(service.selfAssignTask(id, userId));
     }
 
     @Operation(summary = "Unassign task from current user", description = "Allows the assigned user to unassign themselves from a task")
     @DeleteMapping("/{id}/assign")
-    public TaskCompleteDTO unassignTask(Principal principal, @PathVariable Long id) {
+    public TaskCompleteDTO unassignTask(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         return taskMapper.toCompleteDTO(service.unassignTask(id, userId));
     }
@@ -209,12 +214,12 @@ public class TaskController extends CrudController<Task, TaskService> {
     @GetMapping("/my")
     public PagedTasksResponseDTO getMyTasks(
             Principal principal,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) TaskType type,
-            @RequestParam(required = false) TaskStatus status,
-            @RequestParam(required = false) String assigneeId,
-            @RequestParam(defaultValue = "desc") String sortOrder) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "type", required = false) TaskType type,
+            @RequestParam(name = "status", required = false) TaskStatus status,
+            @RequestParam(name = "assigneeId", required = false) String assigneeId,
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String sortOrder) {
         String userId = super.getUserId(principal);
         var tasksPage = service.getMyTasks(userId, page, size, type, status, assigneeId, sortOrder);
         return new PagedTasksResponseDTO(

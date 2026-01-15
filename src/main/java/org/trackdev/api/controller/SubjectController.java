@@ -9,14 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.ControllerException;
 import org.trackdev.api.dto.IdResponseDTO;
 import org.trackdev.api.dto.SubjectCompleteDTO;
 import org.trackdev.api.dto.SubjectsResponseDTO;
 import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.Subject;
-import org.trackdev.api.entity.User;
 import org.trackdev.api.mapper.SubjectMapper;
 import org.trackdev.api.service.AccessChecker;
 import org.trackdev.api.service.CourseService;
@@ -56,26 +54,26 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @Autowired
     SubjectMapper subjectMapper;
 
-    @Operation(summary = "Search subjects", description = "Search subjects - admins and professors only")
+    @Operation(summary = "Search subjects", description = "Search subjects - admins, workspace admins, and professors only")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
-    public SubjectsResponseDTO search(Principal principal, @RequestParam(required = false) String search) {
-        // Both admins and professors can see all subjects
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
+    public SubjectsResponseDTO search(Principal principal, @RequestParam(name = "search", required = false) String search) {
+        // Admins, workspace admins, and professors can see all subjects
         return new SubjectsResponseDTO(subjectMapper.toCompleteDTOList(super.search(search)));
     }
 
-    @Operation(summary = "Get specific subject", description = "Get specific subject - admins and professors only")
+    @Operation(summary = "Get specific subject", description = "Get specific subject - admins, workspace admins, and professors only")
     @GetMapping(path = "/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
-    public SubjectCompleteDTO getSubject(Principal principal, @PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
+    public SubjectCompleteDTO getSubject(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         return subjectMapper.toCompleteDTO(service.getSubject(id, userId));
     }
 
-    @Operation(summary = "Create subject", description = "Create subject - admins only")
+    @Operation(summary = "Create subject", description = "Create subject - admins and workspace admins only")
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN')")
     public IdResponseDTO createSubject(Principal principal, @Valid @RequestBody NewSubject subjectRequest) {
         String userId = super.getUserId(principal);
         Subject createdSubject = service.createSubject(subjectRequest.name, subjectRequest.acronym, userId);
@@ -83,11 +81,11 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return new IdResponseDTO(createdSubject.getId());
     }
 
-    @Operation(summary = "Edit specific subject", description = "Edit specific subject - admins only")
+    @Operation(summary = "Edit specific subject", description = "Edit specific subject - admins and workspace admins only")
     @PatchMapping(path = "/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN')")
     public SubjectCompleteDTO editSubject(Principal principal,
-                               @PathVariable Long id,
+                               @PathVariable(name = "id") Long id,
                                @Valid @RequestBody EditSubject subjectRequest,
                                BindingResult result) {
         if (result.hasErrors()) {
@@ -100,10 +98,10 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
         return subjectMapper.toCompleteDTO(service.editSubjectDetails(id, subjectRequest.name, subjectRequest.acronym, userId));
     }
 
-    @Operation(summary = "Delete specific subject", description = "Delete specific subject - admins only")
+    @Operation(summary = "Delete specific subject", description = "Delete specific subject - admins and workspace admins only")
     @DeleteMapping(path = "/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteSubject(Principal principal, @PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN')")
+    public ResponseEntity<Void> deleteSubject(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         service.deleteSubject(id, userId);
 
@@ -113,7 +111,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
     @Operation(summary = "Create course enrolled to specific subject", description = "Create course enrolled to specific subject")
     @PostMapping(path = "/{subjectId}/courses")
     public IdResponseDTO createCourse(Principal principal,
-                                     @PathVariable Long subjectId,
+                                     @PathVariable(name = "subjectId") Long subjectId,
                                      @Valid @RequestBody NewCourse courseRequest,
                                      BindingResult result) {
         if (result.hasErrors()) {

@@ -32,6 +32,8 @@ logging:
   level:
     "[org.springframework.web.filter.CommonsRequestLoggingFilter]": DEBUG
     root: INFO
+    org:
+      flywaydb: DEBUG
 
 # HTTP server configuration (SSL handled by nginx reverse proxy)
 server:

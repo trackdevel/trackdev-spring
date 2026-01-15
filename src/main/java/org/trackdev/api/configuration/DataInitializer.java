@@ -82,6 +82,7 @@ public class DataInitializer implements CommandLineRunner {
             
             User adminUser = userService.addUserInternal(
                 username,
+                "System Administrator",
                 email,
                 passwordEncoder.encode(password),
                 List.of(UserType.ADMIN)

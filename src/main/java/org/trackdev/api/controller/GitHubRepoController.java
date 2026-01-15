@@ -32,7 +32,7 @@ public class GitHubRepoController extends BaseController {
     @Operation(summary = "Get all GitHub repositories for a project", 
                description = "Returns all GitHub repositories linked to the specified project")
     @GetMapping
-    public GitHubReposResponse getProjectRepos(Principal principal, @PathVariable Long projectId) {
+    public GitHubReposResponse getProjectRepos(Principal principal, @PathVariable(name = "projectId") Long projectId) {
         String userId = getUserId(principal);
         Collection<GitHubRepo> repos = gitHubRepoService.getProjectRepos(projectId, userId);
         return new GitHubReposResponse(repos, projectId);
@@ -42,8 +42,8 @@ public class GitHubRepoController extends BaseController {
                description = "Returns details of a specific GitHub repository")
     @GetMapping("/{repoId}")
     public GitHubRepoResponse getRepo(Principal principal, 
-                                      @PathVariable Long projectId, 
-                                      @PathVariable Long repoId) {
+                                      @PathVariable(name = "projectId") Long projectId, 
+                                      @PathVariable(name = "repoId") Long repoId) {
         String userId = getUserId(principal);
         GitHubRepo repo = gitHubRepoService.getRepo(projectId, repoId, userId);
         return new GitHubRepoResponse(repo);
@@ -53,7 +53,7 @@ public class GitHubRepoController extends BaseController {
                description = "Links a new GitHub repository to the project with the provided access token")
     @PostMapping
     public GitHubRepoResponse addRepository(Principal principal,
-                                            @PathVariable Long projectId,
+                                            @PathVariable(name = "projectId") Long projectId,
                                             @Valid @RequestBody AddRepoRequest request) {
         String userId = getUserId(principal);
         GitHubRepo repo = gitHubRepoService.addRepository(
@@ -65,8 +65,8 @@ public class GitHubRepoController extends BaseController {
                description = "Updates the name or access token of a GitHub repository")
     @PatchMapping("/{repoId}")
     public GitHubRepoResponse updateRepository(Principal principal,
-                                               @PathVariable Long projectId,
-                                               @PathVariable Long repoId,
+                                               @PathVariable(name = "projectId") Long projectId,
+                                               @PathVariable(name = "repoId") Long repoId,
                                                @Valid @RequestBody UpdateRepoRequest request) {
         String userId = getUserId(principal);
         GitHubRepo repo = gitHubRepoService.updateRepository(
@@ -78,8 +78,8 @@ public class GitHubRepoController extends BaseController {
                description = "Removes the GitHub repository link and deletes any associated webhooks")
     @DeleteMapping("/{repoId}")
     public ResponseEntity<Void> deleteRepository(Principal principal,
-                                                 @PathVariable Long projectId,
-                                                 @PathVariable Long repoId) {
+                                                 @PathVariable(name = "projectId") Long projectId,
+                                                 @PathVariable(name = "repoId") Long repoId) {
         String userId = getUserId(principal);
         gitHubRepoService.deleteRepository(projectId, repoId, userId);
         return ResponseEntity.noContent().build();
@@ -89,8 +89,8 @@ public class GitHubRepoController extends BaseController {
                description = "Creates a webhook on the GitHub repository to receive events")
     @PostMapping("/{repoId}/webhook")
     public GitHubRepoResponse createWebhook(Principal principal,
-                                            @PathVariable Long projectId,
-                                            @PathVariable Long repoId,
+                                            @PathVariable(name = "projectId") Long projectId,
+                                            @PathVariable(name = "repoId") Long repoId,
                                             @Valid @RequestBody CreateWebhookRequest request) {
         String userId = getUserId(principal);
         GitHubRepo repo = gitHubRepoService.createWebhook(projectId, repoId, request.webhookUrl, userId);
@@ -101,8 +101,8 @@ public class GitHubRepoController extends BaseController {
                description = "Removes the webhook from the GitHub repository")
     @DeleteMapping("/{repoId}/webhook")
     public GitHubRepoResponse deleteWebhook(Principal principal,
-                                            @PathVariable Long projectId,
-                                            @PathVariable Long repoId) {
+                                            @PathVariable(name = "projectId") Long projectId,
+                                            @PathVariable(name = "repoId") Long repoId) {
         String userId = getUserId(principal);
         GitHubRepo repo = gitHubRepoService.deleteWebhook(projectId, repoId, userId);
         return new GitHubRepoResponse(repo);
@@ -112,8 +112,8 @@ public class GitHubRepoController extends BaseController {
                description = "Fetches current repository information from the GitHub API")
     @GetMapping("/{repoId}/info")
     public Map<String, Object> getRepositoryInfo(Principal principal,
-                                                 @PathVariable Long projectId,
-                                                 @PathVariable Long repoId) {
+                                                 @PathVariable(name = "projectId") Long projectId,
+                                                 @PathVariable(name = "repoId") Long repoId) {
         String userId = getUserId(principal);
         return gitHubRepoService.getRepositoryInfo(projectId, repoId, userId);
     }
@@ -122,9 +122,9 @@ public class GitHubRepoController extends BaseController {
                description = "Fetches recent commits from the GitHub repository")
     @GetMapping("/{repoId}/commits")
     public List<Map<String, Object>> getCommits(Principal principal,
-                                                @PathVariable Long projectId,
-                                                @PathVariable Long repoId,
-                                                @RequestParam(defaultValue = "30") int limit) {
+                                                @PathVariable(name = "projectId") Long projectId,
+                                                @PathVariable(name = "repoId") Long repoId,
+                                                @RequestParam(name = "limit", defaultValue = "30") int limit) {
         String userId = getUserId(principal);
         return gitHubRepoService.getCommits(projectId, repoId, userId, limit);
     }
@@ -133,8 +133,8 @@ public class GitHubRepoController extends BaseController {
                description = "Fetches all branches from the GitHub repository")
     @GetMapping("/{repoId}/branches")
     public List<Map<String, Object>> getBranches(Principal principal,
-                                                 @PathVariable Long projectId,
-                                                 @PathVariable Long repoId) {
+                                                 @PathVariable(name = "projectId") Long projectId,
+                                                 @PathVariable(name = "repoId") Long repoId) {
         String userId = getUserId(principal);
         return gitHubRepoService.getBranches(projectId, repoId, userId);
     }

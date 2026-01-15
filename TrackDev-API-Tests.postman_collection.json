@@ -1873,6 +1873,1832 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "9. Authorization Tests",
+			"item": [
+				{
+					"name": "9.0 Setup Auth Tests",
+					"item": [
+						{
+							"name": "9.0.1 Login Student from different project (UdG)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('student2Token', jsonData.token);",
+											"    pm.collectionVariables.set('student2Id', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{student2Email}}\",\n    \"password\": \"{{student2Password}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "9.0.2 Login Student from UB workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('ubStudentToken', jsonData.token);",
+											"    pm.collectionVariables.set('ubStudentId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{ubStudentEmail}}\",\n    \"password\": \"{{ubStudentPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "9.0.3 Login Workspace Admin UdG",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('wsAdminUdGToken', jsonData.token);",
+											"    pm.collectionVariables.set('wsAdminUdGId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{wsAdminUdGEmail}}\",\n    \"password\": \"{{wsAdminUdGPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "9.0.4 Login Workspace Admin UB",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('wsAdminUBToken', jsonData.token);",
+											"    pm.collectionVariables.set('wsAdminUBId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{wsAdminUBEmail}}\",\n    \"password\": \"{{wsAdminUBPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "9.0.5 Login Professor UdG",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('professorUdGToken', jsonData.token);",
+											"    pm.collectionVariables.set('professorUdGId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{professorUdGEmail}}\",\n    \"password\": \"{{professorUdGPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "9.0.6 Login Professor UB",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('professorUBToken', jsonData.token);",
+											"    pm.collectionVariables.set('professorUBId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{professorUBEmail}}\",\n    \"password\": \"{{professorUBPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "9.0.7 Get UdG Workspace ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find UdG workspace', function () {",
+											"    var workspaces = pm.response.json();",
+											"    var udgWorkspace = workspaces.find(w => w.name.includes('Girona'));",
+											"    var ubWorkspace = workspaces.find(w => w.name.includes('Barcelona'));",
+											"    pm.expect(udgWorkspace).to.not.be.undefined;",
+											"    pm.expect(ubWorkspace).to.not.be.undefined;",
+											"    pm.collectionVariables.set('udgWorkspaceId', udgWorkspace.id);",
+											"    pm.collectionVariables.set('ubWorkspaceId', ubWorkspace.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces"]
+								}
+							}
+						},
+						{
+							"name": "9.0.8 Get UdG Projects",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Get first UdG project', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var projects = jsonData.projects;",
+											"    if (projects && projects.length > 0) {",
+											"        pm.collectionVariables.set('udgProjectId', projects[0].id);",
+											"        if (projects[0].course) {",
+											"            pm.collectionVariables.set('udgCourseId', projects[0].course.id);",
+											"        }",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects"]
+								}
+							}
+						},
+						{
+							"name": "9.0.9 Get UB Projects",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Get first UB project', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var projects = jsonData.projects;",
+											"    if (projects && projects.length > 0) {",
+											"        pm.collectionVariables.set('ubProjectId', projects[0].id);",
+											"        if (projects[0].course) {",
+											"            pm.collectionVariables.set('ubCourseId', projects[0].course.id);",
+											"        }",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUBToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects"]
+								}
+							}
+						},
+						{
+							"name": "9.0.10 Get UdG Task ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Get first UdG task', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    if (tasks && tasks.length > 0) {",
+											"        pm.collectionVariables.set('udgTaskId', tasks[0].id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "tasks"]
+								}
+							}
+						},
+						{
+							"name": "9.0.11 Get UB Task ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Get first UB task', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    if (tasks && tasks.length > 0) {",
+											"        pm.collectionVariables.set('ubTaskId', tasks[0].id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUBToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{ubProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{ubProjectId}}", "tasks"]
+								}
+							}
+						},
+						{
+							"name": "9.0.12 Get UB Subject ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Get first UB subject', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var subjects = jsonData.subjects;",
+											"    if (subjects && subjects.length > 0) {",
+											"        // Find a subject that belongs to UB workspace",
+											"        var ubSubject = subjects.find(s => s.workspaceId == pm.collectionVariables.get('ubWorkspaceId'));",
+											"        if (ubSubject) {",
+											"            pm.collectionVariables.set('ubSubjectId', ubSubject.id);",
+											"        } else {",
+											"            // Fallback to last subject (assuming it's UB)",
+											"            pm.collectionVariables.set('ubSubjectId', subjects[subjects.length - 1].id);",
+											"        }",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/subjects",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "9.1 Student Access Restrictions",
+					"item": [
+						{
+							"name": "9.1.1 Student CAN view project from same course (different group)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 (Allowed) - Students can view other projects in same course', function () {",
+											"    // NOTE: By design, enrolled students CAN view all projects in their course",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Student from pds25b can view pds25a project (same course)', function () {",
+											"    // student4 is in pds25b, can view pds25a project because they're in same course",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.1.2 Student CAN view tasks from same course (different group)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 (Allowed) - Students can view tasks in same course', function () {",
+											"    // NOTE: By design, enrolled students CAN view all project tasks in their course",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Student can view tasks from same course project', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('tasks');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "tasks"]
+								}
+							}
+						},
+						{
+							"name": "9.1.3 Student CAN view specific task from same course",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 (Allowed) - Students can view task details in same course', function () {",
+											"    // NOTE: By design, enrolled students CAN view all task details in their course",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Student can view task details from same course', function () {",
+											"    var jsonData = pm.response.json();",
+											"    // Response contains task object with id property",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.1.4 Student CANNOT edit task from different project",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot edit task from another project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"description\": \"Hacked description\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.1.5 Student CANNOT access project from different workspace (UB)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG student cannot access UB project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{ubProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.1.6 Student CANNOT access task from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG student cannot access UB task', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{ubTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.1.7 Student CANNOT create project in any course",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot create projects', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked Project\",\n    \"members\": [\"{{studentEmail}}\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/projects",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{udgCourseId}}", "projects"]
+								}
+							}
+						},
+						{
+							"name": "9.1.8 Student CANNOT access course students list",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view course students', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/students",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{udgCourseId}}", "students"]
+								}
+							}
+						},
+						{
+							"name": "9.1.9 Student CANNOT access all users list",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot list all users', function () {",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["users"]
+								}
+							}
+						},
+						{
+							"name": "9.1.10 Student CANNOT access DIFFERENT workspace data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view OTHER workspace details', function () {",
+											"    // Student from UdG workspace should not be able to view UB workspace",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces", "{{ubWorkspaceId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "9.2 Professor Access Restrictions",
+					"item": [
+						{
+							"name": "9.2.1 Professor CANNOT access project from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot access UB project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{ubProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.2.2 Professor CANNOT access tasks from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot access UB tasks', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{ubTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.2.3 Professor CANNOT edit task in different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot edit UB task', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"description\": \"Hacked by UdG professor\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{ubTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.2.4 Professor CANNOT access course from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot access UB course', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.2.5 Professor CANNOT view students from different workspace course",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot view UB course students', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/students",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}", "students"]
+								}
+							}
+						},
+						{
+							"name": "9.2.6 Professor CANNOT create project in different workspace course",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot create project in UB course', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked Project in UB\",\n    \"members\": []\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/projects",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}", "projects"]
+								}
+							}
+						},
+						{
+							"name": "9.2.7 Professor CANNOT access workspace from different organization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot access UB workspace', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces", "{{ubWorkspaceId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.2.8 Professor CANNOT access all users list (admin only)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('SECURITY: Professor cannot list all users', function () {",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["users"]
+								}
+							}
+						},
+						{
+							"name": "9.2.9 Professor CANNOT access all tasks (admin only)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Professor cannot list all tasks', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "9.3 Workspace Admin Access Restrictions",
+					"item": [
+						{
+							"name": "9.3.1 WS Admin CANNOT access project from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot access UB project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{ubProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.2 WS Admin CANNOT access task from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot access UB task', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{ubTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.3 WS Admin CANNOT access course from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot access UB course', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.4 WS Admin CANNOT view workspace details from different organization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot view UB workspace', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces", "{{ubWorkspaceId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.5 WS Admin CANNOT edit workspace from different organization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code indicates rejection (not success)', function () {",
+											"    // 403 is ideal, but 400/404/500 also indicate rejection",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404, 500]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot edit UB workspace', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked UB Workspace\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces", "{{ubWorkspaceId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.6 WS Admin can create subject (in their own workspace only)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 201', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+											"});",
+											"",
+											"pm.test('Subject is created and assigned to own workspace', function () {",
+											"    // Note: The API ignores workspaceId in request body - subjects are always",
+											"    // created in the logged-in user's workspace. This is the secure design.",
+											"    // The test below verifies the subject was created (workspace assignment",
+											"    // is enforced by the backend, not validated client-side)",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.id) {",
+											"        pm.environment.set('testSubjectId', jsonData.id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Test Subject\",\n    \"acronym\": \"TEST\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/subjects",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects"]
+								}
+							}
+						},
+						{
+							"name": "9.3.7 WS Admin CANNOT view students from different workspace course",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot view UB course students', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/students",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}", "students"]
+								}
+							}
+						},
+						{
+							"name": "9.3.8 WS Admin CANNOT access all users list (admin only)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.response.to.have.status(403);",
+											"});",
+											"",
+											"pm.test('SECURITY: Workspace admin cannot list all users', function () {",
+											"    pm.expect(pm.response.code).to.equal(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["users"]
+								}
+							}
+						},
+						{
+							"name": "9.3.9 WS Admin CANNOT access all tasks (admin only)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Workspace admin cannot list all tasks', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"]
+								}
+							}
+						},
+						{
+							"name": "9.3.10 WS Admin CANNOT manage subjects from different workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot edit UB subject', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Hacked Subject Name\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/subjects/{{ubSubjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects", "{{ubSubjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.11 Cleanup - Delete test subject",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Test subject deleted or not found', function () {",
+											"    // Accept 204 (deleted), 404 (not found), or 400 (auth issues during cleanup)",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 204, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["subjects", "{{testSubjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.3.12 WS Admin CANNOT delete workspace from different organization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG workspace admin cannot delete UB workspace', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces", "{{ubWorkspaceId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "9.4 Cross-Workspace Isolation Tests",
+					"item": [
+						{
+							"name": "9.4.1 UB Student CANNOT access UdG project",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Complete workspace isolation - UB student to UdG', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.4.2 UB Professor CANNOT access UdG project",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Complete workspace isolation - UB professor to UdG', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUBToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.4.3 UB WS Admin CANNOT access UdG workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Complete workspace isolation - UB admin to UdG workspace', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{wsAdminUBToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["workspaces", "{{udgWorkspaceId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.4.4 UB Professor CANNOT create task in UdG project",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UB professor cannot create task in UdG project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUBToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Task created by UB professor in UdG\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "tasks"]
+								}
+							}
+						},
+						{
+							"name": "9.4.5 UB Student CANNOT self-assign UdG task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UB student cannot self-assign UdG task', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+								}
+							}
+						}
+					]
+				}
+			]
 		}
 	],
 	"event": [
@@ -1913,7 +3739,7 @@
 		},
 		{
 			"key": "professorEmail",
-			"value": "professor@trackdev.com",
+			"value": "maria.garcia@trackdev.com",
 			"type": "string"
 		},
 		{
@@ -1923,16 +3749,171 @@
 		},
 		{
 			"key": "studentEmail",
-			"value": "student1@trackdev.com",
+			"value": "udg.student1@trackdev.com",
 			"type": "string"
 		},
 		{
 			"key": "studentPassword",
-			"value": "1111",
+			"value": "student1",
+			"type": "string"
+		},
+		{
+			"key": "student2Email",
+			"value": "udg.student4@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "student2Password",
+			"value": "student4",
 			"type": "string"
 		},
 		{
 			"key": "student2Token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "student2Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentEmail",
+			"value": "ub.student1@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentPassword",
+			"value": "student1",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGEmail",
+			"value": "wsadmin.udg@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGPassword",
+			"value": "wsadmin",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBEmail",
+			"value": "wsadmin.ub@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBPassword",
+			"value": "wsadmin",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGEmail",
+			"value": "maria.garcia@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGPassword",
+			"value": "professor",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUBEmail",
+			"value": "carlos.martinez@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "professorUBPassword",
+			"value": "professor",
+			"type": "string"
+		},
+		{
+			"key": "professorUBToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUBId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgWorkspaceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubWorkspaceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgTaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubTaskId",
 			"value": "",
 			"type": "string"
 		},

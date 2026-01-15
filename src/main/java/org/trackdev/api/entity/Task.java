@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
+import org.trackdev.api.entity.taskchanges.TaskChange;
 import org.trackdev.api.serializer.JsonDateSerializer;
 
 import jakarta.persistence.*;
@@ -86,6 +87,9 @@ public class Task extends BaseEntityLong {
         inverseJoinColumns = @JoinColumn(name = "pull_request_id")
     )
     private Set<PullRequest> pullRequests = new HashSet<>();
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TaskChange> taskChanges = new ArrayList<>();
 
     // -- CONSTRUCTORS
 
@@ -329,6 +333,10 @@ public class Task extends BaseEntityLong {
     public void addPullRequest(PullRequest pr) {
         this.pullRequests.add(pr);
         pr.addTask(this);
+    }
+
+    public List<TaskChange> getTaskChanges() {
+        return taskChanges;
     }
 
     /**

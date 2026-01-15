@@ -178,7 +178,7 @@ public class AuthController extends BaseController {
 
     @Operation(summary = "Check recovery code", description = "Check recovery code for user")
     @PostMapping(path="/recovery/{email}/check")
-    public ResponseEntity<Void> checkRecoveryCode(@PathVariable String email, @Valid @RequestBody CodeValidationR codeValidation) {
+    public ResponseEntity<Void> checkRecoveryCode(@PathVariable(name = "email") String email, @Valid @RequestBody CodeValidationR codeValidation) {
         User user = userService.getByEmail(email);
         if(user == null) {
             throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
@@ -191,7 +191,7 @@ public class AuthController extends BaseController {
 
     @Operation(summary = "Recovery password", description = "Recover password with recovery code")
     @PostMapping(path="/recovery/{email}")
-    public ResponseEntity<Void> recoveryPassword(@PathVariable String email,  @Valid @RequestBody RecoveryPasswordT userBody, BindingResult result) {
+    public ResponseEntity<Void> recoveryPassword(@PathVariable(name = "email") String email, @Valid @RequestBody RecoveryPasswordT userBody, BindingResult result) {
         if (result.hasErrors()) {
             List<String> errors = result.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)

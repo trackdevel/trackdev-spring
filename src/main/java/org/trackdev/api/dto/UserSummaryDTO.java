@@ -9,6 +9,7 @@ import lombok.Data;
 public class UserSummaryDTO {
     private String id;
     private String username;
+    private String fullName;
     private String email;
     private String color;
     private String capitalLetters;

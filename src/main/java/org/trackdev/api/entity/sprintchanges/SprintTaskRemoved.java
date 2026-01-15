@@ -1,6 +1,8 @@
 package org.trackdev.api.entity.sprintchanges;
 
+import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.User;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -12,7 +14,7 @@ public class SprintTaskRemoved extends SprintTasksChange {
 
     public SprintTaskRemoved() {}
 
-    public SprintTaskRemoved(String author, Long sprint, Task task) {
+    public SprintTaskRemoved(User author, Sprint sprint, Task task) {
         super(author, sprint, task);
     }
 

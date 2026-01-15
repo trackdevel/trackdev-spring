@@ -22,4 +22,7 @@ public interface CourseRepository extends BaseRepositoryLong<Course> {
     @Query("SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.projects LEFT JOIN FETCH c.students")
     List<Course> findAllWithProjectsAndStudents();
 
+    @Query("SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.projects LEFT JOIN FETCH c.students WHERE c.subject.workspace.id = :workspaceId")
+    List<Course> findByWorkspaceId(@Param("workspaceId") Long workspaceId);
+
 }

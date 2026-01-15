@@ -72,7 +72,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         repo.save(task);
         
         // Record the change
-        TaskChange change = new TaskAssigneeChange(user.getEmail(), task.getId(), oldValue, user.getUsername());
+        TaskChange change = new TaskAssigneeChange(user, task, oldValue, user.getUsername());
         taskChangeService.store(change);
         
         return task;
@@ -101,7 +101,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         repo.save(task);
         
         // Record the change
-        TaskChange change = new TaskAssigneeChange(user.getEmail(), task.getId(), oldValue, null);
+        TaskChange change = new TaskAssigneeChange(user, task, oldValue, null);
         taskChangeService.store(change);
         
         return task;
@@ -152,7 +152,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             task.setName(name);
-            changes.add(new TaskNameChange(user.getEmail(), task.getId(), oldName, name));
+            changes.add(new TaskNameChange(user, task, oldName, name));
         }
         if(editTask.description != null) {
             task.setDescription(editTask.description.orElse(null));
@@ -175,7 +175,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 }
                 
                 task.setType(newType);
-                changes.add(new TaskTypeChange(user.getEmail(), task.getId(), 
+                changes.add(new TaskTypeChange(user, task, 
                         oldType != null ? oldType.toString() : null, newType.toString()));
             }
         }
@@ -201,13 +201,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             } else {
                 task.setAssignee(null);
             }
-            changes.add(new TaskAssigneeChange(user.getEmail(), task.getId(), oldValue, task.getAssignee().getUsername()));
+            String newValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
+            changes.add(new TaskAssigneeChange(user, task, oldValue, newValue));
         }
         if(editTask.estimationPoints != null) {
             Integer oldPoints = task.getEstimationPoints();
             Integer points = editTask.estimationPoints.orElse(null);
             task.setEstimationPoints(points);
-            changes.add(new TaskEstimationPointsChange(user.getEmail(), task.getId(), oldPoints, points));
+            changes.add(new TaskEstimationPointsChange(user, task, oldPoints, points));
         }
         if(editTask.status != null) {
             // Only assigned user (or professor/admin) can modify status
@@ -236,7 +237,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             
             TaskStatus oldStatus = task.getStatus();
             task.setStatus(status);
-            changes.add(new TaskStatusChange(user.getEmail(), task.getId(), oldStatus.toString(), status.toString()));
+            changes.add(new TaskStatusChange(user, task, oldStatus.toString(), status.toString()));
             
             // If this is a subtask being set to DONE, check if parent USER_STORY should auto-complete
             if (status == TaskStatus.DONE && task.getParentTask() != null) {
@@ -245,7 +246,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     TaskStatus parentOldStatus = parentTask.getStatus();
                     if (parentOldStatus != TaskStatus.DONE) {
                         parentTask.setStatus(TaskStatus.DONE);
-                        changes.add(new TaskStatusChange(user.getEmail(), parentTask.getId(), 
+                        changes.add(new TaskStatusChange(user, parentTask, 
                                 parentOldStatus.toString(), TaskStatus.DONE.toString()));
                         repo.save(parentTask);
                     }
@@ -258,7 +259,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             Integer currentRank = task.getRank();
             if(!Objects.equals(newRank, currentRank)) {
                 //Collection<TaskChange> otherChanges = updateOtherTasksRank(user, newRank, currentRank);
-                changes.add(new TaskRankChange(user.getEmail(), task.getId(), task.getRank(), newRank));
+                changes.add(new TaskRankChange(user, task, task.getRank(), newRank));
                 task.setRank(newRank);
                 //changes.addAll(otherChanges);
             }
@@ -272,7 +273,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
             task.setActiveSprints(sprints);
             sprints.stream().forEach(sprint -> sprint.addTask(task, user));
-            changes.add(new TaskActiveSprintsChange(user.getEmail(), task.getId(), oldValues, newValues));
+            changes.add(new TaskActiveSprintsChange(user, task, oldValues, newValues));
         }
         if (editTask.comment != null) {
             // Any project member can add comments
@@ -440,15 +441,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Task task = get(taskId);
         accessChecker.checkCanViewProject(task.getProject(), userId);
         
-        String refinedSearch = "entityId:" + taskId + (search != null ? " and ( " + search + " )" : "");
-        Specification<TaskChange> specification = buildSpecification(refinedSearch);
-        return taskChangeService.search(specification);
-    }
-
-    private <K> Specification<K> buildSpecification(String search) {
-        CriteriaParser parser = new CriteriaParser();
-        GenericSpecificationsBuilder<K> specBuilder = new GenericSpecificationsBuilder<>();
-        return specBuilder.build(parser.parse(search), SearchSpecification::new);
+        // Simply return the task changes from the relationship
+        // The 'search' parameter is ignored for now - can be added later if needed
+        return task.getTaskChanges();
     }
 
     private Collection<TaskChange> updateOtherTasksRank(User user, Integer newRank, Integer currentRank) {

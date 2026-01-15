@@ -80,14 +80,13 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
      * Apply changes to a sprint and save.
      */
     private Sprint applySprintChanges(Sprint sprint, MergePatchSprint editSprint, User user) {
-        Long sprintId = sprint.getId();
         List<SprintChange> changes = new ArrayList<>();
         if(editSprint.name != null) {
             String name = editSprint.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!name.equals(sprint.getName())) {
                 sprint.setName(name);
-                changes.add(new SprintNameChange(user.getEmail(),sprintId,name));
+                changes.add(new SprintNameChange(user, sprint, name));
             }
         }
         if(editSprint.startDate != null) {
@@ -95,7 +94,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!startDate.equals(sprint.getStartDate())) {
                 sprint.setStartDate(startDate);
-                changes.add(new SprintStartDateChange(user.getEmail(),sprintId,startDate));
+                changes.add(new SprintStartDateChange(user, sprint, startDate));
             }
         }
         if(editSprint.endDate != null) {
@@ -103,7 +102,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!endDate.equals(sprint.getEndDate())) {
                 sprint.setEndDate(endDate);
-                changes.add(new SprintEndDateChange(user.getEmail(),sprintId,endDate));
+                changes.add(new SprintEndDateChange(user, sprint, endDate));
             }
         }
         if(editSprint.status != null) {
@@ -111,7 +110,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(status != sprint.getStatus()) {
                 sprint.setStatus(status);
-                changes.add(new SprintStatusChange(user.getEmail(),sprintId,status));
+                changes.add(new SprintStatusChange(user, sprint, status));
             }
         }
         repo().save(sprint);
@@ -147,7 +146,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         Sprint sprint = get(sprintId);
         accessChecker.checkCanViewProject(sprint.getProject(), userId);
         
-        String refinedSearch = "entityId:" + sprintId + (search != null ? " and ( " + search + " )" : "");
+        String refinedSearch = "sprint.id:" + sprintId + (search != null ? " and ( " + search + " )" : "");
         Specification<SprintChange> specification = buildSpecification(refinedSearch);
         return sprintChangeService.search(specification);
     }

@@ -132,7 +132,7 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             }
             
             String username = email.split("@")[0];
-            user = new User(username, email, passwordEncoder.encode(password));
+            user = new User(username, username, email, passwordEncoder.encode(password));
             user.setChangePassword(false);
             user.setEnabled(true);
             Role studentRole = roleService.get(UserType.STUDENT);

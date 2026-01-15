@@ -38,6 +38,11 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         return repo.findByStudentMembership(userId);
     }
 
+    @Transactional(readOnly = true)
+    public Collection<Course> getCoursesForWorkspace(Long workspaceId) {
+        return repo.findByWorkspaceId(workspaceId);
+    }
+
     /**
      * Get a course with authorization check.
      */

@@ -1,5 +1,8 @@
 package org.trackdev.api.entity.prchanges;
 
+import org.trackdev.api.entity.PullRequest;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -14,8 +17,9 @@ public class PullRequestOpenedChange extends PullRequestChange {
 
     public PullRequestOpenedChange() {}
 
-    public PullRequestOpenedChange(String pullRequestId, String githubUser, String prTitle, Integer prNumber, String repoFullName) {
-        super(pullRequestId, githubUser);
+    public PullRequestOpenedChange(User author, PullRequest pullRequest, String githubUser, 
+                                    String prTitle, Integer prNumber, String repoFullName) {
+        super(author, pullRequest, githubUser);
         this.prTitle = prTitle;
         this.prNumber = prNumber;
         this.repoFullName = repoFullName;

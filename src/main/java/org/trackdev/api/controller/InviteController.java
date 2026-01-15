@@ -26,7 +26,7 @@ public class InviteController extends BaseController {
 
     @Operation(summary = "Get invite details", description = "Get details about an invitation by token (public endpoint)")
     @GetMapping(path = "/{token}")
-    public InviteInfoResponse getInviteInfo(@PathVariable String token) {
+    public InviteInfoResponse getInviteInfo(@PathVariable(name = "token") String token) {
         CourseInvite invite = courseInviteService.getInviteByToken(token);
         return new InviteInfoResponse(
             invite.getEmail(),
@@ -41,7 +41,7 @@ public class InviteController extends BaseController {
     @Operation(summary = "Accept invitation", description = "Accept a course invitation. If user doesn't exist, provide password to create account.")
     @PostMapping(path = "/{token}/accept")
     public InviteAcceptedResponseDTO acceptInvitation(
-            @PathVariable String token,
+            @PathVariable(name = "token") String token,
             @Valid @RequestBody(required = false) AcceptInviteRequest request) {
         String password = request != null ? request.password : null;
         CourseInviteService.AcceptInviteResult result = courseInviteService.acceptInvitation(token, password);

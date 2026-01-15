@@ -102,12 +102,11 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
      * Generate a new JWT token with refreshed expiration time.
      */
     private String generateRefreshedToken(String userId) {
-        User user = userService.get(userId);
-        
-        // Get user roles
-        List<String> userRoles = user.getRoles().stream()
-                .map(role -> "ROLE_" + role.getUserType().name())
+        // Fetch user data within transactional context to avoid lazy initialization issues
+        List<String> userRoles = userService.getRoles(userId).stream()
+                .map(roleName -> "ROLE_" + roleName)
                 .collect(Collectors.toList());
+        String userEmail = userService.getEmail(userId);
 
         int durationInMinutes = authorizationConfiguration.getTokenLifetimeInMinutes();
         int durationInMilliseconds = durationInMinutes * 60 * 1000;
@@ -115,9 +114,9 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
         String token = Jwts
                 .builder()
                 .setId(COOKIE_NAME)
-                .setSubject(user.getId())
+                .setSubject(userId)
                 .claim("authorities", userRoles)
-                .claim("email", user.getEmail())
+                .claim("email", userEmail)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
                 .signWith(authorizationConfiguration.getKey())

@@ -30,6 +30,7 @@ import jakarta.validation.constraints.Size;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -69,13 +70,20 @@ public class CourseController extends BaseController {
     @Autowired
     CourseInviteService courseInviteService;
 
-    @Operation(summary = "Get courses", description = "Get all courses for admin, own courses for professor, or enrolled courses for student")
+    @Operation(summary = "Get courses", description = "Get all courses for admin/workspace admin, own courses for professor, or enrolled courses for student")
     @GetMapping
     public Object getCourses(Principal principal) {
         String userId = super.getUserId(principal);
         User user = userService.get(userId);
         if (user.isUserType(UserType.ADMIN))
             return new CoursesResponseDTO(courseMapper.toCompleteDTOList(service.getAll()));
+        else if (user.isUserType(UserType.WORKSPACE_ADMIN)) {
+            // WORKSPACE_ADMIN can only see courses from their workspace
+            if (user.getWorkspace() == null) {
+                return new CoursesResponseDTO(courseMapper.toCompleteDTOList(List.of()));
+            }
+            return new CoursesResponseDTO(courseMapper.toCompleteDTOList(service.getCoursesForWorkspace(user.getWorkspace().getId())));
+        }
         else if (user.isUserType(UserType.PROFESSOR))
             return new CoursesResponseDTO(courseMapper.toCompleteDTOList(service.getCoursesForUser(userId)));
         else if (user.isUserType(UserType.STUDENT)) {
@@ -101,7 +109,7 @@ public class CourseController extends BaseController {
 
     @Operation(summary = "Get specific course", description = "Get specific course")
     @GetMapping(path = "/{courseId}")
-    public CourseCompleteDTO getCourse(Principal principal, @PathVariable Long courseId) {
+    public CourseCompleteDTO getCourse(Principal principal, @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         return courseMapper.toCompleteDTO(service.getCourse(courseId, userId));
@@ -109,8 +117,8 @@ public class CourseController extends BaseController {
 
     @Operation(summary = "Get course details with students", description = "Get detailed course info including enrolled students and pending invites")
     @GetMapping(path = "/{courseId}/details")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
-    public CourseDetailsDTO getCourseDetails(Principal principal, @PathVariable Long courseId) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
+    public CourseDetailsDTO getCourseDetails(Principal principal, @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         Course course = service.getCourse(courseId, userId);
         accessChecker.checkCanManageCourse(course, userId);
@@ -132,8 +140,8 @@ public class CourseController extends BaseController {
 
     @Operation(summary = "Get students enrolled in course", description = "Get all students enrolled in a specific course")
     @GetMapping(path = "/{courseId}/students")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
-    public CourseStudentsResponseDTO getStudents(Principal principal, @PathVariable Long courseId) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
+    public CourseStudentsResponseDTO getStudents(Principal principal, @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         Course course = service.getCourse(courseId, userId);
         accessChecker.checkCanManageCourse(course, userId);
@@ -143,7 +151,7 @@ public class CourseController extends BaseController {
     @Operation(summary = "Edit specific course", description = "Edit specific course")
     @PatchMapping(path = "/{courseId}")
     public CourseCompleteDTO editCourse(Principal principal,
-                             @PathVariable Long courseId,
+                             @PathVariable(name = "courseId") Long courseId,
                              @Valid @RequestBody EditCourse courseRequest,
                              BindingResult result) {
         if (result.hasErrors()) {
@@ -157,7 +165,7 @@ public class CourseController extends BaseController {
     @Operation(summary = "Delete specific course", description = "Delete specific course")
     @DeleteMapping(path = "/{courseId}")
     public ResponseEntity<Void> deleteCourse(Principal principal,
-                                       @PathVariable Long courseId) {
+                                       @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         service.deleteCourse(courseId, userId);
         return okNoContent();
@@ -166,7 +174,7 @@ public class CourseController extends BaseController {
     @Operation(summary = "Get projects enrolled to specific course", description = "Get projects enrolled to specific course")
     @GetMapping(path = "/{courseId}/projects")
     public ProjectsResponseDTO getProjects(Principal principal,
-                                           @PathVariable Long courseId) {
+                                           @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         Course course = service.get(courseId);
         Collection<Project> projects;
@@ -183,7 +191,7 @@ public class CourseController extends BaseController {
     @Operation(summary = "Create project enrolled to specific course", description = "Create project enrolled to specific course")
     @PostMapping(path = "/{courseId}/projects")
     public IdResponseDTO createProject(Principal principal,
-                                      @PathVariable Long courseId,
+                                      @PathVariable(name = "courseId") Long courseId,
                                       @Valid @RequestBody NewProject projectRequest,
                                       BindingResult result) {
         if (result.hasErrors()) {

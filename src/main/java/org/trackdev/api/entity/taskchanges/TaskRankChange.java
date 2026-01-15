@@ -1,5 +1,8 @@
 package org.trackdev.api.entity.taskchanges;
 
+import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.User;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -11,10 +14,10 @@ public class TaskRankChange extends TaskChange {
 
     public TaskRankChange() { }
 
-    public TaskRankChange(String user, Long taskId, Integer oldValue, Integer newValue) {
-        super(user, taskId);
-        this.oldValue = oldValue.toString();
-        this.newValue = newValue.toString();
+    public TaskRankChange(User author, Task task, Integer oldValue, Integer newValue) {
+        super(author, task);
+        this.oldValue = oldValue != null ? oldValue.toString() : null;
+        this.newValue = newValue != null ? newValue.toString() : null;
     }
 
     private String oldValue;
