@@ -26,6 +26,12 @@ public class Subject extends BaseEntityLong {
     @Column(name = "owner_id", insertable = false, updatable = false, length = BaseEntityUUID.UUID_LENGTH)
     private String ownerId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Workspace workspace;
+
+    @Column(name = "workspace_id", insertable = false, updatable = false)
+    private Long workspaceId;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "subject")
     private Collection<Course> courses;
 
@@ -60,6 +66,18 @@ public class Subject extends BaseEntityLong {
 
     public void setAcronym(String acronym) {
         this.acronym = acronym;
+    }
+
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
+    }
+
+    public Long getWorkspaceId() {
+        return workspaceId;
     }
 
     public Collection<Course> getCourses() {
