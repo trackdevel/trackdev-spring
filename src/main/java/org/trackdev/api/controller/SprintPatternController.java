@@ -37,7 +37,7 @@ public class SprintPatternController extends BaseController {
 
     @Operation(summary = "Get all sprint patterns for a course", description = "Get all sprint patterns belonging to a course")
     @GetMapping(path = "/course/{courseId}")
-    public SprintPatternsResponseDTO getPatternsByCourse(Principal principal, @PathVariable Long courseId) {
+    public SprintPatternsResponseDTO getPatternsByCourse(Principal principal, @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         List<SprintPattern> patterns = service.getPatternsByCourse(courseId, userId);
         return new SprintPatternsResponseDTO(mapper.toDTOList(patterns));
@@ -45,7 +45,7 @@ public class SprintPatternController extends BaseController {
 
     @Operation(summary = "Get a specific sprint pattern", description = "Get a sprint pattern by ID")
     @GetMapping(path = "/{id}")
-    public SprintPatternDTO getPattern(Principal principal, @PathVariable Long id) {
+    public SprintPatternDTO getPattern(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         SprintPattern pattern = service.getPattern(id, userId);
         return mapper.toDTO(pattern);
@@ -56,7 +56,7 @@ public class SprintPatternController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public SprintPatternDTO createPattern(
             Principal principal,
-            @PathVariable Long courseId,
+            @PathVariable(name = "courseId") Long courseId,
             @Valid @RequestBody SprintPatternRequest request) {
         String userId = super.getUserId(principal);
         SprintPattern pattern = service.createPattern(courseId, request, userId);
@@ -68,7 +68,7 @@ public class SprintPatternController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public SprintPatternDTO updatePattern(
             Principal principal,
-            @PathVariable Long id,
+            @PathVariable(name = "id") Long id,
             @Valid @RequestBody SprintPatternRequest request) {
         String userId = super.getUserId(principal);
         SprintPattern pattern = service.updatePattern(id, request, userId);
@@ -78,7 +78,7 @@ public class SprintPatternController extends BaseController {
     @Operation(summary = "Delete a sprint pattern", description = "Delete a sprint pattern (professors only)")
     @DeleteMapping(path = "/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
-    public ResponseEntity<Void> deletePattern(Principal principal, @PathVariable Long id) {
+    public ResponseEntity<Void> deletePattern(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         service.deletePattern(id, userId);
         return ResponseEntity.noContent().build();

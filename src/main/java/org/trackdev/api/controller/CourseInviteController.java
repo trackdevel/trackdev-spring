@@ -48,7 +48,7 @@ public class CourseInviteController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public CourseInvitesResponseDTO sendInvitations(
             Principal principal,
-            @PathVariable Long courseId,
+            @PathVariable(name = "courseId") Long courseId,
             @Valid @RequestBody InviteStudentsRequest request,
             BindingResult result) {
         if (result.hasErrors()) {
@@ -65,7 +65,7 @@ public class CourseInviteController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public CourseInvitesResponseDTO getPendingInvites(
             Principal principal,
-            @PathVariable Long courseId) {
+            @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         Collection<CourseInvite> invites = courseInviteService.getPendingInvites(courseId, userId);
         return new CourseInvitesResponseDTO(courseInviteMapper.toDTOList(invites));
@@ -77,7 +77,7 @@ public class CourseInviteController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public CourseInvitesResponseDTO getAllInvites(
             Principal principal,
-            @PathVariable Long courseId) {
+            @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         Collection<CourseInvite> invites = courseInviteService.getAllInvites(courseId, userId);
         return new CourseInvitesResponseDTO(courseInviteMapper.toDTOList(invites));
@@ -89,8 +89,8 @@ public class CourseInviteController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> cancelInvitation(
             Principal principal,
-            @PathVariable Long courseId,
-            @PathVariable Long inviteId) {
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "inviteId") Long inviteId) {
         String userId = super.getUserId(principal);
         courseInviteService.cancelInvitation(inviteId, userId);
         return okNoContent();
@@ -102,8 +102,8 @@ public class CourseInviteController extends BaseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public ResponseEntity<Void> removeStudent(
             Principal principal,
-            @PathVariable Long courseId,
-            @PathVariable String studentId) {
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "studentId") String studentId) {
         String userId = super.getUserId(principal);
         courseInviteService.removeStudent(courseId, studentId, userId);
         return okNoContent();

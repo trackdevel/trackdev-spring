@@ -65,9 +65,9 @@ public class HookController extends BaseController {
      */
     @PostMapping(path = "/github/pr")
     public ResponseEntity<WebhookResponse> handlePullRequest(
-            @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature,
-            @RequestHeader(value = "X-GitHub-Event", required = false) String event,
-            @RequestHeader(value = "X-GitHub-Delivery", required = false) String deliveryId,
+            @RequestHeader(name = "X-Hub-Signature-256", required = false) String signature,
+            @RequestHeader(name = "X-GitHub-Event", required = false) String event,
+            @RequestHeader(name = "X-GitHub-Delivery", required = false) String deliveryId,
             @RequestBody String rawPayload) {
         
         log.info("Received GitHub webhook: event={}, delivery={}", event, deliveryId);

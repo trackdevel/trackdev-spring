@@ -69,7 +69,7 @@ public class ProjectController extends BaseController {
 
     @Operation(summary = "Get specific project", description = "Get specific project")
     @GetMapping(path = "/{projectId}")
-    public ProjectCompleteDTO getProject(Principal principal, @PathVariable Long projectId) {
+    public ProjectCompleteDTO getProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         // All operations in a single transaction
         return projectMapper.toCompleteDTO(service.getProjectAndSetCurrent(projectId, userId));
@@ -78,7 +78,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "Edit specific project", description = "Edit specific project")
     @PatchMapping(path = "/{projectId}")
     public ProjectWithMembersDTO editProject(Principal principal,
-                               @PathVariable Long projectId,
+                               @PathVariable(name = "projectId") Long projectId,
                                @Valid @RequestBody EditProject projectRequest,
                                BindingResult result) {
         if (result.hasErrors()) {
@@ -94,7 +94,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "Delete specific project", description = "Delete specific project")
     @DeleteMapping(path = "/{projectId}")
     public ResponseEntity<Void> deleteProject(Principal principal,
-                                        @PathVariable Long projectId) {
+                                        @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         service.deleteProject(projectId, userId);
         return okNoContent();
@@ -103,7 +103,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "Get tasks of specific project", description = "Get tasks of specific project")
     @GetMapping(path = "/{projectId}/tasks")
     public ProjectTasksResponseDTO getProjectTasks(Principal principal,
-                                            @PathVariable Long projectId) {
+                                            @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         Collection<Task> tasks = service.getProjectTasks(projectId, userId);
@@ -113,7 +113,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "Create sprint of specific project", description = "Create sprint of specific project")
     @PostMapping(path = "/{projectId}/sprints")
     public IdResponseDTO createProjectSprint(Principal principal,
-                                       @PathVariable Long projectId,
+                                       @PathVariable(name = "projectId") Long projectId,
                                        @Valid @RequestBody CreateSprint sprintRequest,
                                                     BindingResult result) {
         if (result.hasErrors()) {
@@ -128,7 +128,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "Create US of specific project", description = "Create US of specific project")
     @PostMapping(path = "/{projectId}/tasks")
     public IdResponseDTO createTask(Principal principal,
-                              @PathVariable Long projectId,
+                              @PathVariable(name = "projectId") Long projectId,
                               @Valid @RequestBody  NewTask task) {
         String userId = super.getUserId(principal);
         // All operations in a single transaction
@@ -139,7 +139,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "Get all project sprints of specific project", description = "Get all project sprints of specific project")
     @GetMapping(path = "/{projectId}/sprints")
     public ProjectSprintsResponse getProjectSprints(Principal principal,
-                                            @PathVariable Long projectId) {
+                                            @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         Collection<Sprint> sprints = service.getProjectSprints(projectId, userId);
@@ -151,7 +151,7 @@ public class ProjectController extends BaseController {
     @GetMapping(path = "/{projectId}/qualification")
     @PreAuthorize("hasRole('ADMIN')")
     public ProjectQualificationResponse getProjectRank(Principal principal,
-                                            @PathVariable Long projectId) {
+                                            @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         // All operations in a single transaction - admin check via @PreAuthorize
         Map<String, Map<String, String>> ranks = service.getProjectRanksForAdmin(projectId, userId);

@@ -53,7 +53,7 @@ public class SprintController extends CrudController<Sprint, SprintService> {
 
     @Operation(summary = "Get specific sprint", description = "Get specific sprint")
     @GetMapping(path = "/{id}")
-    public SprintBasicDTO getSprint(Principal principal, @PathVariable Long id) {
+    public SprintBasicDTO getSprint(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
         return sprintMapper.toBasicDTO(service.getSprint(id, userId));
@@ -61,7 +61,7 @@ public class SprintController extends CrudController<Sprint, SprintService> {
 
     @Operation(summary = "Get sprint board with tasks", description = "Get sprint with all tasks for board view")
     @GetMapping(path = "/{id}/board")
-    public SprintBoardDTO getSprintBoard(Principal principal, @PathVariable Long id) {
+    public SprintBoardDTO getSprintBoard(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         Sprint sprint = service.getSprint(id, userId);
         SprintBoardDTO boardDTO = sprintMapper.toBoardDTO(sprint);
@@ -73,7 +73,7 @@ public class SprintController extends CrudController<Sprint, SprintService> {
     @Operation(summary = "Edit specific sprint", description = "Edit specific sprint")
     @PatchMapping(path = "/{id}")
     public SprintBasicDTO editSprint(Principal principal,
-                         @PathVariable Long id,
+                         @PathVariable(name = "id") Long id,
                          @Valid @RequestBody MergePatchSprint sprintRequest) {
         if (sprintRequest.name != null){
             if (sprintRequest.name.get().isEmpty() || sprintRequest.name.get().length() > Sprint.NAME_LENGTH) {
@@ -86,8 +86,8 @@ public class SprintController extends CrudController<Sprint, SprintService> {
 
     @Operation(summary = "Get history of logs of the sprint", description = "Get history of logs of the sprint")
     @GetMapping(path = "/{id}/history")
-    public HistoryResponseDTO<SprintChange> getHistory(Principal principal, @PathVariable Long id,
-                                         @RequestParam(required = false) String search) {
+    public HistoryResponseDTO<SprintChange> getHistory(Principal principal, @PathVariable(name = "id") Long id,
+                                         @RequestParam(name = "search", required = false) String search) {
         String userId = super.getUserId(principal);
         // Auth check and data retrieval in a single transaction
         List<SprintChange> history = service.getSprintHistory(id, userId, search);
@@ -96,7 +96,7 @@ public class SprintController extends CrudController<Sprint, SprintService> {
 
     @Operation(summary = "Delete specific sprint", description = "Delete specific sprint - only course owner (professor) or admin")
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteSprint(Principal principal, @PathVariable Long id) {
+    public ResponseEntity<Void> deleteSprint(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method (within transaction)
         service.deleteSprint(id, userId);
