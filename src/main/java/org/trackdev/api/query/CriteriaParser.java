@@ -10,8 +10,10 @@ public class CriteriaParser {
 
     private static Map<String, Operator> ops;
 
-    private static Pattern SpecCriteraRegex = Pattern.compile("^(\\w+?)(" + Joiner.on("|")
-            .join(SearchOperation.SIMPLE_OPERATION_SET) + ")(\\p{Punct}?)(\\w+?)(\\p{Punct}?)$");
+    // Updated regex to support nested property names with dots (e.g., "task.id", "user.name")
+    // Key pattern: [\w.]+ allows word characters and dots for JPA nested properties
+    private static Pattern SpecCriteraRegex = Pattern.compile("^([\\w.]+?)(" + Joiner.on("|")
+            .join(SearchOperation.SIMPLE_OPERATION_SET) + ")(\\p{Punct}?)([\\w.]+?)(\\p{Punct}?)$");
 
     private enum Operator {
         OR(1), AND(2);
