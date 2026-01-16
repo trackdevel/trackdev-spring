@@ -217,9 +217,10 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
     /**
      * Compute the report results for a specific project.
      * Generates a grid with rows x columns and sums the magnitude for each cell.
+     * @param statusFilters Optional list of task statuses to filter by (null or empty means all statuses)
      */
     @Transactional(readOnly = true)
-    public ReportResultDTO computeReportForProject(Long reportId, Long projectId, String userId) {
+    public ReportResultDTO computeReportForProject(Long reportId, Long projectId, String userId, List<TaskStatus> statusFilters) {
         User user = userService.get(userId);
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new EntityNotFound("Project", projectId));
@@ -264,6 +265,16 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
             allTasks = Collections.emptyList();
         }
         
+        // Filter tasks by status if filters are provided
+        final Collection<Task> filteredTasks;
+        if (statusFilters != null && !statusFilters.isEmpty()) {
+            filteredTasks = allTasks.stream()
+                .filter(task -> statusFilters.contains(task.getStatus()))
+                .collect(Collectors.toList());
+        } else {
+            filteredTasks = allTasks;
+        }
+        
         // Get row and column entities
         List<ReportResultDTO.AxisHeader> rowHeaders = getAxisHeaders(report.getRowType(), project);
         List<ReportResultDTO.AxisHeader> columnHeaders = getAxisHeaders(report.getColumnType(), project);
@@ -286,7 +297,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         }
         
         // Process each task
-        for (Task task : allTasks) {
+        for (Task task : filteredTasks) {
             // Get value based on magnitude
             int value = getMagnitudeValue(task, report.getMagnitude());
             if (value == 0) continue;
@@ -318,13 +329,14 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
     
     /**
      * Get axis headers (row or column) based on the axis type.
+     * Headers are sorted alphabetically by label to ensure consistent ordering.
      */
     private List<ReportResultDTO.AxisHeader> getAxisHeaders(ReportAxisType axisType, Project project) {
         List<ReportResultDTO.AxisHeader> headers = new ArrayList<>();
         
         switch (axisType) {
             case STUDENTS:
-                // Get all project members
+                // Get all project members and sort alphabetically by username
                 Collection<User> members = project.getMembers();
                 if (members != null) {
                     for (User member : members) {
@@ -334,7 +346,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
                 break;
                 
             case SPRINTS:
-                // Get all project sprints
+                // Get all project sprints and sort alphabetically by name
                 Collection<Sprint> sprints = project.getSprints();
                 if (sprints != null) {
                     for (Sprint sprint : sprints) {
@@ -343,6 +355,9 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
                 }
                 break;
         }
+        
+        // Sort headers alphabetically by name
+        headers.sort(Comparator.comparing(ReportResultDTO.AxisHeader::getName));
         
         return headers;
     }
