@@ -23,4 +23,5 @@ public class MergePatchReport {
     public Optional<ReportAxisType> columnType;
     public Optional<ReportElement> element;
     public Optional<ReportMagnitude> magnitude;
+    public Optional<Long> courseId;
 }
