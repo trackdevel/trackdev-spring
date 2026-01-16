@@ -12,14 +12,17 @@ import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
 import org.trackdev.api.dto.*;
 import org.trackdev.api.entity.Project;
+import org.trackdev.api.entity.Report;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.Task;
 import org.trackdev.api.mapper.ProjectMapper;
+import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.mapper.TaskMapper;
 import org.trackdev.api.model.response.ProjectQualificationResponse;
 import org.trackdev.api.model.response.ProjectSprintsResponse;
 import org.trackdev.api.service.AccessChecker;
 import org.trackdev.api.service.ProjectService;
+import org.trackdev.api.service.ReportService;
 import org.trackdev.api.service.UserService;
 import org.trackdev.api.utils.ErrorConstants;
 
@@ -54,6 +57,12 @@ public class ProjectController extends BaseController {
 
     @Autowired
     TaskMapper taskMapper;
+
+    @Autowired
+    ReportMapper reportMapper;
+
+    @Autowired
+    ReportService reportService;
 
     @Operation(summary = "Get all projects", description = "Get all projects")
     @GetMapping
@@ -174,6 +183,26 @@ public class ProjectController extends BaseController {
             ));
         }
         return summaries;
+    }
+
+    // ============== Project Reports Endpoints ==============
+
+    @Operation(summary = "Get available reports for a project", description = "Get reports assigned to the project's course")
+    @GetMapping(path = "/{projectId}/reports")
+    public List<ReportBasicDTO> getProjectReports(Principal principal,
+                                                   @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        List<Report> reports = reportService.getReportsForProject(projectId, userId);
+        return reportMapper.toBasicDTOList(reports);
+    }
+
+    @Operation(summary = "Compute a report for a project", description = "Compute the report results for a specific project")
+    @GetMapping(path = "/{projectId}/reports/{reportId}/compute")
+    public ReportResultDTO computeReport(Principal principal,
+                                         @PathVariable(name = "projectId") Long projectId,
+                                         @PathVariable(name = "reportId") Long reportId) {
+        String userId = super.getUserId(principal);
+        return reportService.computeReportForProject(reportId, projectId, userId);
     }
 
     static class EditProject {
