@@ -44,6 +44,10 @@ public class Report extends BaseEntityLong {
     @Column(length = 30)
     private ReportMagnitude magnitude;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
     // Constructors
     public Report() {
         this.element = ReportElement.TASK; // Default to TASK
@@ -111,5 +115,13 @@ public class Report extends BaseEntityLong {
 
     public void setMagnitude(ReportMagnitude magnitude) {
         this.magnitude = magnitude;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
     }
 }
