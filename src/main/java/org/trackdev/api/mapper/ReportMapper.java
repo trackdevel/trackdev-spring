@@ -8,11 +8,12 @@ import org.trackdev.api.entity.Report;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, CourseMapper.class})
 public interface ReportMapper {
 
     @Named("reportToBasicDTO")
     @Mapping(target = "owner", source = "owner", qualifiedByName = "userToSummaryDTO")
+    @Mapping(target = "course", source = "course", qualifiedByName = "courseToBasicDTO")
     ReportBasicDTO toBasicDTO(Report report);
 
     List<ReportBasicDTO> toBasicDTOList(List<Report> reports);
