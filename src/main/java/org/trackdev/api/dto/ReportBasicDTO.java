@@ -17,4 +17,5 @@ public class ReportBasicDTO {
     private ReportAxisType columnType;
     private ReportElement element;
     private ReportMagnitude magnitude;
+    private CourseBasicDTO course;
 }
