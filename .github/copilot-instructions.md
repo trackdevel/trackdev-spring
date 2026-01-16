@@ -81,54 +81,12 @@ src/
 - `AccessChecker` service injected for authorization checks
 - Swagger annotations: `@Tag`, `@Operation`, `@SecurityRequirement`
 
-**Actual Example** (from TaskController.java):
-```java
-@SecurityRequirement(name = "bearerAuth")
-@Tag(name = "6. Tasks")
-@RestController
-@RequestMapping(path = "/tasks")
-public class TaskController extends CrudController<Task, TaskService> {
+### Spring Boot Controller guidelines
 
-    @Autowired
-    AccessChecker accessChecker;
+When using @RequestParam or @PathVariable in Spring Boot controllers, always specify the parameter name explicitly. This improves code readability and helps avoid potential issues during refactoring. For example, use @RequestParam(name = "id") Long id instead of just @RequestParam Long id.
 
-    @Autowired
-    TaskMapper taskMapper;
+Controllers should try to enforce a single call to Service layer methods per endpoint. Any additional data fetching or processing should be handled within the Service layer to maintain separation of concerns and ensure operation is transactional when needed.
 
-    @Operation(summary = "Get information of tasks")
-    @GetMapping
-    public TasksResponseDTO search(Principal principal,
-                         @RequestParam(required = false) String search) {
-        String userId = super.getUserId(principal);
-        accessChecker.checkCanViewAllTasks(userId);
-        return new TasksResponseDTO(taskMapper.toBasicDTOList(super.search(search)));
-    }
-
-    @Operation(summary = "Get information of a specific task")
-    @GetMapping(path = "/{id}")
-    public TaskWithPointsReview getTask(Principal principal, @PathVariable Long id) {
-        String userId = super.getUserId(principal);
-        Task task = service.getTask(id, userId);
-        List<PointsReview> pointsReview = pointsReviewService.getPointsReview(userId);
-        return new TaskWithPointsReview(taskMapper.toWithProjectDTO(task), pointsReview);
-    }
-
-    @Operation(summary = "Edit task information")
-    @PatchMapping(path = "/{id}")
-    public TaskCompleteDTO editTask(Principal principal,
-                           @PathVariable Long id,
-                           @Valid @RequestBody MergePatchTask taskRequest) {
-        // Validation at controller level for simple constraints
-        if (taskRequest.name != null) {
-            if (taskRequest.name.get().isEmpty() || taskRequest.name.get().length() > Task.NAME_LENGTH) {
-                throw new ControllerException(ErrorConstants.INVALID_TASK_NAME_LENGTH);
-            }
-        }
-        String userId = super.getUserId(principal);
-        return taskMapper.toCompleteDTO(service.editTask(id, taskRequest, userId));
-    }
-}
-```
 
 ### 2. Service Layer (`service/` package)
 **Responsibility**: Business logic, data coordination, transaction management
@@ -141,51 +99,6 @@ public class TaskController extends CrudController<Task, TaskService> {
 - Throws `ServiceException` or `EntityNotFound` with `ErrorConstants` messages
 - Returns entities (controller uses mappers to convert to DTOs)
 
-**Actual Example** (from TaskService.java):
-```java
-@Service
-public class TaskService extends BaseServiceLong<Task, TaskRepository> {
-
-    @Autowired
-    ProjectService projectService;
-
-    @Autowired
-    UserService userService;
-
-    @Autowired
-    AccessChecker accessChecker;
-
-    @Transactional
-    public Task createTask(Long projectId, String name, String userId) {
-        Project project = projectService.get(projectId);
-        User user = userService.get(userId);
-        accessChecker.checkCanViewProject(project, userId);
-        
-        Task task = new Task(name, user);
-        task.setType(TaskType.USER_STORY);
-        task.setProject(project);
-        project.addTask(task);
-        this.repo.save(task);
-        return task;
-    }
-
-    @Transactional
-    public Task selfAssignTask(Long taskId, String userId) {
-        Task task = get(taskId);  // Uses inherited get() from BaseServiceLong
-        User user = userService.get(userId);
-        accessChecker.checkCanSelfAssignTask(task, userId);
-        
-        String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
-        task.setAssignee(user);
-        repo.save(task);
-        
-        // Record the change for audit
-        TaskChange change = new TaskAssigneeChange(user.getEmail(), task.getId(), oldValue, user.getUsername());
-        taskChangeService.store(change);
-        return task;
-    }
-}
-```
 
 ### 3. Repository Layer (`repository/` package)
 **Responsibility**: Data access abstraction, database queries
@@ -194,30 +107,6 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 - Extend `BaseRepositoryLong<Entity>` (provides JpaRepository + JpaSpecificationExecutor)
 - Use **derived query methods** (Spring Data naming convention) - NO @Query unless necessary
 - Keep repositories minimal - most inherit everything from base
-
-**Actual Example** (from TaskRepository.java - simple):
-```java
-@Repository
-public interface TaskRepository extends BaseRepositoryLong<Task> {
-}
-```
-
-**Actual Example** (from CourseInviteRepository.java - with derived queries):
-```java
-public interface CourseInviteRepository extends BaseRepositoryLong<CourseInvite> {
-
-    Optional<CourseInvite> findByToken(String token);
-
-    Collection<CourseInvite> findByCourseId(Long courseId);
-
-    // Derived query with enum parameter
-    Collection<CourseInvite> findByEmailAndStatus(String email, InviteStatus status);
-
-    Optional<CourseInvite> findByCourseIdAndEmailAndStatus(Long courseId, String email, InviteStatus status);
-
-    Collection<CourseInvite> findByCourseIdAndStatus(Long courseId, InviteStatus status);
-}
-```
 
 **When to use @Query**: Only for complex queries that can't be expressed as derived queries:
 - OR conditions: `findByOwnerIdOrSubjectOwnerId`
@@ -232,68 +121,8 @@ public interface CourseInviteRepository extends BaseRepositoryLong<CourseInvite>
 - NO Lombok @Data/@Builder on entities - use manual getters/setters/constructors
 - Constants for validation: `public static final int NAME_LENGTH = 100;`
 - Relationships use `FetchType.LAZY` (collection default)
+- Do not expose foreign key IDs as fields, use relationships instead. 
 
-**Actual Example** (from Task.java):
-```java
-@Entity
-@Table(name = "tasks")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class Task extends BaseEntityLong {
-
-    public static final int MIN_NAME_LENGTH = 1;
-    public static final int NAME_LENGTH = 100;
-
-    @NonNull
-    @Column(length = NAME_LENGTH)
-    private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "projectId")
-    private Project project;
-
-    @ManyToOne
-    private User reporter;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    private TaskType type;
-    private Date createdAt;
-
-    @ManyToOne
-    private User assignee;
-
-    private Integer estimationPoints;
-
-    @Column(name = "`status`")
-    private TaskStatus status;
-
-    @OneToMany(mappedBy = "parentTask")
-    private Collection<Task> childTasks;
-
-    @ManyToOne
-    @JoinColumn(name = "parentTaskId")
-    private Task parentTask;
-
-    // Constructors
-    public Task() {}
-
-    public Task(String name, User reporter) {
-        this.name = name;
-        this.createdAt = new Date();
-        this.reporter = reporter;
-        this.status = TaskStatus.BACKLOG;
-        this.estimationPoints = 0;
-        this.rank = 0;
-    }
-
-    // Getters and setters (manual, not Lombok)
-    @NonNull
-    public String getName() { return name; }
-    public void setName(@NonNull String name) { this.name = name; }
-    // ... more getters/setters
-}
-```
 
 ---
 
@@ -308,61 +137,11 @@ public class Task extends BaseEntityLong {
 - NO static factory methods - use MapStruct mappers instead
 - Nested DTOs for related entities (e.g., `UserSummaryDTO` inside `TaskBasicDTO`)
 
-**Actual Example** (from TaskBasicDTO.java):
-```java
-@Data
-public class TaskBasicDTO {
-    private Long id;
-    private String name;
-    private String description;
-    private Date createdAt;
-    private UserSummaryDTO reporter;
-    private UserSummaryDTO assignee;
-    private String status;
-    private String statusText;
-    private Integer estimationPoints;
-    private Integer rank;
-    private Collection<TaskBasicDTO> childTasks;
-    private TaskBasicDTO parentTask;
-    private Collection<SprintBasicDTO> activeSprints;
-}
-```
-
 ---
 
 ## MapStruct Mappers - `mapper/` Package
 
 **Pattern**: Use MapStruct interfaces for Entity→DTO transformation
-
-**Actual Example** (from TaskMapper.java):
-```java
-@Mapper(componentModel = "spring", uses = {UserMapper.class, SprintMapper.class, CommentMapper.class, ProjectMapper.class})
-public interface TaskMapper {
-
-    @Named("taskToBasicDTO")
-    @Mapping(target = "status", source = "status", qualifiedByName = "taskStatusToString")
-    @Mapping(target = "statusText", source = "statusText")
-    @Mapping(target = "reporter", source = "reporter", qualifiedByName = "userToSummaryDTO")
-    @Mapping(target = "assignee", source = "assignee", qualifiedByName = "userToSummaryDTO")
-    @Mapping(target = "activeSprints", source = "activeSprints", qualifiedByName = "sprintToBasicDTO")
-    @Mapping(target = "parentTask", ignore = true)
-    @Mapping(target = "childTasks", ignore = true)
-    TaskBasicDTO toBasicDTO(Task task);
-
-    @Named("taskToCompleteDTO")
-    @Mapping(target = "status", source = "status", qualifiedByName = "taskStatusToString")
-    // ... more mappings
-    TaskCompleteDTO toCompleteDTO(Task task);
-
-    @IterableMapping(qualifiedByName = "taskToBasicDTO")
-    List<TaskBasicDTO> toBasicDTOList(List<Task> tasks);
-
-    @Named("taskStatusToString")
-    default String statusToString(TaskStatus status) {
-        return status != null ? status.name() : null;
-    }
-}
-```
 
 **Key Points**:
 - `componentModel = "spring"` makes mapper injectable with `@Autowired`
@@ -374,17 +153,7 @@ public interface TaskMapper {
 
 ## Exception Handling
 
-**Standard Error Response Structure** (from ErrorEntity.java):
-```json
-{
-  "timestamp": "2025-01-05T09:19:00Z",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Email is required",
-  "code": "SERVICE_ERROR",
-  "path": "/tasks/123"
-}
-```
+ALL exceptions ocurring in controllers/services should return a consistent error response format with proper HTTP status codes.
 
 ### Exception Hierarchy
 ```
@@ -395,39 +164,6 @@ BaseException (abstract)
 └── AuthorizedException   → 403 Forbidden
 ```
 
-**Actual Example** (from BaseException.java):
-```java
-public abstract class BaseException extends RuntimeException {
-    private final HttpStatus httpStatus;
-    private final String errorCode;
-
-    protected BaseException(String message, HttpStatus httpStatus, String errorCode) {
-        super(message);
-        this.httpStatus = httpStatus;
-        this.errorCode = errorCode;
-    }
-
-    public HttpStatus getHttpStatus() { return httpStatus; }
-    public String getErrorCode() { return errorCode; }
-}
-```
-
-**Actual Example** (from EntityNotFound.java):
-```java
-public class EntityNotFound extends BaseException {
-    public EntityNotFound() {
-        super("No such entity", HttpStatus.NOT_FOUND, "ENTITY_NOT_FOUND");
-    }
-
-    public EntityNotFound(String message) {
-        super(message, HttpStatus.NOT_FOUND, "ENTITY_NOT_FOUND");
-    }
-
-    public EntityNotFound(String entityType, Object id) {
-        super(entityType + " with id '" + id + "' not found", HttpStatus.NOT_FOUND, "ENTITY_NOT_FOUND");
-    }
-}
-```
 
 ### Error Constants (from ErrorConstants.java)
 All error messages are centralized:
@@ -513,11 +249,21 @@ accessChecker.checkCanViewProject(project, userId);  // Throws if unauthorized
 # Run tests
 ./gradlew test
 
-# Run application
-./gradlew bootRun
+# Run application. Use scripts for easier usage
+Linux:
+# Development with .env
+```./scripts/run-server.sh```ç
+# Production
+```./scripts/run-server.sh .env.prod```
+
+Windows:
+# Development with .env
+```.\scripts\run-server.ps1 -EnvFile .env```
+# Production
+```.\scripts\run-server.ps1 -EnvFile .env.prod -SpringProfile prod```
 
 # Build JAR
-./gradlew build
+./gradlew clean bootJar
 
 # Compile only (quick check)
 ./gradlew compileJava --quiet
