@@ -14,10 +14,12 @@ import org.trackdev.api.dto.*;
 import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.CourseInvite;
 import org.trackdev.api.entity.Project;
+import org.trackdev.api.entity.Report;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.mapper.CourseInviteMapper;
 import org.trackdev.api.mapper.CourseMapper;
 import org.trackdev.api.mapper.ProjectMapper;
+import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.mapper.UserMapper;
 import org.trackdev.api.service.*;
 import org.trackdev.api.utils.ErrorConstants;
@@ -69,6 +71,12 @@ public class CourseController extends BaseController {
 
     @Autowired
     CourseInviteService courseInviteService;
+
+    @Autowired
+    ReportMapper reportMapper;
+
+    @Autowired
+    ReportService reportService;
 
     @Operation(summary = "Get courses", description = "Get all courses for admin/workspace admin, own courses for professor, or enrolled courses for student")
     @GetMapping
@@ -200,6 +208,15 @@ public class CourseController extends BaseController {
         String userId = super.getUserId(principal);
         Project createdProject = projectService.createProject(projectRequest.name, projectRequest.members, courseId, userId);
         return new IdResponseDTO(createdProject.getId());
+    }
+
+    @Operation(summary = "Get reports assigned to a course", description = "Get all reports that have been assigned to this course by professors")
+    @GetMapping(path = "/{courseId}/reports")
+    public CourseReportsResponse getCourseReports(Principal principal,
+                                                   @PathVariable(name = "courseId") Long courseId) {
+        String userId = super.getUserId(principal);
+        List<Report> reports = reportService.getReportsForCourse(courseId, userId);
+        return new CourseReportsResponse(reportMapper.toBasicDTOList(reports), courseId);
     }
 
 

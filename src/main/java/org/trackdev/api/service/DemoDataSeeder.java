@@ -89,6 +89,9 @@ public class DemoDataSeeder {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private ReportService reportService;
+
     public void seedDemoData() {
         logger.info("Starting database seeding...");
 
@@ -385,6 +388,21 @@ public class DemoDataSeeder {
         userService.setCurrentProject(professorSO, projectSO);
         userService.setCurrentProject(professorBD, projectBD);
 
+        // ============================================
+        // 10. CREATE SAMPLE REPORT FOR PDS COURSE
+        // ============================================
+        
+        // Create a report for PDS 2025 course with Maria Garcia as owner
+        Report reportPDS = reportService.createReport("Student Sprint Progress Report", professorPDS.getId());
+        reportPDS.setRowType(ReportAxisType.STUDENTS);
+        reportPDS.setColumnType(ReportAxisType.SPRINTS);
+        reportPDS.setElement(ReportElement.TASK);
+        reportPDS.setMagnitude(ReportMagnitude.ESTIMATION_POINTS);
+        reportPDS.setCourse(coursePDS);
+        reportService.save(reportPDS);
+        
+        logger.info("Created sample report for PDS course");
+
         logger.info("Database seeding completed successfully!");
         logger.info("Summary:");
         logger.info("  - 2 workspaces");
@@ -395,6 +413,7 @@ public class DemoDataSeeder {
         logger.info("  - 4 courses");
         logger.info("  - 2 sprint patterns");
         logger.info("  - 6 projects with sprints and tasks");
+        logger.info("  - 1 sample report (PDS 2025)");
     }
 
     /**
