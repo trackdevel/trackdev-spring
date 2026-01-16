@@ -15,6 +15,7 @@ import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Report;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.TaskStatus;
 import org.trackdev.api.mapper.ProjectMapper;
 import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.mapper.TaskMapper;
@@ -196,13 +197,24 @@ public class ProjectController extends BaseController {
         return reportMapper.toBasicDTOList(reports);
     }
 
-    @Operation(summary = "Compute a report for a project", description = "Compute the report results for a specific project")
+    @Operation(summary = "Compute a report for a project", description = "Compute the report results for a specific project. Optionally filter by task status (comma-separated).")
     @GetMapping(path = "/{projectId}/reports/{reportId}/compute")
     public ReportResultDTO computeReport(Principal principal,
                                          @PathVariable(name = "projectId") Long projectId,
-                                         @PathVariable(name = "reportId") Long reportId) {
+                                         @PathVariable(name = "reportId") Long reportId,
+                                         @RequestParam(name = "status", required = false) String statusParam) {
         String userId = super.getUserId(principal);
-        return reportService.computeReportForProject(reportId, projectId, userId);
+        
+        // Parse comma-separated status values
+        List<TaskStatus> statusFilters = null;
+        if (statusParam != null && !statusParam.trim().isEmpty()) {
+            statusFilters = Arrays.stream(statusParam.split(","))
+                    .map(String::trim)
+                    .map(TaskStatus::valueOf)
+                    .collect(Collectors.toList());
+        }
+        
+        return reportService.computeReportForProject(reportId, projectId, userId, statusFilters);
     }
 
     static class EditProject {
