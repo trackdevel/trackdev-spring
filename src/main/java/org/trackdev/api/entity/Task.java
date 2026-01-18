@@ -59,6 +59,9 @@ public class Task extends BaseEntityLong {
     @Column(name = "`status`")
     private TaskStatus status;
 
+    @Column(name = "frozen")
+    private Boolean frozen = false;
+
     @Column(name = "`rank`")
     private Integer rank;
 
@@ -178,6 +181,16 @@ public class Task extends BaseEntityLong {
     public void setStatus(TaskStatus status) {
         checkCanMoveToStatus(status);
         this.status = status;
+    }
+
+    public Boolean getFrozen() { return frozen != null && frozen; }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
+    }
+
+    public boolean isFrozen() {
+        return frozen != null && frozen;
     }
 
     public void setReporter(User reporter) {

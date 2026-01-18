@@ -231,6 +231,22 @@ public class TaskController extends CrudController<Task, TaskService> {
         );
     }
 
+    @Operation(summary = "Freeze a task", description = "Freeze a task to prevent any modifications (PROFESSOR only)")
+    @PostMapping(path = "/{taskId}/freeze")
+    public TaskBasicDTO freezeTask(Principal principal, @PathVariable(name = "taskId") Long taskId) {
+        String userId = super.getUserId(principal);
+        Task task = service.freezeTask(taskId, userId);
+        return taskMapper.toBasicDTO(task);
+    }
+
+    @Operation(summary = "Unfreeze a task", description = "Unfreeze a task to allow modifications (PROFESSOR only)")
+    @PostMapping(path = "/{taskId}/unfreeze")
+    public TaskBasicDTO unfreezeTask(Principal principal, @PathVariable(name = "taskId") Long taskId) {
+        String userId = super.getUserId(principal);
+        Task task = service.unfreezeTask(taskId, userId);
+        return taskMapper.toBasicDTO(task);
+    }
+
     static class NewSubTask {
         @NotBlank
         @Size(

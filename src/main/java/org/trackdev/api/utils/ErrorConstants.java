@@ -45,6 +45,8 @@ public final class ErrorConstants {
     public static final String TASK_CANNOT_VERIFY_WITHOUT_PULL_REQUEST = "A task cannot be moved to VERIFY without at least one Pull Request";
     public static final String USER_STORY_WITH_CHILDREN_CANNOT_CHANGE_TYPE = "A USER_STORY with child tasks cannot change its type";
     public static final String SUBTASK_MUST_BE_TASK_OR_BUG = "A subtask can only be of type TASK or BUG";
+    public static final String TASK_IS_FROZEN = "This task is frozen and cannot be modified";
+    public static final String ONLY_PROFESSOR_CAN_FREEZE_TASK = "Only professors can freeze or unfreeze tasks";
     public static final String CAN_NOT_BE_NULL = "There is a NULL field that cannot be null";
     public static final String ENTITY_NOT_EXIST = "Entity does not exist";
     public static final String GITHUB_TOKEN_INVALID = "ERROR: Invalid token";
