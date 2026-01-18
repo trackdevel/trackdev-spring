@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.entity.*;
 import org.trackdev.api.entity.taskchanges.*;
@@ -134,6 +135,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task editTask(Long id, MergePatchTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
+        
+        // Check if task is frozen - no edits allowed on frozen tasks
+        if (task.isFrozen()) {
+            throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
+        }
+        
         accessChecker.checkCanViewProject(task.getProject(), userId);
 
         // Check if user can edit task fields (name, description, estimation, rank, sprints, type)
@@ -520,5 +527,47 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         
         return repo.findAll(spec, pageable);
+    }
+
+    /**
+     * Freeze a task (PROFESSOR only)
+     */
+    @Transactional
+    public Task freezeTask(Long taskId, String userId) {
+        Task task = get(taskId);
+        User user = userService.get(userId);
+        
+        // Only professors can freeze tasks
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_FREEZE_TASK);
+        }
+        
+        // Check if professor has access to this project's course
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        
+        task.setFrozen(true);
+        repo.save(task);
+        return task;
+    }
+
+    /**
+     * Unfreeze a task (PROFESSOR only)
+     */
+    @Transactional
+    public Task unfreezeTask(Long taskId, String userId) {
+        Task task = get(taskId);
+        User user = userService.get(userId);
+        
+        // Only professors can unfreeze tasks
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_FREEZE_TASK);
+        }
+        
+        // Check if professor has access to this project's course
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        
+        task.setFrozen(false);
+        repo.save(task);
+        return task;
     }
 }

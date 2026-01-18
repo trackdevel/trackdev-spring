@@ -23,6 +23,7 @@ public class TaskBasicDTO {
     private String statusText;
     private Integer estimationPoints;
     private Integer rank;
+    private Boolean frozen;
     private Long parentTaskId;
     private Collection<TaskBasicDTO> childTasks;
     private TaskBasicDTO parentTask;
