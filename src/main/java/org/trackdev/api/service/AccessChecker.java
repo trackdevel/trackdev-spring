@@ -1,5 +1,7 @@
 package org.trackdev.api.service;
 
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -644,6 +646,80 @@ public class AccessChecker {
             }
             
             return;
+        }
+        
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    // USER VIEWING
+
+    /**
+     * Check if current user can view information about a target user.
+     * - ADMIN can view any user
+     * - WORKSPACE_ADMIN can view users in their workspace
+     * - PROFESSOR can view professors in their workspace + students in courses they own
+     * - STUDENT can view other students in the same projects
+     */
+    public void checkCanViewUser(String currentUserId, User targetUser) {
+        User currentUser = userService.get(currentUserId);
+        
+        // Users can always view themselves
+        if (currentUser.getId().equals(targetUser.getId())) {
+            return;
+        }
+        
+        // ADMIN can view any user
+        if (currentUser.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        
+        // WORKSPACE_ADMIN can view users in their workspace
+        if (currentUser.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (currentUser.getWorkspace() != null && targetUser.getWorkspace() != null &&
+                currentUser.getWorkspace().getId().equals(targetUser.getWorkspace().getId())) {
+                return;
+            }
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        // PROFESSOR can view:
+        // 1. Other professors in their workspace
+        // 2. Students enrolled in courses they own
+        if (currentUser.isUserType(UserType.PROFESSOR)) {
+            // Can view other professors in same workspace
+            if (targetUser.isUserType(UserType.PROFESSOR) || targetUser.isUserType(UserType.WORKSPACE_ADMIN)) {
+                if (currentUser.getWorkspace() != null && targetUser.getWorkspace() != null &&
+                    currentUser.getWorkspace().getId().equals(targetUser.getWorkspace().getId())) {
+                    return;
+                }
+            }
+            
+            // Can view students in courses they own
+            if (targetUser.isUserType(UserType.STUDENT)) {
+                Collection<Course> ownedCourses = courseService.getCoursesForUser(currentUser.getId());
+                for (Course course : ownedCourses) {
+                    if (course.isStudentEnrolled(targetUser.getId())) {
+                        return;
+                    }
+                }
+            }
+            
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        // STUDENT can only view other students in the same projects
+        if (currentUser.isUserType(UserType.STUDENT)) {
+            // Get all projects the current user is a member of
+            Collection<Project> currentUserProjects = currentUser.getProjects();
+            
+            // Check if target user is a member of any of those projects
+            for (Project project : currentUserProjects) {
+                if (project.isMember(targetUser.getId())) {
+                    return;
+                }
+            }
+            
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
         }
         
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
