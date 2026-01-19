@@ -43,7 +43,7 @@ public class CourseInviteController extends BaseController {
     // ==================== Course-specific invite endpoints ====================
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Send invitations to students", description = "Send course invitations to a list of email addresses")
+    @Operation(summary = "Send invitations to students", description = "Send course invitations. Each entry should be in format: \"Full Name\", email")
     @PostMapping(path = "/{courseId}/invites")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public CourseInvitesResponseDTO sendInvitations(
@@ -55,7 +55,7 @@ public class CourseInviteController extends BaseController {
             throw new ControllerException(ErrorConstants.INVALID_MAIL_FORMAT);
         }
         String userId = super.getUserId(principal);
-        List<CourseInvite> invites = courseInviteService.createInvitations(courseId, request.emails, userId);
+        List<CourseInvite> invites = courseInviteService.createInvitations(courseId, request.entries, userId);
         return new CourseInvitesResponseDTO(courseInviteMapper.toDTOList(invites));
     }
 
@@ -111,9 +111,15 @@ public class CourseInviteController extends BaseController {
 
     // ==================== Request/Response DTOs ====================
 
+    /**
+     * Request for sending invitations.
+     * Each entry should be in the format: "Full Name", email
+     * Example: "John Doe", john@example.com
+     * The full name is enclosed in double quotes and can contain alphanumeric chars, spaces, hyphens, underscores, and commas.
+     */
     static class InviteStudentsRequest {
         @NotEmpty
-        public Collection<@Email String> emails;
+        public Collection<String> entries;
     }
 
     static class AcceptInviteRequest {

@@ -110,13 +110,13 @@ public class ProjectController extends BaseController {
         return okNoContent();
     }
 
-    @Operation(summary = "Get tasks of specific project", description = "Get tasks of specific project")
+    @Operation(summary = "Get all tasks of specific project", description = "Get all tasks of specific project including subtasks")
     @GetMapping(path = "/{projectId}/tasks")
     public ProjectTasksResponseDTO getProjectTasks(Principal principal,
                                             @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
         // Authorization check is now inside the service method
-        Collection<Task> tasks = service.getProjectTasks(projectId, userId);
+        Collection<Task> tasks = service.getAllProjectTasks(projectId, userId);
         return new ProjectTasksResponseDTO(taskMapper.toBasicDTOCollection(tasks), projectId);
     }
 
@@ -224,6 +224,7 @@ public class ProjectController extends BaseController {
                 message = ErrorConstants.INVALID_PRJ_NAME_LENGTH
         )
         public String name;
+        /** User IDs of project members */
         public Collection<String> members;
         public Long courseId;
         @Min(value = Project.MIN_QUALIFICATION, message = ErrorConstants.INVALID_PRJ_QUALIFICATION)
