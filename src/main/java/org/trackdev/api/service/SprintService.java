@@ -43,6 +43,11 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
 
     @Transactional
     public Sprint create(Project project, String name, Date startDate, Date endDate, String userId) {
+        // Validate that end date is after start date
+        if (startDate != null && endDate != null && !endDate.after(startDate)) {
+            throw new ServiceException(ErrorConstants.SPRINT_END_DATE_BEFORE_START);
+        }
+        
         User user = userService.get(userId);
         Sprint sprint = new Sprint(name);
         sprint.setStartDate(startDate);

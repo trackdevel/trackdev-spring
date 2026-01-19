@@ -94,6 +94,9 @@ public final class ErrorConstants {
     public static final String CANNOT_GENERATE_UNIQUE_SLUG = "Unable to generate a unique project ID. Please try again.";
     public static final String CANNOT_REMOVE_MEMBER_HAS_ASSIGNED_TASKS = "Cannot remove member who has assigned tasks in this project";
     
+    // Sprint validation errors
+    public static final String SPRINT_END_DATE_BEFORE_START = "Sprint end date must be after start date";
+    
     // User deletion errors
     public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "Cannot delete user who owns subjects";
     public static final String CANNOT_DELETE_USER_HAS_REPORTED_TASKS = "Cannot delete user who has reported tasks";

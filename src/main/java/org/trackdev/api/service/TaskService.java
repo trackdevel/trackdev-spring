@@ -14,6 +14,7 @@ import org.trackdev.api.query.GenericSpecificationsBuilder;
 import org.trackdev.api.query.SearchSpecification;
 import org.trackdev.api.repository.TaskRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +51,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Project project = projectService.get(projectId);
         User user = userService.get(userId);
         accessChecker.checkCanViewProject(project, userId);
-        Task task = new Task(name, user);
+        // Sanitize task name to prevent XSS attacks
+        String sanitizedName = HtmlSanitizer.sanitize(name);
+        Task task = new Task(sanitizedName, user);
         task.setType(TaskType.USER_STORY);
         project.addTask(task);  // This sets project, taskNumber, and taskKey
         this.repo.save(task);
@@ -120,7 +123,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         
         // Any project member (or professor/admin) can create subtasks
         accessChecker.checkCanCreateSubtask(parentTask, userId);
-        Task subtask = new Task(name, user);
+        // Sanitize subtask name to prevent XSS attacks
+        String sanitizedName = HtmlSanitizer.sanitize(name);
+        Task subtask = new Task(sanitizedName, user);
         subtask.setType(TaskType.TASK);
         subtask.setParentTask(parentTask);
         subtask.setStatus(parentTask.getStatus());  // Inherit status from parent USER_STORY
@@ -175,11 +180,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             String oldName = task.getName();
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
-            task.setName(name);
-            changes.add(new TaskNameChange(user, task, oldName, name));
+            // Sanitize task name to prevent XSS attacks
+            String sanitizedName = HtmlSanitizer.sanitize(name);
+            task.setName(sanitizedName);
+            changes.add(new TaskNameChange(user, task, oldName, sanitizedName));
         }
         if(editTask.description != null) {
-            task.setDescription(editTask.description.orElse(null));
+            // Sanitize description to prevent XSS attacks
+            String sanitizedDescription = editTask.description.isPresent() 
+                    ? HtmlSanitizer.sanitize(editTask.description.get()) 
+                    : null;
+            task.setDescription(sanitizedDescription);
         }
         if(editTask.type != null) {
             TaskType newType = editTask.type.orElseThrow(
