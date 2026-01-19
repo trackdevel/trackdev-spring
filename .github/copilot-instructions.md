@@ -338,8 +338,8 @@ Linux
 ```
 
 Windows PowerShell
-```powerhell
-.\run-server.ps1
+```powershell, from the root of the project
+.\scripts\run-server.ps1 -EnvFile .\.env
 ```
 
 
