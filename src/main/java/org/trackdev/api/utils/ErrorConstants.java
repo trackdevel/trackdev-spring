@@ -44,6 +44,8 @@ public final class ErrorConstants {
     public static final String TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PRS = "A task cannot be marked as DONE until all Pull Requests are merged";
     public static final String TASK_CANNOT_VERIFY_WITHOUT_PULL_REQUEST = "A task cannot be moved to VERIFY without at least one Pull Request";
     public static final String USER_STORY_WITH_CHILDREN_CANNOT_CHANGE_TYPE = "A USER_STORY with child tasks cannot change its type";
+    public static final String USER_STORY_ESTIMATION_IS_CALCULATED = "USER_STORY estimation points are automatically calculated from subtasks and cannot be set manually";
+    public static final String ESTIMATION_ONLY_IN_VERIFY_OR_DONE = "Estimation points can only be set when task is in Verification or Done status";
     public static final String SUBTASK_MUST_BE_TASK_OR_BUG = "A subtask can only be of type TASK or BUG";
     public static final String TASK_IS_FROZEN = "This task is frozen and cannot be modified";
     public static final String ONLY_PROFESSOR_CAN_FREEZE_TASK = "Only professors can freeze or unfreeze tasks";
@@ -59,6 +61,11 @@ public final class ErrorConstants {
     public static final String INVALID_GITHUB_URL = "Invalid GitHub repository URL";
     public static final String SUBJECT_HAS_COURSES = "Cannot delete subject that has associated courses";
     public static final String COURSE_ALREADY_EXISTS = "A course already exists for this subject and year";
+    public static final String SPRINT_NOT_IN_PROJECT = "Sprint does not belong to the same project as the task";
+    public static final String USER_STORY_CANNOT_BE_ASSIGNED_TO_SPRINT = "USER_STORY can only be assigned to a sprint when all its subtasks are unassigned from any sprint";
+    public static final String TASK_CAN_ONLY_BE_IN_ONE_SPRINT = "A task can only be assigned to one sprint at a time";
+    public static final String CANNOT_REASSIGN_DONE_TASK = "Tasks in DONE status cannot be reassigned to another sprint";
+    public static final String SPRINT_NOT_ACTIVE_OR_FUTURE = "Tasks can only be assigned to active or future sprints";
     
     // Workspace errors
     public static final String WORKSPACE_NOT_EXIST = "Workspace does not exist";
@@ -85,6 +92,7 @@ public final class ErrorConstants {
     
     // Project errors
     public static final String CANNOT_GENERATE_UNIQUE_SLUG = "Unable to generate a unique project ID. Please try again.";
+    public static final String CANNOT_REMOVE_MEMBER_HAS_ASSIGNED_TASKS = "Cannot remove member who has assigned tasks in this project";
     
     // User deletion errors
     public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "Cannot delete user who owns subjects";

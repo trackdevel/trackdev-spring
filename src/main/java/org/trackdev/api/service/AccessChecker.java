@@ -323,12 +323,12 @@ public class AccessChecker {
 
     /**
      * Check if user can create subtasks for a task.
-     * Only the assigned user can create subtasks.
+     * Any project member can create subtasks for a USER_STORY.
      * Professors (subject owners) and admins can also create subtasks.
      */
     public void checkCanCreateSubtask(org.trackdev.api.entity.Task task, String userId) {
-        // Assigned user can create subtasks
-        if (isTaskAssignee(task, userId)) {
+        // Project members can create subtasks
+        if (task.getProject().isMember(userId)) {
             return;
         }
         // Subject owner (professor) can create subtasks
@@ -336,11 +336,16 @@ public class AccessChecker {
         if (isSubjectOwner(subject, userId)) {
             return;
         }
+        // Course owner (professor) can create subtasks
+        Course course = task.getProject().getCourse();
+        if (course.getOwnerId().equals(userId)) {
+            return;
+        }
         // Admin can create subtasks
         if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
-        throw new ServiceException(ErrorConstants.ONLY_ASSIGNEE_CAN_CREATE_SUBTASK);
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
     /**
@@ -386,52 +391,73 @@ public class AccessChecker {
 
     /**
      * Check if user can edit a task (name, description, estimation points, etc.).
-     * Only the assigned user, course owner (professor), subject owner (professor), or admin can edit.
+     * Students: must be the assignee AND be a project member
+     * Professors: course owner or subject owner can edit any task in their course
+     * Admin: can edit any task
      */
     public void checkCanEditTask(org.trackdev.api.entity.Task task, String userId) {
-        // Assigned user can edit
-        if (isTaskAssignee(task, userId)) {
+        Project project = task.getProject();
+        Course course = project.getCourse();
+        
+        // Admin can edit any task
+        if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
-        // Course owner (professor) can edit
-        Course course = task.getProject().getCourse();
+        
+        // Course owner (professor) can edit any task in their course
         if (course.getOwnerId().equals(userId)) {
             return;
         }
-        // Subject owner (professor) can edit
+        
+        // Subject owner (professor) can edit any task in their subject's courses
         Subject subject = course.getSubject();
         if (isSubjectOwner(subject, userId)) {
             return;
         }
-        // Admin can edit
-        if (userService.get(userId).isUserType(UserType.ADMIN)) {
-            return;
+        
+        // For students: must be a project member AND be the assignee
+        if (project.isMember(userId)) {
+            if (isTaskAssignee(task, userId)) {
+                return;
+            }
+            throw new ServiceException(ErrorConstants.ONLY_ASSIGNEE_CAN_EDIT_TASK);
         }
-        throw new ServiceException(ErrorConstants.ONLY_ASSIGNEE_CAN_EDIT_TASK);
+        
+        // User is not a project member - unauthorized
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
     /**
      * Check if user can edit a task (returns boolean, doesn't throw).
+     * Students: must be the assignee AND be a project member
+     * Professors: course owner or subject owner can edit any task in their course
+     * Admin: can edit any task
      */
     public boolean canEditTask(org.trackdev.api.entity.Task task, String userId) {
-        // Assigned user can edit
-        if (isTaskAssignee(task, userId)) {
+        Project project = task.getProject();
+        Course course = project.getCourse();
+        
+        // Admin can edit any task
+        if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return true;
         }
-        // Course owner (professor) can edit
-        Course course = task.getProject().getCourse();
+        
+        // Course owner (professor) can edit any task in their course
         if (course.getOwnerId().equals(userId)) {
             return true;
         }
-        // Subject owner (professor) can edit
+        
+        // Subject owner (professor) can edit any task in their subject's courses
         Subject subject = course.getSubject();
         if (isSubjectOwner(subject, userId)) {
             return true;
         }
-        // Admin can edit
-        if (userService.get(userId).isUserType(UserType.ADMIN)) {
+        
+        // For students: must be a project member AND be the assignee
+        if (project.isMember(userId) && isTaskAssignee(task, userId)) {
             return true;
         }
+        
         return false;
     }
 

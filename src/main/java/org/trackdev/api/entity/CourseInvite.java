@@ -23,6 +23,9 @@ public class CourseInvite extends BaseEntityLong {
     @Column(unique = true, length = 64)
     private String token;
 
+    @Column(length = 200)
+    private String fullName;
+
     @NotNull
     @Column(length = 128)
     private String email;
@@ -62,9 +65,10 @@ public class CourseInvite extends BaseEntityLong {
         this.createdAt = LocalDateTime.now();
     }
 
-    public CourseInvite(String token, String email, Course course, User invitedBy, LocalDateTime expiresAt) {
+    public CourseInvite(String token, String fullName, String email, Course course, User invitedBy, LocalDateTime expiresAt) {
         this();
         this.token = token;
+        this.fullName = fullName;
         this.email = email.toLowerCase().trim();
         this.course = course;
         this.invitedBy = invitedBy;
@@ -79,6 +83,14 @@ public class CourseInvite extends BaseEntityLong {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getEmail() {

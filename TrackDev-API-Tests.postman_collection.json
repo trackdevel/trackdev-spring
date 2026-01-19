@@ -3697,6 +3697,387 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "9.5 Student Project Enrollment Restrictions",
+					"item": [
+						{
+							"name": "9.5.1 Student CANNOT access sprints from project not enrolled",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot access sprints from project not enrolled', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/sprints",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "sprints"]
+								}
+							}
+						},
+						{
+							"name": "9.5.2 Student CANNOT access task comments from project not enrolled",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot access task comments from project not enrolled', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "comments"]
+								}
+							}
+						},
+						{
+							"name": "9.5.3 Student CANNOT post comment on task from project not enrolled",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot post comment on task from project not enrolled', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"Hacked comment from UB student\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "comments"]
+								}
+							}
+						},
+						{
+							"name": "9.5.4 Student CANNOT access task history from project not enrolled",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot access task history from project not enrolled', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/history",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "history"]
+								}
+							}
+						},
+						{
+							"name": "9.5.5 Student CANNOT access PR history from project not enrolled",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot access PR history from project not enrolled', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/pr-history",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "pr-history"]
+								}
+							}
+						},
+						{
+							"name": "9.5.6 Student CANNOT access project tasks from project not enrolled",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot access project tasks from project not enrolled', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "tasks"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "9.6 Project Member Assignment Restrictions",
+					"item": [
+						{
+							"name": "9.6.1 Professor CANNOT assign student not enrolled in course to project",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 400 (Bad Request)', function () {",
+											"    pm.expect(pm.response.code).to.equal(400);",
+											"});",
+											"",
+											"pm.test('Error message indicates student not enrolled', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.include('not enrolled');",
+											"});",
+											"",
+											"pm.test('SECURITY: Cannot assign UB student (not enrolled in PDS course) to UdG project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"members\": [\"{{ubStudentId}}\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.6.2 Professor CANNOT search students from course they dont own",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot access UB course students', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/students",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}", "students"]
+								}
+							}
+						},
+						{
+							"name": "9.6.3 Professor CANNOT access invites from course they dont own",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot access UB course invites', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/invites",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}", "invites"]
+								}
+							}
+						},
+						{
+							"name": "9.6.4 Professor CANNOT send invites to course they dont own",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: UdG professor cannot send invites to UB course', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"entries\": [\"hacked@example.com\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/invites",
+									"host": ["{{baseUrl}}"],
+									"path": ["courses", "{{ubCourseId}}", "invites"]
+								}
+							}
+						}
+					]
 				}
 			]
 		}

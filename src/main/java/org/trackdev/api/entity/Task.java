@@ -197,7 +197,21 @@ public class Task extends BaseEntityLong {
         this.reporter = reporter;
     }
 
-    public Integer getEstimationPoints() { return estimationPoints; }
+    /**
+     * Get the estimation points for this task.
+     * For USER_STORY: always returns the sum of all child task estimation points (ignores stored value).
+     * For TASK/BUG: returns the manually set estimation points.
+     */
+    public Integer getEstimationPoints() {
+        if (this.type == TaskType.USER_STORY && this.childTasks != null && !this.childTasks.isEmpty()) {
+            int sum = this.childTasks.stream()
+                .filter(subtask -> subtask.getEstimationPoints() != null)
+                .mapToInt(Task::getEstimationPoints)
+                .sum();
+            return sum > 0 ? sum : null;
+        }
+        return estimationPoints;
+    }
 
     public void setEstimationPoints(Integer estimation) {
         this.estimationPoints = estimation;
@@ -350,21 +364,6 @@ public class Task extends BaseEntityLong {
 
     public List<TaskChange> getTaskChanges() {
         return taskChanges;
-    }
-
-    /**
-     * Get the calculated estimation points for this task.
-     * For USER_STORY: returns the sum of all child task estimation points.
-     * For TASK/BUG: returns the manually set estimation points.
-     */
-    public Integer getCalculatedEstimationPoints() {
-        if (this.type == TaskType.USER_STORY && this.childTasks != null && !this.childTasks.isEmpty()) {
-            return this.childTasks.stream()
-                .filter(subtask -> subtask.getEstimationPoints() != null)
-                .mapToInt(Task::getEstimationPoints)
-                .sum();
-        }
-        return this.estimationPoints;
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {

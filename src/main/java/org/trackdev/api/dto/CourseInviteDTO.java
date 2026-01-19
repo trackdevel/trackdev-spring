@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class CourseInviteDTO {
     private Long id;
+    private String fullName;
     private String email;
     private Long courseId;
     private String invitedById;

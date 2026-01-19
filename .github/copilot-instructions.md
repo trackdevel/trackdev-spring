@@ -365,12 +365,14 @@ Windows PowerShell
   - Status: Enum (BACKLOG, TODO, IN_PROGRESS, VERYFINIG, DONE)
   - When a task is created in the Backlog view, it can be of type USER_STORY or TASK or BUG
   - When a task is created as a child of a USER_STORY, it must be of type TASK or BUG
+  - When a task is created as a child of a USER_STORY, it can be created by a STUDENT different than the one assigned to the USRER_STORY. The new Task (child) will be assigned to the STUDENT logged in that creates it
   - A task can only be modified if is is in an active sprint by the assignee of the professor of the course
   - Estimation Points: non-negative integer
-  - Manually set for TASK and BUG
-  - Automatically calculated as sum of child TASK and BUG points for USER_STORY
+  - Manually set for TASK and BUG only
+  - For USER_STORY: estimation points are always calculated as the sum of subtask estimation points (cannot be set manually)
   - A USER_STORY cannot be considered as DONE unless all its child TASK and BUG tasks are DONE and all have estimation points
-  - A task cannot be moved to DONE status unless it has at least a Pull Request associated (simulated in demo data)
+  - A task cannot be moved to VERIFYING status unless it has at least 1 Pull Request associated (simulated in demo data)
+  - A task cannot be moved to DONE status unless it has at least 1 Pull Request merged (simulated in demo data)
 
 - SprintPattern
     - Name: 1-50 characters
@@ -387,6 +389,14 @@ Windows PowerShell
     - Name and description are copied from the pattern item
     - Start and end datetime are copied from the pattern
     - Tasks can only be assigned to sprints that belong to the same project
+
+- Relationship between tasks and sprints:
+    - A USER_STORY will belong to any sprint where at least one of its subtasks is assigned. So a USER_STORY can belong to more than 1 sprint
+    - If a USER_STORY has ALL its subtasks unassigned to any sprint, the USER_STORY will also be unassigned from any sprint and then the asignee will be able to manually assign it. That will mean that ALL its subtask will be automatically assigned to the same sprint
+    - A TASK or BUG (with no parent) can only be assigned to 1 Sprint
+    - A TASK or BUG cannot be reassigned to another sprint if they are in state DONE. 
+    - A TASK or BUG can be reasigned to another Sprint, provided they are not in DONE state AND the Sprint is either active or in the future
+    - A TASK or BUG can be reasigned from the Task View making the Sprint field on the right editable
 
 - Subjects
     - Name: 1-100 characters
