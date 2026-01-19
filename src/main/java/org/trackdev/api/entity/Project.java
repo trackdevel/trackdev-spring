@@ -89,10 +89,21 @@ public class Project extends BaseEntityLong {
         this.course = course;
     }
 
+    /**
+     * Returns only top-level tasks (tasks without a parent).
+     * Use getAllTasks() to get all tasks including subtasks.
+     */
     public Collection<Task> getTasks() {
         Collection<Task> mainTasks = new ArrayList<>();
         this.tasks.stream().filter(task -> task.getParentTask() == null).forEach(mainTasks::add);
         return mainTasks;
+    }
+
+    /**
+     * Returns all tasks in this project, including subtasks.
+     */
+    public Collection<Task> getAllTasks() {
+        return this.tasks;
     }
 
     public Collection<Sprint> getSprints() {
