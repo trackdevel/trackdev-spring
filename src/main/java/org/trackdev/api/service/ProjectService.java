@@ -94,18 +94,18 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     }
 
     @Transactional
-    public Project editProject(Long projectId, String name, Collection<String> mails, Long courseId, Double qualification
+    public Project editProject(Long projectId, String name, Collection<String> memberIds, Long courseId, Double qualification
                                , String loggedInUserId) {
         Project project = get(projectId);
         accessChecker.checkCanManageProject(project, loggedInUserId);
         if(name != null) {
             project.setName(name);
         }
-        if(mails != null) {
-            if(mails.isEmpty() && !project.getMembers().isEmpty()) {
+        if(memberIds != null) {
+            if(memberIds.isEmpty() && !project.getMembers().isEmpty()) {
                 throw new ServiceException(ErrorConstants.PRJ_WITHOUT_MEMBERS);
             }
-            editMembers(mails, project);
+            editMembers(memberIds, project);
         }
         if(courseId != null) {
             Course course = courseService.get(courseId);
@@ -190,11 +190,31 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
     /**
      * Get project tasks with authorization check.
+     * Returns only top-level tasks (without parent).
      */
     public Collection<Task> getProjectTasks(Long projectId, String userId) {
         Project project = get(projectId);
         accessChecker.checkCanViewProject(project, userId);
         return project.getTasks();
+    }
+
+    /**
+     * Get all project tasks including subtasks with authorization check.
+     * Uses transactional context to ensure childTasks are accessible for
+     * USER_STORY estimation points calculation.
+     */
+    @Transactional(readOnly = true)
+    public Collection<Task> getAllProjectTasks(Long projectId, String userId) {
+        Project project = get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+        Collection<Task> tasks = project.getAllTasks();
+        // Initialize childTasks for USER_STORY tasks to enable estimation calculation
+        for (Task task : tasks) {
+            if (task.getTaskType() == TaskType.USER_STORY && task.getChildTasks() != null) {
+                task.getChildTasks().size(); // Force initialization
+            }
+        }
+        return tasks;
     }
 
     public Collection<Sprint> getProjectSprints(Project project) {
@@ -272,24 +292,38 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
 
 
     private void addMember(Course course, Project project, User user) {
+        // Verify that the student is enrolled in the course
+        if (!course.isStudentEnrolled(user)) {
+            throw new ServiceException(ErrorConstants.STUDENT_NOT_ENROLLED);
+        }
         project.addMember(user);
         user.addToGroup(project);
     }
 
-    private void editMembers(Collection<String> mails, Project project) {
-        for(String mail: mails) {
-            User user = userService.getByEmail(mail);
+    private void editMembers(Collection<String> memberIds, Project project) {
+        // Add new members (if not already members)
+        for(String memberId: memberIds) {
+            User user = userService.get(memberId);
             if(!project.isMember(user)) {
                 addMember(project.getCourse(), project, user);
             }
         }
+        // Remove members that are not in the new list
         List<User> toRemove = new ArrayList<>();
         for(User user: project.getMembers()) {
-            if(!mails.contains(user.getEmail())) {
+            if(!memberIds.contains(user.getId())) {
                 toRemove.add(user);
             }
         }
         for(User user: toRemove) {
+            // Check if user has any assigned tasks in this project
+            boolean hasAssignedTasks = project.getTasks().stream()
+                    .anyMatch(task -> task.getAssignee() != null && task.getAssignee().getId().equals(user.getId()));
+            
+            if(hasAssignedTasks) {
+                throw new ServiceException(ErrorConstants.CANNOT_REMOVE_MEMBER_HAS_ASSIGNED_TASKS);
+            }
+            
             project.removeMember(user);
             user.removeFromGroup(project);
         }

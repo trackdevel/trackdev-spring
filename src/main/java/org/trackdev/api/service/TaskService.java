@@ -109,7 +109,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task createSubTask(Long taskId, String name, String userId) {
+    public Task createSubTask(Long taskId, String name, String userId, Long sprintId) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
         
@@ -118,12 +118,29 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             throw new ServiceException(ErrorConstants.ONLY_USER_STORY_CAN_HAVE_SUBTASKS);
         }
         
-        // Only the assigned user (or professor/admin) can create subtasks
+        // Any project member (or professor/admin) can create subtasks
         accessChecker.checkCanCreateSubtask(parentTask, userId);
         Task subtask = new Task(name, user);
         subtask.setType(TaskType.TASK);
         subtask.setParentTask(parentTask);
-        subtask.setStatus(TaskStatus.DEFINED);
+        subtask.setStatus(parentTask.getStatus());  // Inherit status from parent USER_STORY
+        
+        // Auto-assign subtask to the student who creates it
+        if (user.isUserType(UserType.STUDENT)) {
+            subtask.setAssignee(user);
+        }
+        
+        // Assign to sprint if sprintId is provided
+        if (sprintId != null) {
+            Sprint sprint = sprintService.get(sprintId);
+            // Verify the sprint belongs to the same project
+            if (!sprint.getProject().getId().equals(parentTask.getProject().getId())) {
+                throw new ServiceException(ErrorConstants.SPRINT_NOT_IN_PROJECT);
+            }
+            subtask.getActiveSprints().add(sprint);
+            sprint.addTask(subtask, user);  // Add to both sides of the relationship
+        }
+        
         parentTask.getProject().addTask(subtask);  // This sets project, taskNumber, and taskKey
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
@@ -212,6 +229,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             changes.add(new TaskAssigneeChange(user, task, oldValue, newValue));
         }
         if(editTask.estimationPoints != null) {
+            // USER_STORY estimation points are calculated from subtasks, cannot be set manually
+            if (task.getTaskType() == TaskType.USER_STORY) {
+                throw new ServiceException(ErrorConstants.USER_STORY_ESTIMATION_IS_CALCULATED);
+            }
+            // TASK/BUG can only have estimation points in VERIFY or DONE status
+            TaskStatus currentStatus = task.getStatus();
+            if (currentStatus != TaskStatus.VERIFY && currentStatus != TaskStatus.DONE) {
+                throw new ServiceException(ErrorConstants.ESTIMATION_ONLY_IN_VERIFY_OR_DONE);
+            }
             Integer oldPoints = task.getEstimationPoints();
             Integer points = editTask.estimationPoints.orElse(null);
             task.setEstimationPoints(points);
@@ -274,13 +300,73 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.activeSprints != null){
             Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
-            String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
+            
+            // USER_STORY can only be assigned to sprint if ALL subtasks are unassigned from any sprint
+            // When assigned, all subtasks will be automatically assigned to the same sprint
+            if (task.getTaskType() == TaskType.USER_STORY) {
+                Collection<Task> childTasks = task.getChildTasks();
+                if (childTasks != null && !childTasks.isEmpty()) {
+                    // Check if any subtask is assigned to a sprint
+                    boolean anySubtaskHasSprint = childTasks.stream()
+                        .anyMatch(subtask -> subtask.getActiveSprints() != null && !subtask.getActiveSprints().isEmpty());
+                    if (anySubtaskHasSprint) {
+                        throw new ServiceException(ErrorConstants.USER_STORY_CANNOT_BE_ASSIGNED_TO_SPRINT);
+                    }
+                }
+            }
+            
+            // TASK/BUG can only be in one sprint
+            if (sprintsIds.size() > 1) {
+                throw new ServiceException(ErrorConstants.TASK_CAN_ONLY_BE_IN_ONE_SPRINT);
+            }
+            
+            // Cannot reassign if task is DONE
+            if (task.getStatus() == TaskStatus.DONE && !sprintsIds.isEmpty()) {
+                throw new ServiceException(ErrorConstants.CANNOT_REASSIGN_DONE_TASK);
+            }
+            
+            // Validate sprint is active or future (DRAFT status = future)
             Collection<Sprint> sprints = sprintService.getSpritnsByIds(sprintsIds);
+            for (Sprint sprint : sprints) {
+                if (sprint.getStatus() == SprintStatus.CLOSED) {
+                    throw new ServiceException(ErrorConstants.SPRINT_NOT_ACTIVE_OR_FUTURE);
+                }
+                // Also verify sprint belongs to same project
+                if (!sprint.getProject().getId().equals(task.getProject().getId())) {
+                    throw new ServiceException(ErrorConstants.SPRINT_NOT_IN_PROJECT);
+                }
+            }
+            
+            String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
             String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
             task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
             task.setActiveSprints(sprints);
             sprints.stream().forEach(sprint -> sprint.addTask(task, user));
             changes.add(new TaskActiveSprintsChange(user, task, oldValues, newValues));
+            
+            // For USER_STORY: cascade sprint assignment to all subtasks
+            if (task.getTaskType() == TaskType.USER_STORY && task.getChildTasks() != null) {
+                for (Task subtask : task.getChildTasks()) {
+                    // Remove from old sprints
+                    subtask.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(subtask));
+                    // Assign to new sprints
+                    subtask.setActiveSprints(new ArrayList<>(sprints));
+                    sprints.stream().forEach(sprint -> sprint.addTask(subtask, user));
+                    repo.save(subtask);
+                }
+            }
+            
+            // For TASK/BUG with parent: add new sprints to parent USER_STORY
+            if (task.getTaskType() != TaskType.USER_STORY && task.getParentTask() != null) {
+                Task parentTask = task.getParentTask();
+                for (Sprint sprint : sprints) {
+                    if (!parentTask.getActiveSprints().contains(sprint)) {
+                        parentTask.getActiveSprints().add(sprint);
+                        sprint.addTask(parentTask, user);
+                    }
+                }
+                repo.save(parentTask);
+            }
         }
         if (editTask.comment != null) {
             // Any project member can add comments

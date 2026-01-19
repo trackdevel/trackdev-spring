@@ -188,10 +188,11 @@ public class DemoDataSeeder {
         // 5. CREATE STUDENTS FOR EACH WORKSPACE
         // ============================================
         
-        List<User> studentsUdG = createStudentsForWorkspace(workspaceUdG, "udg", 6);
-        List<User> studentsUB = createStudentsForWorkspace(workspaceUB, "ub", 6);
+        // Create 8 students per workspace (6 will be assigned to projects, 2 will be enrolled only)
+        List<User> studentsUdG = createStudentsForWorkspace(workspaceUdG, "udg", 8);
+        List<User> studentsUB = createStudentsForWorkspace(workspaceUB, "ub", 8);
         
-        logger.info("Created 12 students (6 per workspace)");
+        logger.info("Created 16 students (8 per workspace)");
 
         // ============================================
         // 6. CREATE SUBJECTS FOR EACH WORKSPACE
@@ -266,7 +267,29 @@ public class DemoDataSeeder {
         logger.info("Created 4 courses (2 per workspace)");
 
         // ============================================
-        // 8. CREATE SPRINT PATTERNS
+        // 8. ENROLL STUDENTS IN COURSES
+        // ============================================
+        
+        // Enroll UdG students in UdG courses
+        for (User student : studentsUdG) {
+            coursePDS.addStudent(student);
+            courseTFG.addStudent(student);
+        }
+        courseService.save(coursePDS);
+        courseService.save(courseTFG);
+        
+        // Enroll UB students in UB courses
+        for (User student : studentsUB) {
+            courseSO.addStudent(student);
+            courseBD.addStudent(student);
+        }
+        courseService.save(courseSO);
+        courseService.save(courseBD);
+        
+        logger.info("Enrolled students in their respective courses");
+
+        // ============================================
+        // 9. CREATE SPRINT PATTERNS
         // ============================================
         
         // Calculate sprint dates so that the 4th sprint is active today
@@ -305,7 +328,7 @@ public class DemoDataSeeder {
         logger.info("Created 2 sprint patterns");
 
         // ============================================
-        // 9. CREATE PROJECTS WITH SPRINTS AND TASKS
+        // 10. CREATE PROJECTS WITH SPRINTS AND TASKS
         // ============================================
         
         // Project for PDS course (UdG)
@@ -389,7 +412,7 @@ public class DemoDataSeeder {
         userService.setCurrentProject(professorBD, projectBD);
 
         // ============================================
-        // 10. CREATE SAMPLE REPORT FOR PDS COURSE
+        // 11. CREATE SAMPLE REPORT FOR PDS COURSE
         // ============================================
         
         // Create a report for PDS 2025 course with Maria Garcia as owner
@@ -408,7 +431,7 @@ public class DemoDataSeeder {
         logger.info("  - 2 workspaces");
         logger.info("  - 2 workspace admins");
         logger.info("  - 4 professors");
-        logger.info("  - 12 students");
+        logger.info("  - 16 students (all enrolled in courses, but 4 not assigned to any project)");
         logger.info("  - 4 subjects");
         logger.info("  - 4 courses");
         logger.info("  - 2 sprint patterns");
@@ -532,7 +555,7 @@ public class DemoDataSeeder {
                 User assignee = students.get(random.nextInt(students.size()));
                 MergePatchTask storyEdit = new MergePatchTask();
                 storyEdit.assignee = Optional.of(assignee.getEmail());
-                storyEdit.estimationPoints = Optional.of(possibleEstimationPoints.get(random.nextInt(possibleEstimationPoints.size())));
+                // USER_STORY estimation points are calculated from subtasks, don't set manually
                 storyEdit.activeSprints = Optional.of(List.of(sprint.getId()));
                 storyEdit.rank = Optional.of(s + 1);
 
@@ -545,27 +568,39 @@ public class DemoDataSeeder {
                 taskService.editTaskInternal(story.getId(), storyEdit, assignee.getId());
 
                 // Create 2-4 subtasks for each story
-                // Subtasks are created by the assignee (who has permission)
+                // Subtasks are created by the assignee (who has permission) and assigned to the same sprint
                 int subtaskCount = 2 + random.nextInt(3);
                 for (int t = 0; t < subtaskCount; t++) {
                     String subtaskName = subtaskPrefixes.get(t % subtaskPrefixes.size()) + " " +
                         storyName.replace("As a user, I want to ", "").toLowerCase();
 
-                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, assignee.getId());
+                    // Create subtask with sprint assignment
+                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, assignee.getId(), sprint.getId());
 
                     User subtaskAssignee = students.get(random.nextInt(students.size()));
+                    
+                    // Determine subtask status first
+                    TaskStatus subtaskStatus = null;
+                    if (isClosedSprint) {
+                        subtaskStatus = TaskStatus.DONE;
+                    } else if (isActiveSprint) {
+                        subtaskStatus = getRandomActiveStatus();
+                    }
+                    
+                    // First edit: set assignee and status
                     MergePatchTask subtaskEdit = new MergePatchTask();
                     subtaskEdit.assignee = Optional.of(subtaskAssignee.getEmail());
-                    subtaskEdit.estimationPoints = Optional.of(possibleEstimationPoints.get(random.nextInt(3)));
-                    subtaskEdit.activeSprints = Optional.of(List.of(sprint.getId()));
-
-                    if (isClosedSprint) {
-                        subtaskEdit.status = Optional.of(TaskStatus.DONE);
-                    } else if (isActiveSprint) {
-                        subtaskEdit.status = Optional.of(getRandomActiveStatus());
+                    if (subtaskStatus != null) {
+                        subtaskEdit.status = Optional.of(subtaskStatus);
                     }
-
                     taskService.editTaskInternal(subtask.getId(), subtaskEdit, subtaskAssignee.getId());
+                    
+                    // Second edit: set estimation points only if in VERIFY or DONE
+                    if (subtaskStatus == TaskStatus.VERIFY || subtaskStatus == TaskStatus.DONE) {
+                        MergePatchTask estimationEdit = new MergePatchTask();
+                        estimationEdit.estimationPoints = Optional.of(possibleEstimationPoints.get(random.nextInt(3)));
+                        taskService.editTaskInternal(subtask.getId(), estimationEdit, subtaskAssignee.getId());
+                    }
                 }
 
                 // Add comments to stories in active sprint
@@ -580,17 +615,14 @@ public class DemoDataSeeder {
             }
         }
 
-        // Create backlog tasks
+        // Create backlog tasks (USER_STORY type, no estimation points since they're in BACKLOG status)
         int backlogCount = 2 + random.nextInt(3);
         for (int i = 0; i < backlogCount; i++) {
             User reporter = students.get(random.nextInt(students.size()));
             String storyName = storyTemplates.get((storyIndex + i) % storyTemplates.size());
 
-            Task backlogTask = taskService.createTask(project.getId(), storyName, reporter.getId());
-
-            MergePatchTask backlogEdit = new MergePatchTask();
-            backlogEdit.estimationPoints = Optional.of(possibleEstimationPoints.get(random.nextInt(possibleEstimationPoints.size())));
-            taskService.editTaskInternal(backlogTask.getId(), backlogEdit, reporter.getId());
+            // Create backlog task - no estimation points needed (calculated from subtasks, and subtasks can't have estimation points in BACKLOG)
+            taskService.createTask(project.getId(), storyName, reporter.getId());
         }
 
         return project;

@@ -20,12 +20,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInviteRepository> {
 
     private static final int TOKEN_LENGTH = 32;
     private static final int INVITE_EXPIRY_DAYS = 30;
+    
+    /**
+     * Pattern to parse invite entries in format: "Full Name", email
+     * Full name is enclosed in double quotes and can contain alphanumeric chars, spaces, hyphens, underscores, and commas.
+     */
+    private static final Pattern INVITE_ENTRY_PATTERN = Pattern.compile("^\"([^\"]+)\"\\s*,\\s*(.+)$");
 
     @Autowired
     private CourseService courseService;
@@ -46,19 +54,36 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
     private PasswordEncoder passwordEncoder;
 
     /**
-     * Create and send invitations for a list of emails.
+     * Create and send invitations for a list of entries.
+     * Each entry should be in format: "Full Name", email
      * Returns the list of created invitations.
      */
     @Transactional
-    public List<CourseInvite> createInvitations(Long courseId, Collection<String> emails, String inviterId) {
+    public List<CourseInvite> createInvitations(Long courseId, Collection<String> entries, String inviterId) {
         Course course = courseService.get(courseId);
         accessChecker.checkCanManageCourse(course, inviterId);
         User inviter = userService.get(inviterId);
 
         List<CourseInvite> invitations = new ArrayList<>();
 
-        for (String rawEmail : emails) {
-            String email = rawEmail.toLowerCase().trim();
+        for (String entry : entries) {
+            // Parse the entry format: "Full Name", email
+            String fullName = null;
+            String email;
+            
+            Matcher matcher = INVITE_ENTRY_PATTERN.matcher(entry.trim());
+            if (matcher.matches()) {
+                fullName = matcher.group(1).trim();
+                email = matcher.group(2).toLowerCase().trim();
+            } else {
+                // Fallback: treat entire entry as email (backward compatibility)
+                email = entry.toLowerCase().trim();
+            }
+            
+            // Validate email format
+            if (!isValidEmail(email)) {
+                throw new ServiceException(ErrorConstants.INVALID_MAIL_FORMAT + ": " + email);
+            }
             
             // Check if user already exists and is enrolled
             if (userService.existsEmail(email)) {
@@ -75,9 +100,15 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             // Check if there's already a pending invite for this email and course
             Optional<CourseInvite> existingInvite = repo.findByCourseIdAndEmailAndStatus(courseId, email, CourseInvite.InviteStatus.PENDING);
             if (existingInvite.isPresent()) {
+                // Update full name if provided and different
+                CourseInvite existing = existingInvite.get();
+                if (fullName != null && !fullName.equals(existing.getFullName())) {
+                    existing.setFullName(fullName);
+                    repo.save(existing);
+                }
                 // Resend the existing invitation (async - won't block)
-                sendInviteEmail(existingInvite.get(), course);
-                invitations.add(existingInvite.get());
+                sendInviteEmail(existing, course);
+                invitations.add(existing);
                 continue;
             }
 
@@ -85,7 +116,7 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             String token = generateUniqueToken();
             LocalDateTime expiresAt = LocalDateTime.now().plusDays(INVITE_EXPIRY_DAYS);
             
-            CourseInvite invite = new CourseInvite(token, email, course, inviter, expiresAt);
+            CourseInvite invite = new CourseInvite(token, fullName, email, course, inviter, expiresAt);
             repo.save(invite);
 
             // Send invitation email (async - won't block)
@@ -95,6 +126,13 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
         }
 
         return invitations;
+    }
+    
+    /**
+     * Simple email validation.
+     */
+    private boolean isValidEmail(String email) {
+        return email != null && email.contains("@") && email.contains(".");
     }
 
     /**
