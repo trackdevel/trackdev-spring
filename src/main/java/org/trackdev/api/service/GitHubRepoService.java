@@ -97,7 +97,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
         // Auto-create webhook for PR events if webhookBaseUrl is configured
         if (webhookBaseUrl != null && !webhookBaseUrl.isEmpty()) {
             try {
-                String webhookUrl = webhookBaseUrl + "/hooks/github/pr";
+                String webhookUrl = webhookBaseUrl + "/api/hooks/github/pr";
                 log.info("Creating webhook for repository {} -> {}", gitHubRepo.getFullName(), webhookUrl);
                 createWebhookInternal(gitHubRepo, webhookUrl);
                 log.info("Webhook created successfully for repository {}", gitHubRepo.getFullName());
