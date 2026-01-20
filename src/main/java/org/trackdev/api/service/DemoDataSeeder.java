@@ -3,6 +3,7 @@ package org.trackdev.api.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.trackdev.api.configuration.UserType;
@@ -91,6 +92,12 @@ public class DemoDataSeeder {
 
     @Autowired
     private ReportService reportService;
+
+    @Autowired
+    private GitHubRepoService gitHubRepoService;
+
+    @Autowired
+    private Environment environment;
 
     public void seedDemoData() {
         logger.info("Starting database seeding...");
@@ -353,8 +360,40 @@ public class DemoDataSeeder {
             sprint2Start, sprint2End,
             sprint3Start, sprint3End,
             sprint4Start, sprint4End
-        );
+        ); 
         
+        // Second project for PDS course
+        Project projectPDS3 = createProjectWithSprintsAndTasks(
+            "pds25c",
+            studentsUdG.subList(1, 6),  // Last 3 students
+            coursePDS,
+            professorPDS,
+            sprint1Start, sprint1End,
+            sprint2Start, sprint2End,
+            sprint3Start, sprint3End,
+            sprint4Start, sprint4End
+        );
+
+
+        if (environment.getProperty("GITHUB_REPO1_URL") != null && environment.getProperty("GITHUB_REPO1_TOKEN") != null) {
+            gitHubRepoService.addRepository(
+                projectPDS.getId(), 
+                "TrackDev nextjs",
+                environment.getProperty("GITHUB_REPO1_URL"), 
+                environment.getProperty("GITHUB_REPO1_TOKEN"),
+                professorPDS.getId()
+            );
+        }
+        if (environment.getProperty("GITHUB_REPO2_URL") != null && environment.getProperty("GITHUB_REPO2_TOKEN") != null) {
+            gitHubRepoService.addRepository(
+                projectPDS.getId(), 
+                "TrackDev nextjs",
+                environment.getProperty("GITHUB_REPO2_URL"), 
+                environment.getProperty("GITHUB_REPO2_TOKEN"),
+                professorPDS.getId()
+            );
+        }
+
         // Project for TFG course (UdG)
         Project projectTFG = createProjectWithSprintsAndTasks(
             "tfg25-group1",

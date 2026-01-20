@@ -72,6 +72,14 @@ trackdev:
     token-lifetime-in-minutes: ${JWT_TOKEN_LIFETIME:60}
     # Secret key - MUST be set via environment variable in production
     secret-key-base: ${JWT_SECRET_KEY}
+  # GitHub webhook configuration
+  webhook:
+    # Base URL where the API is publicly accessible (for webhook callbacks)
+    # For development with ngrok: run "ngrok http 8080" and paste the URL below
+    # For production: set WEBHOOK_BASE_URL environment variable
+    url: ${WEBHOOK_BASE_URL:https://unisolationist-ronan-ravishingly.ngrok-free.dev}
+    # Global webhook secret (deprecated - per-repo secrets are now generated automatically)
+    secret: ${WEBHOOK_SECRET:}
 
 ---
 # Profile: mysqldb
