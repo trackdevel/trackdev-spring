@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.EntityNotFound;
 import org.trackdev.api.controller.exceptions.ServiceException;
+import org.trackdev.api.entity.ActivityType;
 import org.trackdev.api.entity.PullRequest;
 import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.User;
@@ -36,6 +37,9 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
 
     @Autowired
     PullRequestChangeRepository pullRequestChangeRepository;
+
+    @Autowired
+    ActivityService activityService;
 
     @Transactional
     public PullRequest create(String prNodeId, String url, Long taskId) {
@@ -126,9 +130,48 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         // Record change history based on action - only once per PR, not per task
         if (recordChange) {
             recordPullRequestChange(pr, action, senderLogin, title, prNumber, repoFullName, merged);
+            // Record activity for all linked tasks
+            recordPullRequestActivity(pr, task, action, merged, senderLogin);
         }
         
         return pr;
+    }
+
+    /**
+     * Record activity for pull request events.
+     */
+    private void recordPullRequestActivity(PullRequest pr, Task task, String action, Boolean merged, String senderLogin) {
+        User actor = null;
+        try {
+            actor = userService.getByUsername(senderLogin);
+        } catch (Exception e) {
+            // Actor not found - skip activity recording
+            return;
+        }
+        
+        ActivityType activityType = null;
+        String message = pr.getTitle();
+        
+        switch (action) {
+            case "opened":
+                activityType = ActivityType.PR_LINKED;
+                break;
+            case "closed":
+                if (Boolean.TRUE.equals(merged)) {
+                    activityType = ActivityType.PR_MERGED;
+                } else {
+                    activityType = ActivityType.PR_STATE_CHANGED;
+                }
+                break;
+            case "reopened":
+                activityType = ActivityType.PR_STATE_CHANGED;
+                break;
+        }
+        
+        if (activityType != null && task != null) {
+            activityService.recordActivity(activityType, actor, task.getProject(), task, 
+                    message, null, action);
+        }
     }
 
     /**
