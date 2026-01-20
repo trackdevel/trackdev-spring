@@ -46,6 +46,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Autowired
     I18nService i18nService;
 
+    @Autowired
+    ActivityService activityService;
+
     @Transactional
     public Task createTask(Long projectId, String name, String userId) {
         Project project = projectService.get(projectId);
@@ -57,6 +60,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         task.setType(TaskType.USER_STORY);
         project.addTask(task);  // This sets project, taskNumber, and taskKey
         this.repo.save(task);
+
+        // Record activity for task creation
+        activityService.recordActivity(ActivityType.TASK_CREATED, user, task);
 
         return task;
     }
@@ -78,6 +84,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Record the change
         TaskChange change = new TaskAssigneeChange(user, task, oldValue, user.getUsername());
         taskChangeService.store(change);
+        
+        // Record activity
+        activityService.recordActivity(ActivityType.TASK_ASSIGNED, user, task.getProject(), task, 
+                null, oldValue, user.getUsername());
         
         return task;
     }
@@ -107,6 +117,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Record the change
         TaskChange change = new TaskAssigneeChange(user, task, oldValue, null);
         taskChangeService.store(change);
+        
+        // Record activity
+        activityService.recordActivity(ActivityType.TASK_UNASSIGNED, user, task.getProject(), task, 
+                null, oldValue, null);
         
         return task;
     }
@@ -149,6 +163,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         parentTask.getProject().addTask(subtask);  // This sets project, taskNumber, and taskKey
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
+
+        // Record activity for subtask creation
+        activityService.recordActivity(ActivityType.TASK_CREATED, user, subtask);
 
         return subtask;
     }
@@ -385,6 +402,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             Comment comment = editTask.comment.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             task.addComment(commentService.addComment(comment.getContent(), userService.get(userId), task));
+            // Record activity for comment
+            activityService.recordActivity(ActivityType.COMMENT_ADDED, user, task.getProject(), task, null);
         }
         if (editTask.pointsReview != null) {
             PointsReview pointsReview = editTask.pointsReview.orElseThrow(
@@ -394,8 +413,64 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         repo.save(task);
         for(TaskChange change: changes) {
             taskChangeService.store(change);
+            // Record corresponding activity
+            recordActivityForChange(change, user, task);
         }
         return task;
+    }
+
+    /**
+     * Records an activity for a task change.
+     */
+    private void recordActivityForChange(TaskChange change, User actor, Task task) {
+        ActivityType activityType = null;
+        String oldValue = null;
+        String newValue = null;
+        
+        if (change instanceof TaskStatusChange statusChange) {
+            activityType = ActivityType.TASK_STATUS_CHANGED;
+            oldValue = statusChange.getOldValue();
+            newValue = statusChange.getNewValue();
+        } else if (change instanceof TaskAssigneeChange assigneeChange) {
+            // Determine if it's assign or unassign
+            if (assigneeChange.getNewValue() == null) {
+                activityType = ActivityType.TASK_UNASSIGNED;
+            } else {
+                activityType = ActivityType.TASK_ASSIGNED;
+            }
+            oldValue = assigneeChange.getOldValue();
+            newValue = assigneeChange.getNewValue();
+        } else if (change instanceof TaskEstimationPointsChange pointsChange) {
+            activityType = ActivityType.TASK_ESTIMATION_CHANGED;
+            oldValue = pointsChange.getOldValue() != null ? pointsChange.getOldValue().toString() : null;
+            newValue = pointsChange.getNewValue() != null ? pointsChange.getNewValue().toString() : null;
+        } else if (change instanceof TaskTypeChange typeChange) {
+            activityType = ActivityType.TASK_UPDATED;
+            oldValue = typeChange.getOldValue();
+            newValue = typeChange.getNewValue();
+        } else if (change instanceof TaskNameChange nameChange) {
+            activityType = ActivityType.TASK_UPDATED;
+            oldValue = nameChange.getOldValue();
+            newValue = nameChange.getNewValue();
+        } else if (change instanceof TaskActiveSprintsChange sprintChange) {
+            // Determine if task was added to or removed from sprints
+            String oldSprints = sprintChange.getOldValue();
+            String newSprints = sprintChange.getNewValue();
+            if (newSprints != null && !newSprints.isEmpty() && (oldSprints == null || oldSprints.isEmpty())) {
+                activityType = ActivityType.TASK_ADDED_TO_SPRINT;
+            } else if ((newSprints == null || newSprints.isEmpty()) && oldSprints != null && !oldSprints.isEmpty()) {
+                activityType = ActivityType.TASK_REMOVED_FROM_SPRINT;
+            } else {
+                activityType = ActivityType.TASK_UPDATED;
+            }
+            oldValue = oldSprints;
+            newValue = newSprints;
+        }
+        
+        if (activityType != null) {
+            activityService.recordActivity(activityType, actor, task.getProject(), task, 
+                    null, oldValue, newValue);
+        }
     }
 
     /**
