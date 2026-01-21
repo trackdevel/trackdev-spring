@@ -19,7 +19,8 @@ import org.trackdev.api.repository.PullRequestRepository;
 import org.trackdev.api.repository.TaskRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,7 +93,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             pr.setTitle(title);
             pr.setState(state);
             pr.setMerged(merged);
-            pr.setUpdatedAt(new Date());
+            pr.setUpdatedAt(ZonedDateTime.now(ZoneId.of("UTC")));
             
             // Check if already linked to this task
             isNewLink = !pr.hasTask(task);
@@ -108,7 +109,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             pr.setState(state);
             pr.setMerged(merged);
             pr.setRepoFullName(repoFullName);
-            pr.setCreatedAt(new Date());
+            pr.setCreatedAt(ZonedDateTime.now(ZoneId.of("UTC")));
             
             // Try to find author by username
             if (authorLogin != null) {

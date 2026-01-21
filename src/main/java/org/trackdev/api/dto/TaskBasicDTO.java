@@ -3,7 +3,7 @@ package org.trackdev.api.dto;
 import lombok.Data;
 
 import java.util.Collection;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for Task - Basic level
@@ -16,7 +16,7 @@ public class TaskBasicDTO {
     private String name;
     private String description;
     private String type;
-    private Date createdAt;
+    private ZonedDateTime createdAt;
     private UserSummaryDTO reporter;
     private UserSummaryDTO assignee;
     private String status;

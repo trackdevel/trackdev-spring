@@ -13,6 +13,7 @@ import org.trackdev.api.model.MergePatchTask;
 import org.trackdev.api.model.SprintPatternRequest;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -681,10 +682,10 @@ public class DemoDataSeeder {
     }
 
     /**
-     * Convert LocalDate to Date
+     * Convert LocalDate to ZonedDateTime at start of day in UTC
      */
-    private Date toDate(LocalDate localDate) {
-        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    private ZonedDateTime toDate(LocalDate localDate) {
+        return localDate.atStartOfDay(ZoneId.of("UTC"));
     }
 
     /**

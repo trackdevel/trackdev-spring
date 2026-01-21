@@ -1,15 +1,11 @@
 package org.trackdev.api.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
-import org.trackdev.api.configuration.DateFormattingConfiguration;
-import org.trackdev.api.serializer.JsonDateSerializer;
 
 import jakarta.persistence.*;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 
 @Entity
 @Table(name = "sprints")
@@ -23,11 +19,11 @@ public class Sprint extends BaseEntityLong {
     @NonNull
     private String name;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date startDate;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime startDate;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date endDate;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime endDate;
 
     @Column(name = "`status`")
     private SprintStatus status;
@@ -63,22 +59,19 @@ public class Sprint extends BaseEntityLong {
         this.name = name;
     }
 
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
-    public Date getStartDate() {
+    public ZonedDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(ZonedDateTime startDate) {
         this.startDate = startDate;
     }
 
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
-    public Date getEndDate() {
+    public ZonedDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
-        Date oldValue = this.endDate;
+    public void setEndDate(ZonedDateTime endDate) {
         this.endDate = endDate;
     }
 

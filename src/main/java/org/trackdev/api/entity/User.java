@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.trackdev.api.configuration.UserType;
-import org.trackdev.api.serializer.JsonDateSerializer;
 import org.trackdev.api.serializer.JsonRolesSerializer;
 
 @Entity
@@ -51,8 +51,8 @@ public class User extends BaseEntityUUID {
   @NotNull
   private String password;
 
-  @JsonSerialize(using = JsonDateSerializer.class)
-  private Date lastLogin;
+  @Column(columnDefinition = "TIMESTAMP")
+  private ZonedDateTime lastLogin;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner")
   private Collection<Subject> subjectsOwns = new ArrayList<>();
@@ -98,6 +98,12 @@ public class User extends BaseEntityUUID {
 
   @Column(name = "workspace_id", insertable = false, updatable = false)
   private Long workspaceId;
+
+  public static final int TIMEZONE_LENGTH = 50;
+  public static final String DEFAULT_TIMEZONE = "UTC";
+
+  @Column(length = TIMEZONE_LENGTH)
+  private String timezone = DEFAULT_TIMEZONE;
 
   private Random random = new Random();
 
@@ -173,6 +179,10 @@ public class User extends BaseEntityUUID {
 
   public Long getWorkspaceId() { return workspaceId; }
 
+  public String getTimezone() { return timezone != null ? timezone : DEFAULT_TIMEZONE; }
+
+  public void setTimezone(String timezone) { this.timezone = timezone != null ? timezone : DEFAULT_TIMEZONE; }
+
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
 
   public void setGithubName(String login) { githubInfo.setLogin(login); }
@@ -206,9 +216,9 @@ public class User extends BaseEntityUUID {
     return inRole;
   }
 
-  public Date getLastLogin(){ return lastLogin; }
+  public ZonedDateTime getLastLogin(){ return lastLogin; }
 
-  public void setLastLogin(Date lastLogin) {
+  public void setLastLogin(ZonedDateTime lastLogin) {
     this.lastLogin = lastLogin;
   }
 

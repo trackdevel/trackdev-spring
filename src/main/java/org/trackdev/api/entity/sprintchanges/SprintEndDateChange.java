@@ -1,12 +1,10 @@
 package org.trackdev.api.entity.sprintchanges;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
-import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.User;
 
@@ -17,20 +15,20 @@ public class SprintEndDateChange extends SprintChange {
 
     public SprintEndDateChange() {}
 
-    public SprintEndDateChange(User author, Sprint sprint, Date date) {
+    public SprintEndDateChange(User author, Sprint sprint, ZonedDateTime date) {
         super(author, sprint);
         this.endDate = date;
     }
 
-    private Date endDate;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime endDate;
 
     @Override
     public String getType() {
         return CHANGE_TYPE_NAME;
     }
 
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
-    public Date getEndDate() {
+    public ZonedDateTime getEndDate() {
         return this.endDate;
     }
 }

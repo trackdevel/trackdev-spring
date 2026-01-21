@@ -1,6 +1,5 @@
 package org.trackdev.api.entity.changes;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -8,9 +7,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
-import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.entity.BaseEntityLong;
 import org.trackdev.api.entity.User;
 
@@ -26,7 +25,7 @@ public abstract class EntityLogChange extends BaseEntityLong {
 
     public EntityLogChange(User author) {
         this.author = author;
-        this.changedAt = LocalDateTime.now();
+        this.changedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
     @JsonIgnore
@@ -35,7 +34,7 @@ public abstract class EntityLogChange extends BaseEntityLong {
     private User author;
 
     @Column(columnDefinition = "TIMESTAMP")
-    private LocalDateTime changedAt;
+    private ZonedDateTime changedAt;
 
     // Used for specifications (read-only, managed by discriminator)
     @Column(name = "type", insertable = false, updatable = false)
@@ -68,8 +67,7 @@ public abstract class EntityLogChange extends BaseEntityLong {
         }
     }
 
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
-    public LocalDateTime getChangedAt() { return this.changedAt; }
+    public ZonedDateTime getChangedAt() { return this.changedAt; }
 
     public abstract String getType();
 }

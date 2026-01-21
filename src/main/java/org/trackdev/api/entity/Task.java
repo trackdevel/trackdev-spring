@@ -2,12 +2,12 @@ package org.trackdev.api.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
 import org.trackdev.api.entity.taskchanges.TaskChange;
-import org.trackdev.api.serializer.JsonDateSerializer;
 
 import jakarta.persistence.*;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Entity
@@ -49,7 +49,8 @@ public class Task extends BaseEntityLong {
 
     private TaskType type;
 
-    private Date createdAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime createdAt;
 
     @ManyToOne
     private User assignee;
@@ -100,7 +101,7 @@ public class Task extends BaseEntityLong {
 
     public Task(String name, User reporter) {
         this.name = name;
-        this.createdAt = new Date();
+        this.createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
         this.reporter = reporter;
         this.status = TaskStatus.BACKLOG;
         this.estimationPoints = 0;
@@ -151,8 +152,7 @@ public class Task extends BaseEntityLong {
         this.type = type;
     }
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    public Date getCreatedAt() { return createdAt; }
+    public ZonedDateTime getCreatedAt() { return createdAt; }
 
     public User getReporter() { return reporter; }
 

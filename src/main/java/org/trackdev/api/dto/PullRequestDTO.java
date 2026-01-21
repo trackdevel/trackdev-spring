@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for Pull Request information shown in task views
@@ -17,6 +17,6 @@ public class PullRequestDTO {
     private Boolean merged;
     private String repoFullName;
     private UserSummaryDTO author;
-    private Date createdAt;
-    private Date updatedAt;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 }

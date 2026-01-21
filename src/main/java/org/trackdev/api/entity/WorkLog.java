@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "work_logs")
@@ -17,7 +17,7 @@ public class WorkLog extends BaseEntityLong {
     private Task task;
 
     @Column(columnDefinition = "TIMESTAMP")
-    private LocalDateTime timeStamp;
+    private ZonedDateTime timeStamp;
 
     private Integer timeSeconds;
 }

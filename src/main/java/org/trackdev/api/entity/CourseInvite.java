@@ -2,7 +2,9 @@ package org.trackdev.api.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 /**
  * Entity representing an invitation to join a course.
@@ -49,11 +51,14 @@ public class CourseInvite extends BaseEntityLong {
     private InviteStatus status = InviteStatus.PENDING;
 
     @NotNull
-    private LocalDateTime createdAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime createdAt;
 
-    private LocalDateTime expiresAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime expiresAt;
 
-    private LocalDateTime acceptedAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime acceptedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User acceptedBy;
@@ -62,10 +67,10 @@ public class CourseInvite extends BaseEntityLong {
     private String acceptedById;
 
     public CourseInvite() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
-    public CourseInvite(String token, String fullName, String email, Course course, User invitedBy, LocalDateTime expiresAt) {
+    public CourseInvite(String token, String fullName, String email, Course course, User invitedBy, ZonedDateTime expiresAt) {
         this();
         this.token = token;
         this.fullName = fullName;
@@ -133,27 +138,27 @@ public class CourseInvite extends BaseEntityLong {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getExpiresAt() {
+    public ZonedDateTime getExpiresAt() {
         return expiresAt;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
+    public void setExpiresAt(ZonedDateTime expiresAt) {
         this.expiresAt = expiresAt;
     }
 
-    public LocalDateTime getAcceptedAt() {
+    public ZonedDateTime getAcceptedAt() {
         return acceptedAt;
     }
 
-    public void setAcceptedAt(LocalDateTime acceptedAt) {
+    public void setAcceptedAt(ZonedDateTime acceptedAt) {
         this.acceptedAt = acceptedAt;
     }
 
@@ -170,7 +175,7 @@ public class CourseInvite extends BaseEntityLong {
     }
 
     public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+        return expiresAt != null && ZonedDateTime.now(ZoneId.of("UTC")).isAfter(expiresAt);
     }
 
     public boolean isPending() {
@@ -179,7 +184,7 @@ public class CourseInvite extends BaseEntityLong {
 
     public void markAsAccepted(User user) {
         this.status = InviteStatus.ACCEPTED;
-        this.acceptedAt = LocalDateTime.now();
+        this.acceptedAt = ZonedDateTime.now(ZoneId.of("UTC"));
         this.acceptedBy = user;
     }
 

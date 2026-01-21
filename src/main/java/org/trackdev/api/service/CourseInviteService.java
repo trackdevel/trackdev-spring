@@ -15,7 +15,8 @@ import org.trackdev.api.entity.User;
 import org.trackdev.api.repository.CourseInviteRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -114,7 +115,7 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
 
             // Create new invitation
             String token = generateUniqueToken();
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(INVITE_EXPIRY_DAYS);
+            ZonedDateTime expiresAt = ZonedDateTime.now(ZoneId.of("UTC")).plusDays(INVITE_EXPIRY_DAYS);
             
             CourseInvite invite = new CourseInvite(token, fullName, email, course, inviter, expiresAt);
             repo.save(invite);

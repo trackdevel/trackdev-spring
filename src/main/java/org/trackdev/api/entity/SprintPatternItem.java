@@ -1,13 +1,9 @@
 package org.trackdev.api.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.lang.NonNull;
-import org.trackdev.api.configuration.DateFormattingConfiguration;
-import org.trackdev.api.serializer.JsonDateSerializer;
 
 import jakarta.persistence.*;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * A single sprint blueprint within a sprint pattern.
@@ -23,11 +19,11 @@ public class SprintPatternItem extends BaseEntityLong {
     @NonNull
     private String name;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date startDate;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime startDate;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date endDate;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime endDate;
 
     /**
      * The order of this sprint item within the pattern (0-indexed)
@@ -42,7 +38,7 @@ public class SprintPatternItem extends BaseEntityLong {
 
     public SprintPatternItem() {}
 
-    public SprintPatternItem(String name, Date startDate, Date endDate, Integer orderIndex) {
+    public SprintPatternItem(String name, ZonedDateTime startDate, ZonedDateTime endDate, Integer orderIndex) {
         this.name = name;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -58,21 +54,19 @@ public class SprintPatternItem extends BaseEntityLong {
         this.name = name;
     }
 
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
-    public Date getStartDate() {
+    public ZonedDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(ZonedDateTime startDate) {
         this.startDate = startDate;
     }
 
-    @JsonFormat(pattern = DateFormattingConfiguration.SIMPLE_LOCALDATE_FORMAT)
-    public Date getEndDate() {
+    public ZonedDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(ZonedDateTime endDate) {
         this.endDate = endDate;
     }
 

@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for CourseInvite - Basic info
@@ -16,9 +16,9 @@ public class CourseInviteDTO {
     private String invitedById;
     private String invitedByName;
     private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime expiresAt;
-    private LocalDateTime acceptedAt;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime expiresAt;
+    private ZonedDateTime acceptedAt;
     private String acceptedById;
     private String acceptedByName;
 }

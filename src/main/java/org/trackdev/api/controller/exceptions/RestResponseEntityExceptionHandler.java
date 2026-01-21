@@ -41,7 +41,6 @@ import org.trackdev.api.model.ErrorEntity;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -414,7 +413,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         }
         
         ErrorEntity error = new ErrorEntity(
-                DateTimeFormatter.ofPattern(DateFormattingConfiguration.APP_DATE_FORMAT).format(ZonedDateTime.now()),
+                DateFormattingConfiguration.APP_FORMATTER.format(ZonedDateTime.now()),
                 statusCode.value(),
                 httpStatus.getReasonPhrase(),
                 ex.getMessage() != null ? ex.getMessage() : "An error occurred",
@@ -663,7 +662,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         }
         
         return new ErrorEntity(
-                DateTimeFormatter.ofPattern(DateFormattingConfiguration.APP_DATE_FORMAT).format(ZonedDateTime.now()),
+                DateFormattingConfiguration.APP_FORMATTER.format(ZonedDateTime.now()),
                 status.value(),
                 errorName,
                 message,

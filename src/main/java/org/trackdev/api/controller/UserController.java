@@ -148,7 +148,7 @@ public class UserController extends BaseController {
         String userId = super.getUserId(principal);
         // All operations in a single transaction
         return userMapper.toWithGithubTokenDTO(userService.editMyUserById(userId, userRequest.username, userRequest.color,
-                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled));
+                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled, userRequest.timezone));
     }
 
     @Operation(summary = "Edit user", description = "Edit user, only admins can do this")
@@ -168,7 +168,7 @@ public class UserController extends BaseController {
         String userId = super.getUserId(principal);
         // All operations in a single transaction with admin check inside service
         return userMapper.toWithProjectsDTO(userService.editUserByAdmin(userId, id, userRequest.username, userRequest.color,
-                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled));
+                userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.enabled, userRequest.timezone));
     }
 
     @Operation(summary = "Check if authenticated user is admin", description = "Check if authenticated user is admin")
@@ -237,6 +237,8 @@ public class UserController extends BaseController {
         public Optional<String> githubToken;
 
         public Optional<Boolean> enabled;
+
+        public Optional<String> timezone;
     }
 
     /**
@@ -284,7 +286,7 @@ public class UserController extends BaseController {
         
         return userMapper.toWithProjectsDTO(userService.editMyUser(currentUser, targetUser, 
             userRequest.username, userRequest.color, userRequest.capitalLetters, 
-            userRequest.changePassword, userRequest.githubToken, userRequest.enabled));
+            userRequest.changePassword, userRequest.githubToken, userRequest.enabled, userRequest.timezone));
     }
 
 }

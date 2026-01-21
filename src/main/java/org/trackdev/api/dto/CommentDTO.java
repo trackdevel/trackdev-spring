@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for Comment - Basic level
@@ -12,5 +12,5 @@ public class CommentDTO {
     private Long id;
     private String content;
     private UserSummaryDTO author;
-    private Date createdAt;
+    private ZonedDateTime createdAt;
 }

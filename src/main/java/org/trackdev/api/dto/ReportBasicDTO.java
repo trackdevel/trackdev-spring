@@ -5,13 +5,13 @@ import org.trackdev.api.entity.ReportAxisType;
 import org.trackdev.api.entity.ReportElement;
 import org.trackdev.api.entity.ReportMagnitude;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 @Data
 public class ReportBasicDTO {
     private Long id;
     private String name;
-    private Date createdAt;
+    private ZonedDateTime createdAt;
     private UserSummaryDTO owner;
     private ReportAxisType rowType;
     private ReportAxisType columnType;

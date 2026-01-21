@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for Sprint - Basic level
@@ -11,8 +11,8 @@ import java.util.Date;
 public class SprintBasicDTO {
     private Long id;
     private String name;
-    private Date startDate;
-    private Date endDate;
+    private ZonedDateTime startDate;
+    private ZonedDateTime endDate;
     private String status;
     private String statusText;
 }

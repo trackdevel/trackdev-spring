@@ -18,6 +18,8 @@ import org.trackdev.api.repository.GitHubRepoRepository;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.GithubConstants;
 
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -422,7 +424,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
                     String.class
             );
 
-            gitHubRepo.setLastSyncAt(new Date());
+            gitHubRepo.setLastSyncAt(ZonedDateTime.now(ZoneId.of("UTC")));
             repo.save(gitHubRepo);
 
             return objectMapper.readValue(response.getBody(), Map.class);

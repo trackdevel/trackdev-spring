@@ -32,6 +32,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import java.security.Principal;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -235,8 +236,8 @@ public class ProjectController extends BaseController {
     static class CreateSprint {
         @Size(min = Sprint.MIN_NAME_LENGTH, max = Sprint.NAME_LENGTH)
         public String name;
-        public Date startDate;
-        public Date endDate;
+        public ZonedDateTime startDate;
+        public ZonedDateTime endDate;
     }
 
     static class NewTask{
