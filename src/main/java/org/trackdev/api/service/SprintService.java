@@ -20,9 +20,9 @@ import org.trackdev.api.query.SearchSpecification;
 import org.trackdev.api.repository.SprintRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -42,9 +42,9 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     SprintChangeService sprintChangeService;
 
     @Transactional
-    public Sprint create(Project project, String name, Date startDate, Date endDate, String userId) {
+    public Sprint create(Project project, String name, ZonedDateTime startDate, ZonedDateTime endDate, String userId) {
         // Validate that end date is after start date
-        if (startDate != null && endDate != null && !endDate.after(startDate)) {
+        if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
             throw new ServiceException(ErrorConstants.SPRINT_END_DATE_BEFORE_START);
         }
         
@@ -95,7 +95,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             }
         }
         if(editSprint.startDate != null) {
-            Date startDate = editSprint.startDate.orElseThrow(
+            ZonedDateTime startDate = editSprint.startDate.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!startDate.equals(sprint.getStartDate())) {
                 sprint.setStartDate(startDate);
@@ -103,7 +103,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
             }
         }
         if(editSprint.endDate != null) {
-            Date endDate = editSprint.endDate.orElseThrow(
+            ZonedDateTime endDate = editSprint.endDate.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             if(!endDate.equals(sprint.getEndDate())) {
                 sprint.setEndDate(endDate);

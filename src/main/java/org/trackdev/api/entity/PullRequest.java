@@ -3,7 +3,8 @@ package org.trackdev.api.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ public class PullRequest extends BaseEntityUUID {
     public PullRequest(String url, String nodeId) {
         this.url = url;
         this.nodeId = nodeId;
-        this.createdAt = new Date();
+        this.createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
     @Column(length = 32)
@@ -63,12 +64,14 @@ public class PullRequest extends BaseEntityUUID {
     /**
      * When the PR was created on GitHub
      */
-    private Date createdAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime createdAt;
 
     /**
      * When the PR was last updated
      */
-    private Date updatedAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime updatedAt;
 
     /**
      * Whether the PR has been merged
@@ -149,19 +152,19 @@ public class PullRequest extends BaseEntityUUID {
         this.repoFullName = repoFullName;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 

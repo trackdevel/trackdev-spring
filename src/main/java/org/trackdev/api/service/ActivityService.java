@@ -9,7 +9,8 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.repository.ActivityRepository;
 import org.trackdev.api.repository.UserActivityAccessRepository;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class ActivityService extends BaseServiceLong<Activity, ActivityRepositor
         activity.setMessage(message);
         activity.setOldValue(oldValue);
         activity.setNewValue(newValue);
-        activity.setCreatedAt(LocalDateTime.now());
+        activity.setCreatedAt(ZonedDateTime.now(ZoneId.of("UTC")));
         return repo().save(activity);
     }
 
@@ -90,11 +91,11 @@ public class ActivityService extends BaseServiceLong<Activity, ActivityRepositor
             return 0;
         }
         
-        LocalDateTime lastAccess = getLastAccessTime(user);
+        ZonedDateTime lastAccess = getLastAccessTime(user);
         if (lastAccess == null) {
             // User has never accessed activities, count all activities
             // Use a date far in the past but within MySQL's valid range
-            return repo().countByProjectInAndCreatedAtAfter(projects, LocalDateTime.of(1970, 1, 1, 0, 0));
+            return repo().countByProjectInAndCreatedAtAfter(projects, ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")));
         }
         
         return repo().countByProjectInAndCreatedAtAfter(projects, lastAccess);
@@ -136,7 +137,7 @@ public class ActivityService extends BaseServiceLong<Activity, ActivityRepositor
     /**
      * Get the last time a user accessed the activity feed.
      */
-    public LocalDateTime getLastAccessTime(User user) {
+    public ZonedDateTime getLastAccessTime(User user) {
         return userActivityAccessRepository.findByUser(user)
             .map(UserActivityAccess::getLastAccessedAt)
             .orElse(null);

@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -24,9 +24,9 @@ public class SprintPatternRequest {
         @Size(min = 1, max = 50, message = "Sprint name must be between 1 and 50 characters")
         public String name;
 
-        public Date startDate;
+        public ZonedDateTime startDate;
 
-        public Date endDate;
+        public ZonedDateTime endDate;
 
         public Integer orderIndex;
     }

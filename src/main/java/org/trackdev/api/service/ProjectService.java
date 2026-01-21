@@ -9,6 +9,7 @@ import org.trackdev.api.repository.GroupRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -230,7 +231,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
      * All operations in a single transaction.
      */
     @Transactional
-    public Sprint createSprint(Long projectId, String name, Date startDate, Date endDate, String userId) {
+    public Sprint createSprint(Long projectId, String name, ZonedDateTime startDate, ZonedDateTime endDate, String userId) {
         Project project = get(projectId);
         accessChecker.checkCanViewProject(project, userId);
         Sprint sprint = sprintService.create(project, name, startDate, endDate, userId);
@@ -239,7 +240,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         return sprint;
     }
 
-    public Sprint createSprint(Project project, String name, Date startDate, Date endDate, String userId) {
+    public Sprint createSprint(Project project, String name, ZonedDateTime startDate, ZonedDateTime endDate, String userId) {
         accessChecker.checkCanViewProject(project, userId);
         Sprint sprint = sprintService.create(project, name, startDate, endDate, userId);
         project.addSprint(sprint);

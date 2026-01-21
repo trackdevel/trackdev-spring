@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for Activity events
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class ActivityDTO {
     private Long id;
     private String type;
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
     private String message;
     private String oldValue;
     private String newValue;

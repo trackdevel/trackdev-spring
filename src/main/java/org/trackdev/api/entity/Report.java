@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.springframework.lang.NonNull;
 
 import jakarta.persistence.*;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "reports")
@@ -26,7 +27,8 @@ public class Report extends BaseEntityLong {
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    private Date createdAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
@@ -56,7 +58,7 @@ public class Report extends BaseEntityLong {
     public Report(@NonNull String name, User owner) {
         this.name = name;
         this.owner = owner;
-        this.createdAt = new Date();
+        this.createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
     // Getters and Setters
@@ -77,11 +79,11 @@ public class Report extends BaseEntityLong {
         this.owner = owner;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

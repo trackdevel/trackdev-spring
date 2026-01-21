@@ -1,11 +1,10 @@
 package org.trackdev.api.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.trackdev.api.configuration.DateFormattingConfiguration;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 /**
  * Activity entity for tracking task-related events for student notifications.
@@ -29,7 +28,7 @@ public class Activity extends BaseEntityLong {
         this.project = project;
         this.task = task;
         this.message = message;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
     @Enumerated(EnumType.STRING)
@@ -61,8 +60,7 @@ public class Activity extends BaseEntityLong {
     private String newValue;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     // Getters
     public ActivityType getType() { return type; }
@@ -72,7 +70,7 @@ public class Activity extends BaseEntityLong {
     public String getMessage() { return message; }
     public String getOldValue() { return oldValue; }
     public String getNewValue() { return newValue; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public ZonedDateTime getCreatedAt() { return createdAt; }
 
     // Derived getters for JSON serialization
     public String getActorId() {
@@ -115,5 +113,5 @@ public class Activity extends BaseEntityLong {
     public void setMessage(String message) { this.message = message; }
     public void setOldValue(String oldValue) { this.oldValue = oldValue; }
     public void setNewValue(String newValue) { this.newValue = newValue; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
 }

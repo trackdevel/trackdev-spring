@@ -1,11 +1,8 @@
 package org.trackdev.api.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import jakarta.persistence.*;
-import java.util.Date;
-
-import org.trackdev.api.serializer.JsonDateSerializer;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "comments")
@@ -22,8 +19,8 @@ public class Comment extends BaseEntityLong {
     @ManyToOne
     private Task task;
 
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Date date;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime date;
 
     public Comment() {}
 
@@ -31,7 +28,7 @@ public class Comment extends BaseEntityLong {
         this.content = content;
         this.author = author;
         this.task = task;
-        this.date = new Date();
+        this.date = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
     public String getContent() {
@@ -58,11 +55,11 @@ public class Comment extends BaseEntityLong {
         this.task = task;
     }
 
-    public Date getDate() {
+    public ZonedDateTime getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(ZonedDateTime date) {
         this.date = date;
     }
 }

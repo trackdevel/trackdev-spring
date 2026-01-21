@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * DTO for SprintPatternItem
@@ -11,7 +11,7 @@ import java.util.Date;
 public class SprintPatternItemDTO {
     private Long id;
     private String name;
-    private Date startDate;
-    private Date endDate;
+    private ZonedDateTime startDate;
+    private ZonedDateTime endDate;
     private Integer orderIndex;
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.trackdev.api.entity.Activity;
 import org.trackdev.api.entity.Project;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,13 +28,13 @@ public interface ActivityRepository extends BaseRepositoryLong<Activity> {
      */
     List<Activity> findByProjectInAndCreatedAtAfterOrderByCreatedAtDesc(
         Collection<Project> projects, 
-        LocalDateTime after
+        ZonedDateTime after
     );
 
     /**
      * Count activities for projects created after a specific timestamp
      */
-    long countByProjectInAndCreatedAtAfter(Collection<Project> projects, LocalDateTime after);
+    long countByProjectInAndCreatedAtAfter(Collection<Project> projects, ZonedDateTime after);
 
     /**
      * Find activities for a specific project

@@ -1,11 +1,10 @@
 package org.trackdev.api.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.trackdev.api.configuration.DateFormattingConfiguration;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 /**
  * Tracks the last time a user accessed the activity feed.
@@ -21,7 +20,7 @@ public class UserActivityAccess extends BaseEntityLong {
 
     public UserActivityAccess(User user) {
         this.user = user;
-        this.lastAccessedAt = LocalDateTime.now();
+        this.lastAccessedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 
     @JsonIgnore
@@ -30,21 +29,20 @@ public class UserActivityAccess extends BaseEntityLong {
     private User user;
 
     @Column(name = "last_accessed_at", columnDefinition = "TIMESTAMP")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateFormattingConfiguration.SIMPLE_DATE_FORMAT)
-    private LocalDateTime lastAccessedAt;
+    private ZonedDateTime lastAccessedAt;
 
     // Getters
     public User getUser() { return user; }
-    public LocalDateTime getLastAccessedAt() { return lastAccessedAt; }
+    public ZonedDateTime getLastAccessedAt() { return lastAccessedAt; }
 
     // Setters
     public void setUser(User user) { this.user = user; }
-    public void setLastAccessedAt(LocalDateTime lastAccessedAt) { this.lastAccessedAt = lastAccessedAt; }
+    public void setLastAccessedAt(ZonedDateTime lastAccessedAt) { this.lastAccessedAt = lastAccessedAt; }
 
     /**
      * Updates the last accessed timestamp to now.
      */
     public void markAsAccessed() {
-        this.lastAccessedAt = LocalDateTime.now();
+        this.lastAccessedAt = ZonedDateTime.now(ZoneId.of("UTC"));
     }
 }

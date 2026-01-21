@@ -1,8 +1,9 @@
 package org.trackdev.api.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "emails")
@@ -10,12 +11,13 @@ public class Email extends BaseEntityUUID{
 
     private String destination;
 
-    private LocalDateTime timestamp;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime timestamp;
 
     public Email() {
     }
 
-    public Email(String destination, LocalDateTime timestamp) {
+    public Email(String destination, ZonedDateTime timestamp) {
         this.destination = destination;
         this.timestamp = timestamp;
     }
@@ -28,11 +30,11 @@ public class Email extends BaseEntityUUID{
         this.destination = destination;
     }
 
-    public LocalDateTime getTimestamp() {
+    public ZonedDateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
+    public void setTimestamp(ZonedDateTime timestamp) {
         this.timestamp = timestamp;
     }
 

@@ -2,7 +2,7 @@ package org.trackdev.api.dto;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 /**
@@ -18,8 +18,9 @@ public class UserBasicDTO {
     private String capitalLetters;
     private Long currentProject;
     private Set<String> roles;
-    private Date lastLogin;
+    private ZonedDateTime lastLogin;
     private Boolean changePassword;
     private Boolean enabled;
     private GithubInfoDTO githubInfo;
+    private String timezone;
 }

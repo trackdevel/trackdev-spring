@@ -13,7 +13,8 @@ import org.trackdev.api.repository.EmailRepository;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.Locale;
 
 /**
@@ -120,7 +121,7 @@ public class EmailSenderService extends BaseServiceUUID<Email, EmailRepository> 
         try {
             Email email = new Email();
             email.setDestination(destination);
-            email.setTimestamp(LocalDateTime.now());
+            email.setTimestamp(ZonedDateTime.now(ZoneId.of("UTC")));
             this.repo.save(email);
         } catch (Exception e) {
             log.warn("Failed to log email to database: {}", e.getMessage());

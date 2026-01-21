@@ -3,7 +3,8 @@ package org.trackdev.api.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 /**
  * Entity representing a GitHub repository linked to a project.
@@ -40,9 +41,11 @@ public class GitHubRepo extends BaseEntityLong {
     @Column(name = "project_id", insertable = false, updatable = false)
     private Long projectId;
 
-    private Date createdAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime createdAt;
 
-    private Date lastSyncAt;
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime lastSyncAt;
 
     @Column(length = MAX_URL_LENGTH)
     private String webhookUrl;
@@ -67,7 +70,7 @@ public class GitHubRepo extends BaseEntityLong {
         this.url = url;
         this.accessToken = accessToken;
         this.project = project;
-        this.createdAt = new Date();
+        this.createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
         this.webhookActive = false;
         parseOwnerAndRepoFromUrl(url);
     }
@@ -127,15 +130,15 @@ public class GitHubRepo extends BaseEntityLong {
         return projectId;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public Date getLastSyncAt() {
+    public ZonedDateTime getLastSyncAt() {
         return lastSyncAt;
     }
 
-    public void setLastSyncAt(Date lastSyncAt) {
+    public void setLastSyncAt(ZonedDateTime lastSyncAt) {
         this.lastSyncAt = lastSyncAt;
     }
 

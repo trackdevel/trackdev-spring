@@ -19,7 +19,8 @@ import org.trackdev.api.entity.User;
 import org.trackdev.api.repository.UserRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -182,7 +183,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
 
     @Transactional
     public void setLastLogin(User user) {
-        user.setLastLogin(new Date());
+        user.setLastLogin(ZonedDateTime.now(ZoneId.of("UTC")));
         repo.save(user);
     }
 
@@ -231,12 +232,13 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User editMyUser(User modifier, User user, Optional<String> username, Optional<String> color,
                          Optional<String> capitalLetters, Optional<Boolean> changePassword,
-                         Optional<String> githubToken, Optional<Boolean> enabled) {
+                         Optional<String> githubToken, Optional<Boolean> enabled, Optional<String> timezone) {
         if(username != null && modifier.isUserType(UserType.ADMIN)) username.ifPresent(user::setUsername);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
         if(enabled != null && modifier.isUserType(UserType.ADMIN)) enabled.ifPresent(user::setEnabled);
+        if(timezone != null) timezone.ifPresent(user::setTimezone);
         if(githubToken != null && githubToken.isPresent()) {
             githubToken.ifPresent(user::setGithubToken);
             ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
@@ -305,9 +307,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User editMyUserById(String userId, Optional<String> username, Optional<String> color,
                                Optional<String> capitalLetters, Optional<Boolean> changePassword,
-                               Optional<String> githubToken, Optional<Boolean> enabled) {
+                               Optional<String> githubToken, Optional<Boolean> enabled, Optional<String> timezone) {
         User user = get(userId);
-        return editMyUser(user, user, username, color, capitalLetters, changePassword, githubToken, enabled);
+        return editMyUser(user, user, username, color, capitalLetters, changePassword, githubToken, enabled, timezone);
     }
 
     /**
@@ -318,11 +320,11 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User editUserByAdmin(String adminUserId, String targetUserId, Optional<String> username, 
                                 Optional<String> color, Optional<String> capitalLetters, 
                                 Optional<Boolean> changePassword, Optional<String> githubToken, 
-                                Optional<Boolean> enabled) {
+                                Optional<Boolean> enabled, Optional<String> timezone) {
         User modifier = get(adminUserId);
         accessChecker.checkIsUserAdmin(modifier);
         User user = get(targetUserId);
-        return editMyUser(modifier, user, username, color, capitalLetters, changePassword, githubToken, enabled);
+        return editMyUser(modifier, user, username, color, capitalLetters, changePassword, githubToken, enabled, timezone);
     }
 
     /**

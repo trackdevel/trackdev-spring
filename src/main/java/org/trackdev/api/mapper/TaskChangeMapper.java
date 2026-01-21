@@ -1,20 +1,19 @@
 package org.trackdev.api.mapper;
 
 import org.springframework.stereotype.Component;
+import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.dto.TaskLogDTO;
 import org.trackdev.api.entity.taskchanges.TaskChange;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Mapper for converting TaskChange entities to TaskLogDTO
+ * Mapper for converting TaskChange entities to TaskLogDTO.
+ * Uses the centralized ISO_FORMATTER from DateFormattingConfiguration.
  */
 @Component
 public class TaskChangeMapper {
-
-    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
      * Convert a TaskChange entity to TaskLogDTO
@@ -31,7 +30,9 @@ public class TaskChangeMapper {
         dto.setField(mapTypeToField(change.getType()));
         dto.setOldValue(change.getOldValue());
         dto.setNewValue(change.getNewValue());
-        dto.setTimestamp(change.getChangedAt() != null ? change.getChangedAt().format(ISO_FORMATTER) : null);
+        dto.setTimestamp(change.getChangedAt() != null 
+            ? change.getChangedAt().format(DateFormattingConfiguration.ISO_FORMATTER) 
+            : null);
         dto.setUserId(change.getAuthorEmail());
         dto.setUsername(change.getAuthorUsername());
         

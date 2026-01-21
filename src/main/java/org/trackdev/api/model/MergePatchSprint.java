@@ -1,6 +1,6 @@
 package org.trackdev.api.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.trackdev.api.entity.SprintStatus;
@@ -12,9 +12,9 @@ import org.trackdev.api.entity.SprintStatus;
 public class MergePatchSprint {
     public Optional<String> name;
 
-    public Optional<Date> startDate;
+    public Optional<ZonedDateTime> startDate;
 
-    public Optional<Date> endDate;
+    public Optional<ZonedDateTime> endDate;
 
     public Optional<SprintStatus> status;
 }
