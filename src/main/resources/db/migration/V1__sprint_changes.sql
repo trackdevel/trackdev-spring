@@ -1,0 +1,2 @@
+ALTER TABLE `projects` ADD COLUMN `sprint_pattern_id` bigint AFTER `id`, ADD KEY `FKfjpir54y9bm5qwbg7mcqffd8l` (`sprint_pattern_id`), ADD CONSTRAINT `FKfjpir54y9bm5qwbg7mcqffd8l` FOREIGN KEY (`sprint_pattern_id`) REFERENCES `sprint_patterns` (`id`);
+ALTER TABLE `sprints` ADD COLUMN `sprint_pattern_item_id` bigint AFTER `project_id`, ADD KEY `FKds3dj7nanjea1qgq4j6dpn1gc` (`sprint_pattern_item_id`), ADD CONSTRAINT `FKds3dj7nanjea1qgq4j6dpn1gc` FOREIGN KEY (`sprint_pattern_item_id`) REFERENCES `sprint_pattern_items` (`id`);
