@@ -11,6 +11,7 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.model.MergePatchSprint;
 import org.trackdev.api.model.MergePatchTask;
 import org.trackdev.api.model.SprintPatternRequest;
+import org.trackdev.api.repository.SprintRepository;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -81,6 +82,9 @@ public class DemoDataSeeder {
 
     @Autowired
     private SprintService sprintService;
+
+    @Autowired
+    private SprintRepository sprintRepository;
 
     @Autowired
     private SprintPatternService sprintPatternService;
@@ -333,22 +337,40 @@ public class DemoDataSeeder {
             sprint4Start, sprint4End
         );
         
-        logger.info("Created 2 sprint patterns");
+        // Create sprint patterns for all courses
+        SprintPattern patternTFG = createSprintPattern(
+            "Setmanal TFG",
+            courseTFG,
+            professorTFG,
+            sprint1Start, sprint1End,
+            sprint2Start, sprint2End,
+            sprint3Start, sprint3End,
+            sprint4Start, sprint4End
+        );
+        
+        SprintPattern patternBD = createSprintPattern(
+            "Quincenal BD",
+            courseBD,
+            professorBD,
+            sprint1Start, sprint1End,
+            sprint2Start, sprint2End,
+            sprint3Start, sprint3End,
+            sprint4Start, sprint4End
+        );
+        
+        logger.info("Created 4 sprint patterns (one per course)");
 
         // ============================================
         // 10. CREATE PROJECTS WITH SPRINTS AND TASKS
         // ============================================
         
-        // Project for PDS course (UdG)
+        // Project for PDS course (UdG) - apply sprint pattern to create sprints
         Project projectPDS = createProjectWithSprintsAndTasks(
             "pds25a",
             studentsUdG.subList(0, 3),  // First 3 students
             coursePDS,
             professorPDS,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternUdG
         );
         
         // Second project for PDS course
@@ -357,22 +379,16 @@ public class DemoDataSeeder {
             studentsUdG.subList(3, 6),  // Last 3 students
             coursePDS,
             professorPDS,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternUdG
         ); 
         
-        // Second project for PDS course
+        // Third project for PDS course
         Project projectPDS3 = createProjectWithSprintsAndTasks(
             "pds25c",
             studentsUdG.subList(1, 6),  // Last 3 students
             coursePDS,
             professorPDS,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternUdG
         );
 
 
@@ -401,10 +417,7 @@ public class DemoDataSeeder {
             studentsUdG.subList(0, 2),  // First 2 students
             courseTFG,
             professorTFG,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternTFG
         );
         
         // Project for SO course (UB)
@@ -413,10 +426,7 @@ public class DemoDataSeeder {
             studentsUB.subList(0, 3),  // First 3 students
             courseSO,
             professorSO,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternUB
         );
         
         // Second project for SO course
@@ -425,10 +435,7 @@ public class DemoDataSeeder {
             studentsUB.subList(3, 6),  // Last 3 students
             courseSO,
             professorSO,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternUB
         );
         
         // Project for BD course (UB)
@@ -437,10 +444,7 @@ public class DemoDataSeeder {
             studentsUB.subList(0, 4),  // First 4 students
             courseBD,
             professorBD,
-            sprint1Start, sprint1End,
-            sprint2Start, sprint2End,
-            sprint3Start, sprint3End,
-            sprint4Start, sprint4End
+            patternBD
         );
         
         logger.info("Created 6 projects with sprints and tasks");
@@ -474,8 +478,8 @@ public class DemoDataSeeder {
         logger.info("  - 16 students (all enrolled in courses, but 4 not assigned to any project)");
         logger.info("  - 4 subjects");
         logger.info("  - 4 courses");
-        logger.info("  - 2 sprint patterns");
-        logger.info("  - 6 projects with sprints and tasks");
+        logger.info("  - 4 sprint patterns (one per course)");
+        logger.info("  - 6 projects with sprints created from patterns and tasks");
         logger.info("  - 1 sample report (PDS 2025)");
     }
 
@@ -554,25 +558,21 @@ public class DemoDataSeeder {
     }
 
     /**
-     * Create a project with sprints and tasks
+     * Create a project with sprints (from pattern) and tasks
      */
     private Project createProjectWithSprintsAndTasks(String projectName, List<User> students,
                                                       Course course, User professor,
-                                                      LocalDate s1Start, LocalDate s1End,
-                                                      LocalDate s2Start, LocalDate s2End,
-                                                      LocalDate s3Start, LocalDate s3End,
-                                                      LocalDate s4Start, LocalDate s4End) {
+                                                      SprintPattern sprintPattern) {
         // Create project
         List<String> studentEmails = students.stream().map(User::getEmail).toList();
         Project project = projectService.createProject(projectName, studentEmails, course.getId(), professor.getId());
 
-        // Create sprints
-        Sprint sprint1 = sprintService.create(project, "Sprint 1", toDate(s1Start), toDate(s1End), professor.getId());
-        Sprint sprint2 = sprintService.create(project, "Sprint 2", toDate(s2Start), toDate(s2End), professor.getId());
-        Sprint sprint3 = sprintService.create(project, "Sprint 3", toDate(s3Start), toDate(s3End), professor.getId());
-        Sprint sprint4 = sprintService.create(project, "Sprint 4", toDate(s4Start), toDate(s4End), professor.getId());
+        // Apply sprint pattern to create sprints linked to pattern items
+        project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
 
-        List<Sprint> allSprints = List.of(sprint1, sprint2, sprint3, sprint4);
+        // Get sprints created from pattern (sorted by order index) - fetch from repository to avoid lazy loading issues
+        List<Sprint> allSprints = sprintRepository.findByProject_IdOrderBySprintPatternItem_OrderIndexAsc(project.getId());
+        
         int storyIndex = random.nextInt(storyTemplates.size());
 
         for (int i = 0; i < allSprints.size(); i++) {

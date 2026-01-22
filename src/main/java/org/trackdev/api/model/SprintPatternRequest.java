@@ -20,6 +20,11 @@ public class SprintPatternRequest {
     public List<SprintPatternItemRequest> items;
 
     public static class SprintPatternItemRequest {
+        /**
+         * ID of existing item (null for new items)
+         */
+        public Long id;
+
         @NotBlank(message = "Sprint name is required")
         @Size(min = 1, max = 50, message = "Sprint name must be between 1 and 50 characters")
         public String name;

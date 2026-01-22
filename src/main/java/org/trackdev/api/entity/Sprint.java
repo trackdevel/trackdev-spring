@@ -39,6 +39,16 @@ public class Sprint extends BaseEntityLong {
     @ManyToOne
     private Project project;
 
+    /**
+     * Reference to the SprintPatternItem that was used to create this sprint.
+     * Null if the sprint was created manually.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    private SprintPatternItem sprintPatternItem;
+
+    @Column(name = "sprint_pattern_item_id", insertable = false, updatable = false)
+    private Long sprintPatternItemId;
+
     //--- CONSTRUCTOR
 
     public Sprint() {}
@@ -104,6 +114,18 @@ public class Sprint extends BaseEntityLong {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public SprintPatternItem getSprintPatternItem() {
+        return sprintPatternItem;
+    }
+
+    public void setSprintPatternItem(SprintPatternItem sprintPatternItem) {
+        this.sprintPatternItem = sprintPatternItem;
+    }
+
+    public Long getSprintPatternItemId() {
+        return sprintPatternItemId;
     }
 
     //--- METHODS

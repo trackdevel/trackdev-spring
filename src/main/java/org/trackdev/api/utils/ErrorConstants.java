@@ -96,6 +96,8 @@ public final class ErrorConstants {
     
     // Sprint validation errors
     public static final String SPRINT_END_DATE_BEFORE_START = "Sprint end date must be after start date";
+    public static final String SPRINT_PATTERN_ALREADY_APPLIED = "A sprint pattern has already been applied to this project";
+    public static final String SPRINT_PATTERN_NOT_IN_COURSE = "Sprint pattern does not belong to the project's course";
     
     // User deletion errors
     public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "Cannot delete user who owns subjects";

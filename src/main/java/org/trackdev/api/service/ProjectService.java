@@ -26,6 +26,9 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     SprintService sprintService;
 
     @Autowired
+    SprintPatternService sprintPatternService;
+
+    @Autowired
     AccessChecker accessChecker;
 
     @Transactional
@@ -328,6 +331,49 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
             project.removeMember(user);
             user.removeFromGroup(project);
         }
+    }
+
+    /**
+     * Apply a sprint pattern to a project, creating sprints from the pattern items.
+     * Only professors who manage the course can apply patterns.
+     * 
+     * @param projectId The ID of the project to apply the pattern to
+     * @param patternId The ID of the sprint pattern to apply
+     * @param userId The ID of the user performing the action
+     * @return The updated project with the new sprints
+     */
+    @Transactional
+    public Project applySprintPattern(Long projectId, Long patternId, String userId) {
+        Project project = get(projectId);
+        accessChecker.checkCanManageProject(project, userId);
+        
+        // Check if a pattern has already been applied
+        if (project.getSprintPattern() != null) {
+            throw new ServiceException(ErrorConstants.SPRINT_PATTERN_ALREADY_APPLIED);
+        }
+        
+        SprintPattern pattern = sprintPatternService.get(patternId);
+        
+        // Verify pattern belongs to the same course as the project
+        if (!pattern.getCourse().getId().equals(project.getCourse().getId())) {
+            throw new ServiceException(ErrorConstants.SPRINT_PATTERN_NOT_IN_COURSE);
+        }
+        
+        // Set the pattern reference on the project
+        project.setSprintPattern(pattern);
+        
+        // Create sprints from pattern items
+        for (SprintPatternItem item : pattern.getItems()) {
+            Sprint sprint = new Sprint(item.getName());
+            sprint.setStartDate(item.getStartDate());
+            sprint.setEndDate(item.getEndDate());
+            sprint.setProject(project);
+            sprint.setSprintPatternItem(item);
+            project.addSprint(sprint);
+        }
+        
+        repo.save(project);
+        return project;
     }
 
 }

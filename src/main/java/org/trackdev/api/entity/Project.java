@@ -51,6 +51,16 @@ public class Project extends BaseEntityLong {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Collection<GitHubRepo> githubRepos = new ArrayList<>();
 
+    /**
+     * Reference to the SprintPattern that was applied to create sprints for this project.
+     * Null if no pattern has been applied yet.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    private SprintPattern sprintPattern;
+
+    @Column(name = "sprint_pattern_id", insertable = false, updatable = false)
+    private Long sprintPatternId;
+
     @Max(10)
     private Double qualification;
 
@@ -108,6 +118,18 @@ public class Project extends BaseEntityLong {
 
     public Collection<Sprint> getSprints() {
         return this.sprints;
+    }
+
+    public SprintPattern getSprintPattern() {
+        return sprintPattern;
+    }
+
+    public void setSprintPattern(SprintPattern sprintPattern) {
+        this.sprintPattern = sprintPattern;
+    }
+
+    public Long getSprintPatternId() {
+        return sprintPatternId;
     }
 
     public Double getQualification() { return this.qualification; }
