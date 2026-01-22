@@ -31,8 +31,11 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     @Autowired
     AccessChecker accessChecker;
 
+    @Autowired
+    org.trackdev.api.repository.TaskRepository taskRepository;
+
     @Transactional
-    public Project createProject(String name, Collection<String> emails, Long courseId,
+    public Project createProject(String name, Collection<String> memberIds, Long courseId,
                                  String loggedInUserId) {
         Course course = courseService.get(courseId);
         accessChecker.checkCanManageCourse(course, loggedInUserId);
@@ -44,8 +47,8 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         course.addProject(project);
         project.setCourse(course);
 
-        if(emails != null && !emails.isEmpty()) {
-            addMembers(course, project, emails);
+        if(memberIds != null && !memberIds.isEmpty()) {
+            addMembers(course, project, memberIds);
         }
         repo.save(project);
         return project;
@@ -137,10 +140,32 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         return task;
     }
 
+    /**
+     * Delete a project. Only allowed if the project has no tasks.
+     * Sprints associated with the project are deleted automatically via cascade.
+     * 
+     * @param projectId The project ID to delete
+     * @param userId The user performing the deletion
+     */
     @Transactional
-    public void deleteProject(Long groupId, String userId) {
-        Project project = get(groupId);
-        accessChecker.checkCanManageProject(project, userId);
+    public void deleteProject(Long projectId, String userId) {
+        Project project = get(projectId);
+        
+        // Check authorization - only course owner/admin can delete
+        accessChecker.checkCanManageCourse(project.getCourse(), userId);
+        
+        // Check if project has any tasks
+        if (taskRepository.existsByProjectId(projectId)) {
+            throw new ServiceException(ErrorConstants.PROJECT_HAS_TASKS);
+        }
+        
+        // Remove project from course
+        Course course = project.getCourse();
+        if (course != null) {
+            course.getProjects().remove(project);
+        }
+        
+        // Delete the project (sprints will be deleted via cascade)
         repo.delete(project);
     }
 
@@ -287,9 +312,9 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         }
     }
 
-    private void addMembers(Course course, Project project, Collection<String> usernames) {
-        for(String username: usernames) {
-            User user = userService.getByEmail(username);
+    private void addMembers(Course course, Project project, Collection<String> memberIds) {
+        for(String memberId: memberIds) {
+            User user = userService.get(memberId);
             addMember(course, project, user);
         }
     }

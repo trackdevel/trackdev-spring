@@ -93,6 +93,7 @@ public final class ErrorConstants {
     // Project errors
     public static final String CANNOT_GENERATE_UNIQUE_SLUG = "Unable to generate a unique project ID. Please try again.";
     public static final String CANNOT_REMOVE_MEMBER_HAS_ASSIGNED_TASKS = "Cannot remove member who has assigned tasks in this project";
+    public static final String PROJECT_HAS_TASKS = "Cannot delete project that has associated tasks";
     
     // Sprint validation errors
     public static final String SPRINT_END_DATE_BEFORE_START = "Sprint end date must be after start date";
