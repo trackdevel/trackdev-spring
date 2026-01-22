@@ -217,6 +217,17 @@ public class ProjectController extends BaseController {
         
         return reportService.computeReportForProject(reportId, projectId, userId, statusFilters);
     }
+    @Operation(summary = "Apply a sprint pattern to a project", description = "Apply a sprint pattern to a project, creating sprints from the pattern items (professors only)")
+    @PostMapping(path = "/{projectId}/apply-pattern/{patternId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public ProjectCompleteDTO applySprintPattern(
+            Principal principal,
+            @PathVariable(name = "projectId") Long projectId,
+            @PathVariable(name = "patternId") Long patternId) {
+        String userId = super.getUserId(principal);
+        Project project = service.applySprintPattern(projectId, patternId, userId);
+        return projectMapper.toCompleteDTO(project);
+    }
 
     static class EditProject {
         @Size(

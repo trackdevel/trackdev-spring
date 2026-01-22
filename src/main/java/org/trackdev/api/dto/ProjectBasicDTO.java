@@ -11,5 +11,6 @@ public class ProjectBasicDTO {
     private String slug;
     private String name;
     private Double qualification;
+    private Long sprintPatternId;
     private CourseBasicDTO course;
 }
