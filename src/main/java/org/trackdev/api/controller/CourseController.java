@@ -193,7 +193,11 @@ public class CourseController extends BaseController {
                     .filter(group -> group.isMember(userId))
                     .collect(Collectors.toCollection(ArrayList::new));
         }
-        return new ProjectsResponseDTO(projectMapper.toWithMembersDTOList(projects));
+        // Sort projects alphabetically by name
+        List<Project> sortedProjects = projects.stream()
+                .sorted((a, b) -> a.getName().compareToIgnoreCase(b.getName()))
+                .toList();
+        return new ProjectsResponseDTO(projectMapper.toWithMembersDTOList(sortedProjects));
     }
 
     @Operation(summary = "Create project enrolled to specific course", description = "Create project enrolled to specific course")
