@@ -48,4 +48,9 @@ public interface TaskRepository extends BaseRepositoryLong<Task> {
      * Find latest N tasks in the given projects
      */
     List<Task> findTop5ByProjectInOrderByCreatedAtDesc(Collection<Project> projects);
+
+    /**
+     * Check if a project has any tasks
+     */
+    boolean existsByProjectId(Long projectId);
 }

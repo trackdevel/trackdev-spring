@@ -564,8 +564,8 @@ public class DemoDataSeeder {
                                                       Course course, User professor,
                                                       SprintPattern sprintPattern) {
         // Create project
-        List<String> studentEmails = students.stream().map(User::getEmail).toList();
-        Project project = projectService.createProject(projectName, studentEmails, course.getId(), professor.getId());
+        List<String> studentIds = students.stream().map(User::getId).toList();
+        Project project = projectService.createProject(projectName, studentIds, course.getId(), professor.getId());
 
         // Apply sprint pattern to create sprints linked to pattern items
         project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
