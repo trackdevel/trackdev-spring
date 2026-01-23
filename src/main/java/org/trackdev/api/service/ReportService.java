@@ -336,11 +336,11 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         
         switch (axisType) {
             case STUDENTS:
-                // Get all project members and sort alphabetically by username
+                // Get all project members and sort alphabetically by fullName
                 Collection<User> members = project.getMembers();
                 if (members != null) {
                     for (User member : members) {
-                        headers.add(new ReportResultDTO.AxisHeader(member.getId(), member.getUsername()));
+                        headers.add(new ReportResultDTO.AxisHeader(member.getId(), member.getFullName()));
                     }
                 }
                 break;

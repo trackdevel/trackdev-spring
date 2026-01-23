@@ -45,4 +45,9 @@ public interface UserRepository extends BaseRepositoryUUID<User> {
     @Query("SELECT u FROM User u JOIN u.roles r WHERE u.workspace.id = :workspaceId AND r.userType IN :userTypes")
     List<User> findByWorkspaceIdAndRolesIn(@Param("workspaceId") Long workspaceId, @Param("userTypes") List<UserType> userTypes);
 
+    /**
+     * Find user by their GitHub username (login)
+     */
+    Optional<User> findByGithubInfoLogin(@Param("login") String login);
+
 }

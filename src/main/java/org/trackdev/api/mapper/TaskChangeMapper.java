@@ -35,6 +35,7 @@ public class TaskChangeMapper {
             : null);
         dto.setUserId(change.getAuthorEmail());
         dto.setUsername(change.getAuthorUsername());
+        dto.setFullName(change.getAuthorFullName());
         
         return dto;
     }
