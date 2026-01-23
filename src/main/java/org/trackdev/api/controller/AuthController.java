@@ -63,6 +63,9 @@ public class AuthController extends BaseController {
     @Autowired
     UserMapper userMapper;
 
+    @Autowired
+    org.trackdev.api.service.PasswordResetService passwordResetService;
+
     @Operation(summary = "Login user", description = "Login user with username and password")
     @PostMapping(path="/login")
     public LoginResponseDTO login(HttpServletRequest request,
@@ -203,6 +206,59 @@ public class AuthController extends BaseController {
         return okNoContent();
     }
 
+    // ============ NEW TOKEN-BASED PASSWORD RESET ENDPOINTS ============
+
+    @Operation(summary = "Request password reset", 
+               description = "Request a password reset link to be sent to the email. For security, always returns success regardless of whether the email exists.")
+    @PostMapping(path="/forgot-password")
+    public ResponseEntity<Void> forgotPassword(HttpServletRequest request, @Valid @RequestBody ForgotPasswordRequest body) {
+        // Rate limiting by IP address
+        String clientIp = getClientIpAddress(request);
+        String rateLimitKey = "forgot-password:" + clientIp;
+        
+        if (!rateLimiter.isAllowed(rateLimitKey)) {
+            // Still return success for security - don't reveal rate limiting
+            return okNoContent();
+        }
+        
+        // Language from Accept-Language header or default to "en"
+        String language = request.getHeader("Accept-Language");
+        if (language != null && language.length() > 2) {
+            language = language.substring(0, 2);
+        }
+        if (language == null || language.isEmpty()) {
+            language = "en";
+        }
+        
+        passwordResetService.requestPasswordReset(body.email, language);
+        
+        // Always return success for security - don't reveal if email exists
+        return okNoContent();
+    }
+
+    @Operation(summary = "Validate reset token", 
+               description = "Check if a password reset token is valid and not expired")
+    @GetMapping(path="/reset-password/validate")
+    public ResponseEntity<TokenValidationResponse> validateResetToken(@RequestParam(name = "token") String token) {
+        boolean valid = passwordResetService.validateToken(token);
+        return ResponseEntity.ok(new TokenValidationResponse(valid));
+    }
+
+    @Operation(summary = "Reset password with token", 
+               description = "Reset the user's password using a valid reset token")
+    @PostMapping(path="/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest body, BindingResult result) {
+        if (result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.toList());
+            throw new ControllerException(String.join(". ", errors));
+        }
+        
+        passwordResetService.resetPassword(body.token, body.newPassword);
+        return okNoContent();
+    }
+
     /**
      * Generate JWT token with user's actual roles from database.
      * Roles are prefixed with "ROLE_" for Spring Security compatibility.
@@ -266,6 +322,38 @@ public class AuthController extends BaseController {
     static class RecoveryPasswordT {
 
         public String code;
+        @NotBlank
+        @Size(
+                min = 8,
+                message = ErrorConstants.PASSWORD_MINIUM_LENGTH
+        )
+        @Pattern(
+                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
+                message = ErrorConstants.INVALID_PASSWORD_FORMAT
+        )
+        public String newPassword;
+    }
+
+    // ============ NEW TOKEN-BASED PASSWORD RESET DTOs ============
+
+    static class ForgotPasswordRequest {
+        @NotBlank
+        @jakarta.validation.constraints.Email(message = ErrorConstants.INVALID_MAIL_FORMAT)
+        public String email;
+    }
+
+    static class TokenValidationResponse {
+        public boolean valid;
+        
+        public TokenValidationResponse(boolean valid) {
+            this.valid = valid;
+        }
+    }
+
+    static class ResetPasswordRequest {
+        @NotBlank
+        public String token;
+
         @NotBlank
         @Size(
                 min = 8,

@@ -42,6 +42,8 @@ public class SecurityConfiguration {
             .cors(withDefaults())
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/recovery/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/forgot-password", "/auth/reset-password").permitAll()
+                .requestMatchers(HttpMethod.GET, "/auth/reset-password/validate").permitAll()
                 .requestMatchers(HttpMethod.GET, "/invites/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/invites/*/accept").permitAll()
                 .requestMatchers("/hooks/**").permitAll()  // GitHub webhooks (unauthenticated, validated via signature)
