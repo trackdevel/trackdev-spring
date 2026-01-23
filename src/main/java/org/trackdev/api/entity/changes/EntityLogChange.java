@@ -67,6 +67,18 @@ public abstract class EntityLogChange extends BaseEntityLong {
         }
     }
 
+    /**
+     * Returns the author's full name for JSON serialization.
+     * This avoids serializing the entire User entity in change logs.
+     */
+    public String getAuthorFullName() {
+        try {
+            return this.author != null ? this.author.getFullName() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public ZonedDateTime getChangedAt() { return this.changedAt; }
 
     public abstract String getType();
