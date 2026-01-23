@@ -59,7 +59,9 @@ public class EmailSenderService extends BaseServiceUUID<Email, EmailRepository> 
     /**
      * Send password recovery email with recovery code.
      * Runs asynchronously - caller will not wait for email to be sent.
+     * @deprecated Use sendPasswordResetEmail instead for token-based reset
      */
+    @Deprecated
     @Async
     public void sendRecoveryEmail(String email, String tempCode, String language) {
         Locale locale = Locale.forLanguageTag(language != null ? language : "en");
@@ -69,6 +71,25 @@ public class EmailSenderService extends BaseServiceUUID<Email, EmailRepository> 
             new Object[]{tempCode, recoveryLink}, locale);
 
         sendEmail(email, subject, body, "recovery");
+    }
+
+    /**
+     * Send password reset email with secure token link.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     * 
+     * @param email The recipient email address
+     * @param token The secure reset token
+     * @param language The language for email content
+     */
+    @Async
+    public void sendPasswordResetEmail(String email, String token, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        String subject = messageSource.getMessage("email.passwordReset.subject", null, locale);
+        String body = messageSource.getMessage("email.passwordReset.body", 
+            new Object[]{resetLink, 24}, locale); // 24 hours validity
+
+        sendEmail(email, subject, body, "password-reset");
     }
 
     /**
