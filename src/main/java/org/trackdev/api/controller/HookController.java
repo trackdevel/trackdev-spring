@@ -146,7 +146,22 @@ public class HookController extends BaseController {
         
         log.info("Processing PR #{} from {} - action: {} by {}", pr.number, repoFullName, action, senderLogin);
         
-        // Extract task keys from PR body
+        // Always create/update the PR and record the change event first
+        PullRequest pullRequest = pullRequestService.processWebhookEvent(
+                pr.html_url,
+                pr.node_id,
+                pr.number,
+                pr.title,
+                pr.body,
+                pr.state,
+                pr.merged,
+                repoFullName,
+                authorLogin,
+                action,
+                senderLogin
+        );
+        
+        // Extract task keys from PR body for linking
         String prBody = pr.body != null ? pr.body : "";
         Set<String> taskKeys = extractTaskKeys(prBody);
         
@@ -157,31 +172,15 @@ public class HookController extends BaseController {
         
         log.info("Found task keys in PR #{}: {}", pr.number, taskKeys);
         
-        // Link PR to each matching task
+        // Link PR to each matching task (PR already created, just need to link)
         List<PullRequestDTO> linkedPRs = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        boolean isFirstTask = true;
         
         for (String taskKey : taskKeys) {
             try {
-                // Only record the PR change event for the first task to avoid duplicates
-                PullRequest linkedPR = pullRequestService.linkPullRequestToTask(
-                        taskKey.toLowerCase(),  // Normalize to lowercase
-                        pr.html_url,
-                        pr.node_id,
-                        pr.number,
-                        pr.title,
-                        pr.state,
-                        pr.merged,
-                        repoFullName,
-                        authorLogin,
-                        action,
-                        senderLogin,
-                        isFirstTask  // Only record change for first task
-                );
-                linkedPRs.add(pullRequestMapper.toDTO(linkedPR));
+                pullRequestService.linkPullRequestToTask(taskKey.toLowerCase(), pullRequest, action, senderLogin);
+                linkedPRs.add(pullRequestMapper.toDTO(pullRequest));
                 log.info("Linked PR #{} to task {}", pr.number, taskKey);
-                isFirstTask = false;
             } catch (Exception e) {
                 log.warn("Failed to link PR #{} to task {}: {}", pr.number, taskKey, e.getMessage());
                 errors.add(taskKey + ": " + e.getMessage());
