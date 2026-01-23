@@ -109,5 +109,9 @@ public final class ErrorConstants {
     public static final String CANNOT_DELETE_USER_HAS_OWNED_COURSES = "Cannot delete user who owns courses";
     public static final String CANNOT_MANAGE_SELF = "You cannot delete or edit your own account from this interface";
     
+    // Password reset errors
+    public static final String INVALID_RESET_TOKEN = "The password reset link is invalid";
+    public static final String EXPIRED_RESET_TOKEN = "The password reset link has expired";
+    
     public static final String EMPTY = "";
 }
