@@ -142,6 +142,34 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         return user.get();
     }
 
+    /**
+     * Find a user by their GitHub login (username set in GitHub)
+     * @param githubLogin The GitHub username
+     * @return The user with matching GitHub login, or null if not found
+     */
+    public User getByGithubLogin(String githubLogin) {
+        return repo().findByGithubInfoLogin(githubLogin).orElse(null);
+    }
+
+    /**
+     * Find a user by GitHub login, falling back to system username.
+     * This is useful for matching GitHub usernames to project members.
+     * @param githubUsername The GitHub username to look up
+     * @return The matching user, or null if not found by either method
+     */
+    public User findByGithubUsernameOrUsername(String githubUsername) {
+        if (githubUsername == null || githubUsername.isBlank()) {
+            return null;
+        }
+        // First try to find by GitHub login
+        User user = getByGithubLogin(githubUsername);
+        if (user != null) {
+            return user;
+        }
+        // Fallback to system username
+        return repo().findByUsername(githubUsername).orElse(null);
+    }
+
     public User getByEmail(String email) {
         User user = repo().findByEmail(email);
         if(user == null) {
@@ -232,13 +260,26 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User editMyUser(User modifier, User user, Optional<String> username, Optional<String> color,
                          Optional<String> capitalLetters, Optional<Boolean> changePassword,
-                         Optional<String> githubToken, Optional<Boolean> enabled, Optional<String> timezone) {
+                         Optional<String> githubToken, Optional<String> githubUsername, Optional<Boolean> enabled, Optional<String> timezone) {
         if(username != null && modifier.isUserType(UserType.ADMIN)) username.ifPresent(user::setUsername);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
         if(enabled != null && modifier.isUserType(UserType.ADMIN)) enabled.ifPresent(user::setEnabled);
         if(timezone != null) timezone.ifPresent(user::setTimezone);
+        
+        // Handle githubUsername - allow manual setting without token
+        if(githubUsername != null && githubUsername.isPresent()) {
+            String newGithubUsername = githubUsername.get();
+            if (newGithubUsername.isEmpty()) {
+                // Clear the github username if empty string provided
+                user.setGithubName(null);
+            } else {
+                user.setGithubName(newGithubUsername);
+            }
+        }
+        
+        // Handle githubToken - fetches user info from GitHub API
         if(githubToken != null && githubToken.isPresent()) {
             githubToken.ifPresent(user::setGithubToken);
             ResponseEntity<GithubInfo> githubInfo = githubService.getGithubInformation(user.getGithubInfo().getGithub_token());
@@ -262,11 +303,6 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
                 user.setGithubAvatar(null);
                 user.setGithubHtmlUrl(null);
             }
-        } else {
-            user.setGithubToken(null);
-            user.setGithubName(null);
-            user.setGithubAvatar(null);
-            user.setGithubHtmlUrl(null);
         }
         repo().save(user);
         return user;
@@ -307,9 +343,9 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Transactional
     public User editMyUserById(String userId, Optional<String> username, Optional<String> color,
                                Optional<String> capitalLetters, Optional<Boolean> changePassword,
-                               Optional<String> githubToken, Optional<Boolean> enabled, Optional<String> timezone) {
+                               Optional<String> githubToken, Optional<String> githubUsername, Optional<Boolean> enabled, Optional<String> timezone) {
         User user = get(userId);
-        return editMyUser(user, user, username, color, capitalLetters, changePassword, githubToken, enabled, timezone);
+        return editMyUser(user, user, username, color, capitalLetters, changePassword, githubToken, githubUsername, enabled, timezone);
     }
 
     /**
@@ -320,11 +356,12 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     public User editUserByAdmin(String adminUserId, String targetUserId, Optional<String> username, 
                                 Optional<String> color, Optional<String> capitalLetters, 
                                 Optional<Boolean> changePassword, Optional<String> githubToken, 
+                                Optional<String> githubUsername,
                                 Optional<Boolean> enabled, Optional<String> timezone) {
         User modifier = get(adminUserId);
         accessChecker.checkIsUserAdmin(modifier);
         User user = get(targetUserId);
-        return editMyUser(modifier, user, username, color, capitalLetters, changePassword, githubToken, enabled, timezone);
+        return editMyUser(modifier, user, username, color, capitalLetters, changePassword, githubToken, githubUsername, enabled, timezone);
     }
 
     /**
