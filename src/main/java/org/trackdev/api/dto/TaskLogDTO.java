@@ -20,4 +20,5 @@ public class TaskLogDTO {
     private String timestamp;
     private String userId;
     private String username;
+    private String fullName;
 }
