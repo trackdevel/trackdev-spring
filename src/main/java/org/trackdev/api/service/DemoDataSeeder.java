@@ -614,8 +614,9 @@ public class DemoDataSeeder {
                     String subtaskName = subtaskPrefixes.get(t % subtaskPrefixes.size()) + " " +
                         storyName.replace("As a user, I want to ", "").toLowerCase();
 
-                    // Create subtask with sprint assignment
-                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, assignee.getId(), sprint.getId());
+                    // Create subtask with sprint assignment - randomly assign TASK or BUG type
+                    TaskType subtaskType = random.nextBoolean() ? TaskType.TASK : TaskType.BUG;
+                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, assignee.getId(), sprint.getId(), subtaskType);
 
                     User subtaskAssignee = students.get(random.nextInt(students.size()));
                     

@@ -16,6 +16,7 @@ import org.trackdev.api.entity.Report;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.TaskStatus;
+import org.trackdev.api.entity.TaskType;
 import org.trackdev.api.mapper.ProjectMapper;
 import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.mapper.TaskMapper;
@@ -136,14 +137,14 @@ public class ProjectController extends BaseController {
         return new IdResponseDTO(createdSprint.getId());
     }
 
-    @Operation(summary = "Create US of specific project", description = "Create US of specific project")
+    @Operation(summary = "Create task in specific project", description = "Create a task in the project backlog")
     @PostMapping(path = "/{projectId}/tasks")
     public IdResponseDTO createTask(Principal principal,
                               @PathVariable(name = "projectId") Long projectId,
                               @Valid @RequestBody  NewTask task) {
         String userId = super.getUserId(principal);
         // All operations in a single transaction
-        Task createdTask = service.createProjectTask(projectId, task.name, userId);
+        Task createdTask = service.createProjectTask(projectId, task.name, task.description, task.type, task.assigneeId, userId);
         return new IdResponseDTO(createdTask.getId());
     }
 
@@ -252,6 +253,10 @@ public class ProjectController extends BaseController {
     }
 
     static class NewTask{
+        @Size(min = Task.MIN_NAME_LENGTH, max = Task.NAME_LENGTH)
         public String name;
+        public String description;
+        public TaskType type;
+        public String assigneeId;
     }
 }

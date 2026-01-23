@@ -126,7 +126,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task createSubTask(Long taskId, String name, String userId, Long sprintId) {
+    public Task createSubTask(Long taskId, String name, String userId, Long sprintId, TaskType type) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
         
@@ -140,7 +140,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Sanitize subtask name to prevent XSS attacks
         String sanitizedName = HtmlSanitizer.sanitize(name);
         Task subtask = new Task(sanitizedName, user);
-        subtask.setType(TaskType.TASK);
+        
+        // Subtasks can only be TASK or BUG, default to TASK if not specified or invalid
+        if (type == TaskType.TASK || type == TaskType.BUG) {
+            subtask.setType(type);
+        } else {
+            subtask.setType(TaskType.TASK);
+        }
         subtask.setParentTask(parentTask);
         subtask.setStatus(parentTask.getStatus());  // Inherit status from parent USER_STORY
         
@@ -334,6 +340,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if (task.getTaskType() == TaskType.USER_STORY) {
                 Collection<Task> childTasks = task.getChildTasks();
                 if (childTasks != null && !childTasks.isEmpty()) {
+                    // Force initialization of child tasks and their sprints to avoid lazy loading issues
+                    for (Task subtask : childTasks) {
+                        if (subtask.getActiveSprints() != null) {
+                            subtask.getActiveSprints().size(); // Force initialization
+                        }
+                    }
                     // Check if any subtask is assigned to a sprint
                     boolean anySubtaskHasSprint = childTasks.stream()
                         .anyMatch(subtask -> subtask.getActiveSprints() != null && !subtask.getActiveSprints().isEmpty());

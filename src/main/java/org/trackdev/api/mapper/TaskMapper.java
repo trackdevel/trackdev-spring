@@ -29,7 +29,7 @@ public interface TaskMapper {
     @Mapping(target = "pullRequests", source = "pullRequests", qualifiedByName = "pullRequestToDTO")
     @Mapping(target = "parentTaskId", source = "parentTaskId")
     @Mapping(target = "parentTask", ignore = true)
-    @Mapping(target = "childTasks", ignore = true)
+    @Mapping(target = "childTasks", source = "childTasks", qualifiedByName = "childTasksToBasicDTO")
     TaskBasicDTO toBasicDTO(Task task);
 
     @Named("taskToCompleteDTO")

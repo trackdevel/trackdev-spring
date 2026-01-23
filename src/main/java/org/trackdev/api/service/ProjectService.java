@@ -129,11 +129,22 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
      * All operations in a single transaction.
      */
     @Transactional
-    public Task createProjectTask(Long projectId, String name, String userId){
+    public Task createProjectTask(Long projectId, String name, String description, TaskType type, String assigneeId, String userId){
         Project project = get(projectId);
         User reporter = userService.get(userId);
         accessChecker.checkCanViewProject(project, userId);
         Task task = new Task(name, reporter);
+        // Set type - default to USER_STORY if not provided
+        task.setType(type != null ? type : TaskType.USER_STORY);
+        // Set description if provided
+        if (description != null && !description.isBlank()) {
+            task.setDescription(description);
+        }
+        // Set assignee if provided
+        if (assigneeId != null && !assigneeId.isBlank()) {
+            User assignee = userService.get(assigneeId);
+            task.setAssignee(assignee);
+        }
         project.addTask(task);
         task.setProject(project);
         repo.save(project);

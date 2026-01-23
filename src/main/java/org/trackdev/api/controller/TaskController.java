@@ -151,7 +151,7 @@ public class TaskController extends CrudController<Task, TaskService> {
             throw new ControllerException(ErrorConstants.INVALID_TASK_NAME_LENGTH);
         }
         String userId = super.getUserId(principal);
-        Task subtask = service.createSubTask(id, request.name, userId, request.sprintId);
+        Task subtask = service.createSubTask(id, request.name, userId, request.sprintId, request.type);
 
         return new IdResponseDTO(subtask.getId());
     }
@@ -256,5 +256,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         public String name;
         
         public Long sprintId;
+        
+        public TaskType type;
     }
 }
