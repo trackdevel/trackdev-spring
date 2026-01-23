@@ -11,9 +11,11 @@ import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.entity.prchanges.PullRequestChange;
 import org.trackdev.api.entity.prchanges.PullRequestClosedChange;
+import org.trackdev.api.entity.prchanges.PullRequestEditedChange;
 import org.trackdev.api.entity.prchanges.PullRequestMergedChange;
 import org.trackdev.api.entity.prchanges.PullRequestOpenedChange;
 import org.trackdev.api.entity.prchanges.PullRequestReopenedChange;
+import org.trackdev.api.entity.prchanges.PullRequestSynchronizeChange;
 import org.trackdev.api.repository.PullRequestChangeRepository;
 import org.trackdev.api.repository.PullRequestRepository;
 import org.trackdev.api.repository.TaskRepository;
@@ -54,9 +56,100 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     }
 
     /**
+     * Process a GitHub webhook event for a pull request.
+     * Always creates/updates the PR and records a change event.
+     * This is called for every webhook, regardless of task linking.
+     * 
+     * @param prUrl The PR URL
+     * @param nodeId The GitHub node ID
+     * @param prNumber The PR number
+     * @param title The PR title
+     * @param body The PR body/description
+     * @param state The PR state (open, closed)
+     * @param merged Whether the PR has been merged
+     * @param repoFullName The repository full name (owner/repo)
+     * @param authorLogin The PR author's GitHub login
+     * @param action The webhook action (opened, closed, reopened, etc.)
+     * @param senderLogin The GitHub user who triggered the action
+     * @return The created or updated PullRequest
+     */
+    @Transactional
+    public PullRequest processWebhookEvent(String prUrl, String nodeId,
+                                           Integer prNumber, String title, String body,
+                                           String state, Boolean merged, String repoFullName,
+                                           String authorLogin, String action, String senderLogin) {
+        // Find or create the PR by URL
+        Optional<PullRequest> existingPR = this.repo.findByUrl(prUrl);
+        PullRequest pr;
+        boolean isNewPR = existingPR.isEmpty();
+        
+        if (existingPR.isPresent()) {
+            pr = existingPR.get();
+            // Update existing PR with latest data
+            pr.setTitle(title);
+            pr.setState(state);
+            pr.setMerged(merged);
+            pr.setUpdatedAt(ZonedDateTime.now(ZoneId.of("UTC")));
+        } else {
+            // Create new PR
+            pr = new PullRequest(prUrl, nodeId != null ? nodeId : generateNodeId(prUrl));
+            pr.setPrNumber(prNumber);
+            pr.setTitle(title);
+            pr.setState(state);
+            pr.setMerged(merged);
+            pr.setRepoFullName(repoFullName);
+            pr.setCreatedAt(ZonedDateTime.now(ZoneId.of("UTC")));
+            
+            // Try to find author by GitHub login or username
+            if (authorLogin != null) {
+                User author = userService.findByGithubUsernameOrUsername(authorLogin);
+                if (author != null) {
+                    pr.setAuthor(author);
+                }
+            }
+        }
+        
+        this.repo.save(pr);
+        
+        // Always record the change event for this webhook action
+        recordPullRequestChange(pr, action, senderLogin, title, prNumber, repoFullName, merged);
+        
+        return pr;
+    }
+
+    /**
+     * Link an existing pull request to a task by task key.
+     * The PR must already exist (created via processWebhookEvent).
+     * 
+     * @param taskKey The task key (e.g., "a7k-1")
+     * @param pr The existing PullRequest to link
+     * @param action The webhook action for activity recording
+     * @param senderLogin The GitHub user who triggered the action
+     */
+    @Transactional
+    public void linkPullRequestToTask(String taskKey, PullRequest pr, String action, String senderLogin) {
+        // Find the task by key
+        Task task = taskRepository.findByTaskKey(taskKey)
+                .orElseThrow(() -> new EntityNotFound("Task", taskKey));
+        
+        // Check if already linked to this task
+        boolean isNewLink = !pr.hasTask(task);
+        if (isNewLink) {
+            // Add this task to the PR's tasks (many-to-many)
+            task.addPullRequest(pr);
+            this.repo.save(pr);
+            
+            // Record activity for the new link
+            recordPullRequestActivity(pr, task, action, pr.getMerged(), senderLogin);
+        }
+    }
+
+    /**
      * Link a pull request to a task by task key.
      * If the PR already exists (by URL), updates it. Otherwise creates a new one.
      * Records change history for tracking.
+     * 
+     * @deprecated Use processWebhookEvent + linkPullRequestToTask instead
      * 
      * @param taskKey The task key (e.g., "a7k-1")
      * @param prUrl The PR URL
@@ -71,6 +164,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
      * @param senderLogin The GitHub user who triggered the action
      * @return The linked or updated PullRequest
      */
+    @Deprecated
     @Transactional
     public PullRequest linkPullRequestToTask(String taskKey, String prUrl, String nodeId,
                                               Integer prNumber, String title, String state,
@@ -111,13 +205,11 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             pr.setRepoFullName(repoFullName);
             pr.setCreatedAt(ZonedDateTime.now(ZoneId.of("UTC")));
             
-            // Try to find author by username
+            // Try to find author by GitHub login or username
             if (authorLogin != null) {
-                try {
-                    User author = userService.getByUsername(authorLogin);
+                User author = userService.findByGithubUsernameOrUsername(authorLogin);
+                if (author != null) {
                     pr.setAuthor(author);
-                } catch (Exception e) {
-                    // Author not found in system - leave as null
                 }
             }
             
@@ -142,10 +234,8 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
      * Record activity for pull request events.
      */
     private void recordPullRequestActivity(PullRequest pr, Task task, String action, Boolean merged, String senderLogin) {
-        User actor = null;
-        try {
-            actor = userService.getByUsername(senderLogin);
-        } catch (Exception e) {
+        User actor = userService.findByGithubUsernameOrUsername(senderLogin);
+        if (actor == null) {
             // Actor not found - skip activity recording
             return;
         }
@@ -177,18 +267,14 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
 
     /**
      * Record a change to a pull request based on the action.
+     * Always records a change for every webhook event.
      */
     private void recordPullRequestChange(PullRequest pr, String action, String senderLogin,
                                           String title, Integer prNumber, String repoFullName, Boolean merged) {
         PullRequestChange change = null;
         
         // Try to find the system user who triggered this action
-        User systemUser = null;
-        try {
-            systemUser = userService.getByUsername(senderLogin);
-        } catch (Exception e) {
-            // User not found in system - continue without system user reference
-        }
+        User systemUser = userService.findByGithubUsernameOrUsername(senderLogin);
         
         switch (action) {
             case "opened":
@@ -206,7 +292,16 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             case "reopened":
                 change = new PullRequestReopenedChange(systemUser, pr, senderLogin);
                 break;
-            // Other actions (edited, synchronize) don't need change tracking
+            case "synchronize":
+                change = new PullRequestSynchronizeChange(systemUser, pr, senderLogin);
+                break;
+            case "edited":
+                change = new PullRequestEditedChange(systemUser, pr, senderLogin, title);
+                break;
+            // For other action types, we still want to record the event but with a generic type
+            default:
+                // Log but don't create a specific change entity for unsupported actions
+                break;
         }
         
         if (change != null) {
@@ -240,12 +335,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
 
     @Transactional
     public PullRequest findOrCreateByNodeId(String url, String nodeId, String login) {
-        User author = null;
-        try {
-            author = userService.getByUsername(login);
-        } catch (Exception e) {
-            // Author not found - continue without author
-        }
+        User author = userService.findByGithubUsernameOrUsername(login);
         
         Optional<PullRequest> opr = this.repo().findByNodeId(nodeId);
         if (opr.isEmpty()) {
