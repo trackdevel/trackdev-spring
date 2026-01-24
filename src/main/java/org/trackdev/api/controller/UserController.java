@@ -147,7 +147,7 @@ public class UserController extends BaseController {
         }
         String userId = super.getUserId(principal);
         // All operations in a single transaction
-        return userMapper.toWithGithubTokenDTO(userService.editMyUserById(userId, userRequest.username, userRequest.color,
+        return userMapper.toWithGithubTokenDTO(userService.editMyUserById(userId, userRequest.username, userRequest.fullName, userRequest.email, userRequest.color,
                 userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.githubUsername, userRequest.enabled, userRequest.timezone));
     }
 
@@ -167,7 +167,7 @@ public class UserController extends BaseController {
         }
         String userId = super.getUserId(principal);
         // All operations in a single transaction with admin check inside service
-        return userMapper.toWithProjectsDTO(userService.editUserByAdmin(userId, id, userRequest.username, userRequest.color,
+        return userMapper.toWithProjectsDTO(userService.editUserByAdmin(userId, id, userRequest.username, userRequest.fullName, userRequest.email, userRequest.color,
                 userRequest.capitalLetters, userRequest.changePassword, userRequest.githubToken, userRequest.githubUsername, userRequest.enabled, userRequest.timezone));
     }
 
@@ -228,6 +228,10 @@ public class UserController extends BaseController {
 
         public Optional<String> username;
 
+        public Optional<String> fullName;
+
+        public Optional<String> email;
+
         public Optional<String> color;
 
         public Optional<String> capitalLetters;
@@ -287,7 +291,7 @@ public class UserController extends BaseController {
         accessChecker.checkCanManageWorkspaceUser(currentUser, targetUser);
         
         return userMapper.toWithProjectsDTO(userService.editMyUser(currentUser, targetUser, 
-            userRequest.username, userRequest.color, userRequest.capitalLetters, 
+            userRequest.username, userRequest.fullName, userRequest.email, userRequest.color, userRequest.capitalLetters, 
             userRequest.changePassword, userRequest.githubToken, userRequest.githubUsername, userRequest.enabled, userRequest.timezone));
     }
 
