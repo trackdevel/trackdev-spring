@@ -258,10 +258,12 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     @Transactional
-    public User editMyUser(User modifier, User user, Optional<String> username, Optional<String> color,
+    public User editMyUser(User modifier, User user, Optional<String> username, Optional<String> fullName, Optional<String> email, Optional<String> color,
                          Optional<String> capitalLetters, Optional<Boolean> changePassword,
                          Optional<String> githubToken, Optional<String> githubUsername, Optional<Boolean> enabled, Optional<String> timezone) {
         if(username != null && modifier.isUserType(UserType.ADMIN)) username.ifPresent(user::setUsername);
+        if(fullName != null) fullName.ifPresent(user::setFullName);
+        if(email != null) email.ifPresent(user::setEmail);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
@@ -341,11 +343,11 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
      * All operations in a single transaction.
      */
     @Transactional
-    public User editMyUserById(String userId, Optional<String> username, Optional<String> color,
+    public User editMyUserById(String userId, Optional<String> username, Optional<String> fullName, Optional<String> email, Optional<String> color,
                                Optional<String> capitalLetters, Optional<Boolean> changePassword,
                                Optional<String> githubToken, Optional<String> githubUsername, Optional<Boolean> enabled, Optional<String> timezone) {
         User user = get(userId);
-        return editMyUser(user, user, username, color, capitalLetters, changePassword, githubToken, githubUsername, enabled, timezone);
+        return editMyUser(user, user, username, fullName, email, color, capitalLetters, changePassword, githubToken, githubUsername, enabled, timezone);
     }
 
     /**
@@ -354,6 +356,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
      */
     @Transactional
     public User editUserByAdmin(String adminUserId, String targetUserId, Optional<String> username, 
+                                Optional<String> fullName, Optional<String> email,
                                 Optional<String> color, Optional<String> capitalLetters, 
                                 Optional<Boolean> changePassword, Optional<String> githubToken, 
                                 Optional<String> githubUsername,
@@ -361,7 +364,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         User modifier = get(adminUserId);
         accessChecker.checkIsUserAdmin(modifier);
         User user = get(targetUserId);
-        return editMyUser(modifier, user, username, color, capitalLetters, changePassword, githubToken, githubUsername, enabled, timezone);
+        return editMyUser(modifier, user, username, fullName, email, color, capitalLetters, changePassword, githubToken, githubUsername, enabled, timezone);
     }
 
     /**
