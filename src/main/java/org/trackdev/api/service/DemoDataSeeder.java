@@ -447,7 +447,17 @@ public class DemoDataSeeder {
             patternBD
         );
         
-        logger.info("Created 6 projects with sprints and tasks");
+        // Empty sprint project for testing drag/drop from backlog to empty sprint
+        // Only includes student1 (udg.student1@trackdev.com)
+        Project projectEmptySprint = createProjectWithSprintsOnly(
+            "pds25-empty",
+            List.of(studentsUdG.get(0)),  // Only student1
+            coursePDS,
+            professorPDS,
+            patternUdG
+        );
+        
+        logger.info("Created 7 projects with sprints and tasks");
 
         // Set default current projects for professors
         userService.setCurrentProject(professorPDS, projectPDS);
@@ -479,7 +489,7 @@ public class DemoDataSeeder {
         logger.info("  - 4 subjects");
         logger.info("  - 4 courses");
         logger.info("  - 4 sprint patterns (one per course)");
-        logger.info("  - 6 projects with sprints created from patterns and tasks");
+        logger.info("  - 7 projects with sprints (1 with empty active sprint for testing)");
         logger.info("  - 1 sample report (PDS 2025)");
     }
 
@@ -705,6 +715,29 @@ public class DemoDataSeeder {
         MergePatchSprint change = new MergePatchSprint();
         change.status = Optional.of(SprintStatus.CLOSED);
         sprintService.editSprintInternal(sprint.getId(), change, userId);
+    }
+
+    /**
+     * Create a project with sprints but no tasks (empty sprints)
+     */
+    private Project createProjectWithSprintsOnly(String projectName, List<User> students,
+                                                  Course course, User professor,
+                                                  SprintPattern sprintPattern) {
+        List<String> studentIds = students.stream().map(User::getId).toList();
+        Project project = projectService.createProject(projectName, studentIds, course.getId(), professor.getId());
+        project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
+        
+        // Activate all sprints but don't create any tasks
+        List<Sprint> allSprints = sprintRepository.findByProject_IdOrderBySprintPatternItem_OrderIndexAsc(project.getId());
+        for (int i = 0; i < allSprints.size(); i++) {
+            Sprint sprint = allSprints.get(i);
+            activateSprint(sprint, professor.getId());
+            // Close past sprints
+            if (i < 3) {
+                closeSprint(sprint, professor.getId());
+            }
+        }
+        return project;
     }
 
     /**
