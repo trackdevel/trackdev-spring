@@ -362,17 +362,19 @@ Windows PowerShell
   - Name: 1-100 characters
   - Description: optional
   - Type: Enum (USER_STORY, BUG, TASK)
-  - Status: Enum (BACKLOG, TODO, IN_PROGRESS, VERYFINIG, DONE)
+  - Status: Enum (BACKLOG, TODO, IN_PROGRESS, VERIFYING, DONE)
   - When a task is created in the Backlog view, it can be of type USER_STORY or TASK or BUG
   - When a task is created as a child of a USER_STORY, it must be of type TASK or BUG
-  - When a task is created as a child of a USER_STORY, it can be created by a STUDENT different than the one assigned to the USRER_STORY. The new Task (child) will be assigned to the STUDENT logged in that creates it
-  - A task can only be modified if is is in an active sprint by the assignee of the professor of the course
+  - Subtask type must be passed to the backend `createSubTask` method (not hardcoded)
+  - When a task is created as a child of a USER_STORY, it can be created by a STUDENT different than the one assigned to the USER_STORY. The new Task (child) will be assigned to the STUDENT logged in that creates it
+  - A task can only be modified if it is in an active sprint by the assignee or the professor of the course
   - Estimation Points: non-negative integer
   - Manually set for TASK and BUG only
   - For USER_STORY: estimation points are always calculated as the sum of subtask estimation points (cannot be set manually)
   - A USER_STORY cannot be considered as DONE unless all its child TASK and BUG tasks are DONE and all have estimation points
   - A task cannot be moved to VERIFYING status unless it has at least 1 Pull Request associated (simulated in demo data)
   - A task cannot be moved to DONE status unless it has at least 1 Pull Request merged (simulated in demo data)
+  - Subtasks of USER_STORY include both TASK and BUG types when displayed in sprint board
 
 - SprintPattern
     - Name: 1-50 characters
@@ -431,10 +433,13 @@ Windows PowerShell
     - A Project can have multiple Tasks
 
 -  Users
-    - Username: unique, 3-50 characters
+    - Username: unique, 3-50 characters (read-only after creation)
     - Email: unique, valid email format
+    - FullName: optional, display name for the user
     - Password: stored as bcrypt hash
     - UserType: Enum (ADMIN, WORKSPACE_ADMIN, PROFESSOR, STUDENT)
+    - Profile editing: Users can update their own `fullName` and `email` via `PUT /users/me`
+    - The `EditU` request class must include all editable fields (fullName, email, password)
     - User creation constraints (it works for UI and API):
         - If as ADMIN I create a new ADMIN, no need of additional information
         - If as ADMIN I create a new WORKSPACE_ADMIN, I only need to select the Workspace to which it will be associated
