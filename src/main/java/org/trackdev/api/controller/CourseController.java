@@ -223,6 +223,18 @@ public class CourseController extends BaseController {
         return new CourseReportsResponse(reportMapper.toBasicDTOList(reports), courseId);
     }
 
+    @Operation(summary = "Apply a profile to a course", description = "Apply a profile to a course, enabling custom attribute tracking for all projects (professors only)")
+    @PostMapping(path = "/{courseId}/apply-profile/{profileId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public CourseCompleteDTO applyProfile(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "profileId") Long profileId) {
+        String userId = super.getUserId(principal);
+        Course course = service.applyProfile(courseId, profileId, userId);
+        return courseMapper.toCompleteDTO(course);
+    }
+
 
     static class NewProject {
         @NotBlank
