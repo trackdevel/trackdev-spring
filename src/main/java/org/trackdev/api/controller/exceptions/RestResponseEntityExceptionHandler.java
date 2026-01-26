@@ -60,6 +60,9 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     private final Logger log = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.trackdev.api.service.MessageResolver messageResolver;
+
     // ========== Override all Spring MVC exception handlers ==========
 
     @Override
@@ -432,9 +435,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(ServiceException.class)
     protected ResponseEntity<Object> handleServiceException(ServiceException ex, WebRequest request) {
-        log.info("Service exception: {}", ex.getMessage());
+        // Translate the message key to localized message
+        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        log.info("Service exception: {} -> {}", ex.getMessage(), translatedMessage);
         
-        ErrorEntity error = createErrorEntity("Service error", HttpStatus.BAD_REQUEST, ex.getMessage(), 
+        ErrorEntity error = createErrorEntity("Service error", HttpStatus.BAD_REQUEST, translatedMessage, 
                 ex.getErrorCode() != null ? ex.getErrorCode() : "SERVICE_ERROR", request);
         
         // Merge exception details with base details
@@ -450,9 +455,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(ControllerException.class)
     protected ResponseEntity<Object> handleControllerException(ControllerException ex, WebRequest request) {
-        log.info("Controller exception: {}", ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        log.info("Controller exception: {} -> {}", ex.getMessage(), translatedMessage);
         
-        ErrorEntity error = createErrorEntity("Controller error", HttpStatus.BAD_REQUEST, ex.getMessage(), 
+        ErrorEntity error = createErrorEntity("Controller error", HttpStatus.BAD_REQUEST, translatedMessage, 
                 ex.getErrorCode() != null ? ex.getErrorCode() : "CONTROLLER_ERROR", request);
         
         Map<String, Object> details = new HashMap<>();
@@ -467,9 +473,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(EntityException.class)
     protected ResponseEntity<Object> handleEntityException(EntityException ex, WebRequest request) {
-        log.info("Entity exception: {}", ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        log.info("Entity exception: {} -> {}", ex.getMessage(), translatedMessage);
         
-        ErrorEntity error = createErrorEntity("Entity error", HttpStatus.BAD_REQUEST, ex.getMessage(), 
+        ErrorEntity error = createErrorEntity("Entity error", HttpStatus.BAD_REQUEST, translatedMessage, 
                 ex.getErrorCode() != null ? ex.getErrorCode() : "ENTITY_ERROR", request);
         
         Map<String, Object> details = new HashMap<>();
@@ -484,9 +491,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(EntityNotFound.class)
     protected ResponseEntity<Object> handleEntityNotFound(EntityNotFound ex, WebRequest request) {
-        log.info("Entity not found: {}", ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        log.info("Entity not found: {} -> {}", ex.getMessage(), translatedMessage);
         
-        ErrorEntity error = createErrorEntity("Not found", HttpStatus.NOT_FOUND, ex.getMessage(), 
+        ErrorEntity error = createErrorEntity("Not found", HttpStatus.NOT_FOUND, translatedMessage, 
                 ex.getErrorCode() != null ? ex.getErrorCode() : "NOT_FOUND", request);
         
         Map<String, Object> details = new HashMap<>();
