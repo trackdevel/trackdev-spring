@@ -400,6 +400,12 @@ Windows PowerShell
     - A TASK or BUG can be reasigned to another Sprint, provided they are not in DONE state AND the Sprint is either active or in the future
     - A TASK or BUG can be reasigned from the Task View making the Sprint field on the right editable
 
+- Moving tasks back to backlog (removing from sprint):
+    - A USER_STORY can only be moved back to backlog if ALL its subtasks are in TODO state
+    - A TASK or BUG (with no parent) can only be moved back to backlog if it is in TODO state
+    - A subtask (TASK or BUG with a parent) can only be moved back to backlog if it is in TODO state
+    - If a task has begun (status is not TODO), it cannot go back to the backlog - show error "A task that has begun cannot go back to the backlog"
+
 - Subjects
     - Name: 1-100 characters
     - Description: optional
