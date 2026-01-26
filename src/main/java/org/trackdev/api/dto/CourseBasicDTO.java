@@ -13,4 +13,5 @@ public class CourseBasicDTO {
     private String language;
     private String ownerId;
     private SubjectBasicDTO subject;
+    private Long profileId;
 }

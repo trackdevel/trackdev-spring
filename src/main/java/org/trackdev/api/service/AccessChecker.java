@@ -725,4 +725,57 @@ public class AccessChecker {
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
+    // PROFILES
+
+    /**
+     * Check if user can create a profile.
+     * Only PROFESSOR can create profiles.
+     */
+    public void checkCanCreateProfile(User user) {
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Check if user can view a profile.
+     * ADMIN can view any profile.
+     * PROFESSOR can view their own profiles.
+     */
+    public void checkCanViewProfile(org.trackdev.api.entity.Profile profile, String userId) {
+        User user = userService.get(userId);
+        
+        // ADMIN can view any profile
+        if (user.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        
+        // PROFESSOR can view their own profiles
+        if (user.isUserType(UserType.PROFESSOR) && profile.getOwnerId().equals(userId)) {
+            return;
+        }
+        
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    /**
+     * Check if user can manage (edit/delete) a profile.
+     * Only the profile owner can manage it.
+     */
+    public void checkCanManageProfile(org.trackdev.api.entity.Profile profile, String userId) {
+        User user = userService.get(userId);
+        
+        // ADMIN can manage any profile
+        if (user.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        
+        // Only the owner can manage the profile
+        if (profile.getOwnerId().equals(userId)) {
+            return;
+        }
+        
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
 }

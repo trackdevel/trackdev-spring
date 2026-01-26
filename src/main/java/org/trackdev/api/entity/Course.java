@@ -87,4 +87,18 @@ public class Course extends BaseEntityLong {
         return this.students.stream().anyMatch(s -> s.getId().equals(userId));
     }
 
+    // Profile relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id")
+    private Profile profile;
+
+    @Column(name = "profile_id", insertable = false, updatable = false)
+    private Long profileId;
+
+    public Profile getProfile() { return this.profile; }
+
+    public void setProfile(Profile profile) { this.profile = profile; }
+
+    public Long getProfileId() { return this.profileId; }
+
 }

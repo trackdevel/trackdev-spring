@@ -102,6 +102,9 @@ public class DemoDataSeeder {
     private GitHubRepoService gitHubRepoService;
 
     @Autowired
+    private org.trackdev.api.repository.ProfileRepository profileRepository;
+
+    @Autowired
     private Environment environment;
 
     public void seedDemoData() {
@@ -480,6 +483,13 @@ public class DemoDataSeeder {
         
         logger.info("Created sample report for PDS course");
 
+        // ============================================
+        // 13. CREATE DEMO PROFILE
+        // ============================================
+        
+        Profile demoProfile = createDemoProfile(professorPDS);
+        logger.info("Created demo profile '{}' for professor {}", demoProfile.getName(), professorPDS.getEmail());
+
         logger.info("Database seeding completed successfully!");
         logger.info("Summary:");
         logger.info("  - 2 workspaces");
@@ -491,6 +501,7 @@ public class DemoDataSeeder {
         logger.info("  - 4 sprint patterns (one per course)");
         logger.info("  - 7 projects with sprints (1 with empty active sprint for testing)");
         logger.info("  - 1 sample report (PDS 2025)");
+        logger.info("  - 1 demo profile with enums and attributes");
     }
 
     /**
@@ -768,5 +779,85 @@ public class DemoDataSeeder {
             String comment = comments.get(random.nextInt(comments.size()));
             commentService.addComment(comment, commenter, task);
         }
+    }
+
+    /**
+     * Create a demo profile with enums and attributes for all types and targets
+     */
+    private Profile createDemoProfile(User professor) {
+        Profile profile = new Profile(
+            "Software Development Profile",
+            "A comprehensive profile for tracking software development metrics and student performance",
+            professor
+        );
+        profile = profileRepository.save(profile);
+
+        // Create enums
+        ProfileEnum skillLevelEnum = new ProfileEnum("Skill Level", profile);
+        skillLevelEnum.setValues(Arrays.asList("Beginner", "Intermediate", "Advanced", "Expert"));
+        profile.addEnum(skillLevelEnum);
+
+        ProfileEnum priorityEnum = new ProfileEnum("Priority", profile);
+        priorityEnum.setValues(Arrays.asList("Low", "Medium", "High", "Critical"));
+        profile.addEnum(priorityEnum);
+
+        ProfileEnum reviewStatusEnum = new ProfileEnum("Review Status", profile);
+        reviewStatusEnum.setValues(Arrays.asList("Pending", "In Review", "Approved", "Rejected", "Needs Changes"));
+        profile.addEnum(reviewStatusEnum);
+
+        // Save to persist the enums
+        profile = profileRepository.save(profile);
+        
+        // Get the saved enum references from the profile
+        ProfileEnum savedSkillLevelEnum = profile.getEnums().stream()
+            .filter(e -> e.getName().equals("Skill Level")).findFirst().orElseThrow();
+        ProfileEnum savedPriorityEnum = profile.getEnums().stream()
+            .filter(e -> e.getName().equals("Priority")).findFirst().orElseThrow();
+        ProfileEnum savedReviewStatusEnum = profile.getEnums().stream()
+            .filter(e -> e.getName().equals("Review Status")).findFirst().orElseThrow();
+
+        // Create attributes for STUDENT target (one per type)
+        ProfileAttribute studentNotes = new ProfileAttribute("Notes", AttributeType.STRING, AttributeTarget.STUDENT, profile);
+        profile.addAttribute(studentNotes);
+
+        ProfileAttribute studentSkill = new ProfileAttribute("Technical Skill", AttributeType.ENUM, AttributeTarget.STUDENT, profile);
+        studentSkill.setEnumRef(savedSkillLevelEnum);
+        profile.addAttribute(studentSkill);
+
+        ProfileAttribute studentAttendance = new ProfileAttribute("Attendance Count", AttributeType.INTEGER, AttributeTarget.STUDENT, profile);
+        profile.addAttribute(studentAttendance);
+
+        ProfileAttribute studentGrade = new ProfileAttribute("Participation Grade", AttributeType.FLOAT, AttributeTarget.STUDENT, profile);
+        profile.addAttribute(studentGrade);
+
+        // Create attributes for TASK target (one per type)
+        ProfileAttribute taskDescription = new ProfileAttribute("Technical Notes", AttributeType.STRING, AttributeTarget.TASK, profile);
+        profile.addAttribute(taskDescription);
+
+        ProfileAttribute taskPriority = new ProfileAttribute("Business Priority", AttributeType.ENUM, AttributeTarget.TASK, profile);
+        taskPriority.setEnumRef(savedPriorityEnum);
+        profile.addAttribute(taskPriority);
+
+        ProfileAttribute taskComplexity = new ProfileAttribute("Complexity Score", AttributeType.INTEGER, AttributeTarget.TASK, profile);
+        profile.addAttribute(taskComplexity);
+
+        ProfileAttribute taskCodeCoverage = new ProfileAttribute("Code Coverage", AttributeType.FLOAT, AttributeTarget.TASK, profile);
+        profile.addAttribute(taskCodeCoverage);
+
+        // Create attributes for PULL_REQUEST target (one per type)
+        ProfileAttribute prReviewNotes = new ProfileAttribute("Review Notes", AttributeType.STRING, AttributeTarget.PULL_REQUEST, profile);
+        profile.addAttribute(prReviewNotes);
+
+        ProfileAttribute prStatus = new ProfileAttribute("Review Outcome", AttributeType.ENUM, AttributeTarget.PULL_REQUEST, profile);
+        prStatus.setEnumRef(savedReviewStatusEnum);
+        profile.addAttribute(prStatus);
+
+        ProfileAttribute prChangesRequested = new ProfileAttribute("Changes Requested", AttributeType.INTEGER, AttributeTarget.PULL_REQUEST, profile);
+        profile.addAttribute(prChangesRequested);
+
+        ProfileAttribute prQualityScore = new ProfileAttribute("Quality Score", AttributeType.FLOAT, AttributeTarget.PULL_REQUEST, profile);
+        profile.addAttribute(prQualityScore);
+
+        return profileRepository.save(profile);
     }
 }

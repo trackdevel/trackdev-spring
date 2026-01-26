@@ -100,6 +100,10 @@ public final class ErrorConstants {
     public static final String SPRINT_PATTERN_ALREADY_APPLIED = "A sprint pattern has already been applied to this project";
     public static final String SPRINT_PATTERN_NOT_IN_COURSE = "Sprint pattern does not belong to the project's course";
     
+    // Profile validation errors
+    public static final String PROFILE_ALREADY_APPLIED = "A profile has already been applied to this project";
+    public static final String PROFILE_NOT_IN_COURSE = "Profile does not belong to the project's course";
+    
     // User deletion errors
     public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "Cannot delete user who owns subjects";
     public static final String CANNOT_DELETE_USER_HAS_REPORTED_TASKS = "Cannot delete user who has reported tasks";
@@ -112,6 +116,15 @@ public final class ErrorConstants {
     // Password reset errors
     public static final String INVALID_RESET_TOKEN = "The password reset link is invalid";
     public static final String EXPIRED_RESET_TOKEN = "The password reset link has expired";
+    
+    // Profile errors
+    public static final String PROFILE_NOT_EXIST = "Profile does not exist";
+    public static final String PROFILE_NAME_ALREADY_EXISTS = "A profile with this name already exists";
+    public static final String INVALID_PROFILE_NAME_LENGTH = "Profile name must be between 1 and 100 characters";
+    public static final String PROFILE_ENUM_NAME_ALREADY_EXISTS = "An enum with this name already exists in the profile";
+    public static final String PROFILE_ATTRIBUTE_NAME_ALREADY_EXISTS = "An attribute with this name already exists in the profile";
+    public static final String PROFILE_ENUM_REF_NOT_FOUND = "Referenced enum not found in profile";
+    public static final String PROFILE_ENUM_REF_REQUIRED = "Enum reference is required when attribute type is ENUM";
     
     public static final String EMPTY = "";
 }
