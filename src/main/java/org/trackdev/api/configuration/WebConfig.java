@@ -24,7 +24,9 @@ public class WebConfig implements WebMvcConfigurer {
         if(corsConfiguration.isEnabled()) {
             registry.addMapping("/**")
                 .allowedOrigins(corsConfiguration.getAllowedOrigin())
-                .allowedMethods("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE")     
+                .allowedMethods("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE")
+                .allowedHeaders("*")
+                .exposedHeaders("X-Refreshed-Token")
                 .allowCredentials(true).maxAge(3600);
         }
     }
