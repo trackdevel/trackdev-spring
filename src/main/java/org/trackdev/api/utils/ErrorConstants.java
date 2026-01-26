@@ -119,8 +119,8 @@ public final class ErrorConstants {
     public static final String STUDENT_ALREADY_ENROLLED = "error.student.already.enrolled";
     
     // Profile validation errors
-    public static final String PROFILE_ALREADY_APPLIED = "A profile has already been applied to this project";
-    public static final String PROFILE_NOT_IN_COURSE = "Profile does not belong to the project's course";
+    public static final String PROFILE_ALREADY_APPLIED = "error.profile.already.applied";
+    public static final String PROFILE_NOT_IN_COURSE = "error.profile.not.in.course";
     
     // User deletion errors
     public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "error.user.delete.has.subjects";
@@ -136,16 +136,13 @@ public final class ErrorConstants {
     public static final String EXPIRED_RESET_TOKEN = "error.password.reset.token.expired";
     
     // Profile errors
-    public static final String PROFILE_ALREADY_APPLIED = "error.profile.already.applied";
-    
-    // Profile errors
-    public static final String PROFILE_NOT_EXIST = "Profile does not exist";
-    public static final String PROFILE_NAME_ALREADY_EXISTS = "A profile with this name already exists";
-    public static final String INVALID_PROFILE_NAME_LENGTH = "Profile name must be between 1 and 100 characters";
-    public static final String PROFILE_ENUM_NAME_ALREADY_EXISTS = "An enum with this name already exists in the profile";
-    public static final String PROFILE_ATTRIBUTE_NAME_ALREADY_EXISTS = "An attribute with this name already exists in the profile";
-    public static final String PROFILE_ENUM_REF_NOT_FOUND = "Referenced enum not found in profile";
-    public static final String PROFILE_ENUM_REF_REQUIRED = "Enum reference is required when attribute type is ENUM";
+    public static final String PROFILE_NOT_EXIST = "error.profile.not.found";
+    public static final String PROFILE_NAME_ALREADY_EXISTS = "error.profile.name.exists";
+    public static final String INVALID_PROFILE_NAME_LENGTH = "error.profile.name.length";
+    public static final String PROFILE_ENUM_NAME_ALREADY_EXISTS = "error.profile.enum.name.exists";
+    public static final String PROFILE_ATTRIBUTE_NAME_ALREADY_EXISTS = "error.profile.attribute.name.exists";
+    public static final String PROFILE_ENUM_REF_NOT_FOUND = "error.profile.enum.ref.not.found";
+    public static final String PROFILE_ENUM_REF_REQUIRED = "error.profile.enum.ref.required";
     
     public static final String EMPTY = "";
 }
