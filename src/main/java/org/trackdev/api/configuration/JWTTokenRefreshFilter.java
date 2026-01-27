@@ -106,17 +106,15 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
         List<String> userRoles = userService.getRoles(userId).stream()
                 .map(roleName -> "ROLE_" + roleName)
                 .collect(Collectors.toList());
-        String userEmail = userService.getEmail(userId);
 
         int durationInMinutes = authorizationConfiguration.getTokenLifetimeInMinutes();
         int durationInMilliseconds = durationInMinutes * 60 * 1000;
 
         String token = Jwts
                 .builder()
-                .setId(COOKIE_NAME)
-                .setSubject(userId)
+                .setId(java.util.UUID.randomUUID().toString())  // Unique JTI for each token
+                .setSubject(userId)  // User UUID as subject
                 .claim("authorities", userRoles)
-                .claim("email", userEmail)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
                 .signWith(authorizationConfiguration.getKey())
