@@ -94,18 +94,23 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     /**
      * Unassign the current user from a task.
-     * Only the assigned user can unassign themselves.
+     * Only the assigned user or professor/admin can unassign.
      */
     @Transactional
     public Task unassignTask(Long taskId, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
         
-        // Only the assigned user can unassign themselves (or professor/admin)
+        // Only the assigned user can unassign themselves (or course owner/subject owner/admin)
         if (!accessChecker.isTaskAssignee(task, userId)) {
-            // Check if professor or admin
-            Subject subject = task.getProject().getCourse().getSubject();
-            if (!subject.getOwnerId().equals(userId) && !user.isUserType(org.trackdev.api.configuration.UserType.ADMIN)) {
+            // Check if course owner, subject owner, or admin
+            Course course = task.getProject().getCourse();
+            Subject subject = course.getSubject();
+            boolean isCourseOwner = course.getOwnerId().equals(userId);
+            boolean isSubjectOwner = subject.getOwnerId().equals(userId);
+            boolean isAdmin = user.isUserType(org.trackdev.api.configuration.UserType.ADMIN);
+            
+            if (!isCourseOwner && !isSubjectOwner && !isAdmin) {
                 throw new ServiceException(ErrorConstants.UNAUTHORIZED);
             }
         }
