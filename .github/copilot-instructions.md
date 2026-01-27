@@ -403,7 +403,7 @@ Windows PowerShell
 - Moving tasks back to backlog (removing from sprint):
     - A USER_STORY can only be moved back to backlog if ALL its subtasks are in TODO state
     - A TASK or BUG (with no parent) can only be moved back to backlog if it is in TODO state
-    - A subtask (TASK or BUG with a parent) can only be moved back to backlog if it is in TODO state
+    - A subtask (TASK or BUG with a parent) cannot be moved to backlog individually - must move the parent USER_STORY instead
     - If a task has begun (status is not TODO), it cannot go back to the backlog - show error "A task that has begun cannot go back to the backlog"
 
 - Subjects

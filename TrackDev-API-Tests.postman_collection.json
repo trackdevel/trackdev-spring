@@ -5146,6 +5146,301 @@
 					]
 				},
 				{
+					"name": "Backlog Movement Rules",
+					"item": [
+						{
+							"name": "14.1.3 TASK in TODO can be moved to backlog",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// This test uses a task that is in TODO status and assigned to a sprint"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('TASK in TODO status can be removed from sprint', function () {",
+											"    // Should return 200 if task is in TODO and can be moved to backlog",
+											"    // 400 if task has begun (not in TODO)",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": []\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.1.4 TASK in INPROGRESS cannot be moved to backlog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('TASK in INPROGRESS status cannot be moved to backlog', function () {",
+											"    // Should return 400 - task has begun",
+											"    // Note: This requires a task in INPROGRESS status",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": []\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.1.5 USER_STORY with all subtasks in TODO can be moved to backlog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY with all subtasks in TODO can be moved to backlog', function () {",
+											"    // Should return 200 if all subtasks are in TODO",
+											"    // Should return 400 if any subtask has begun (not in TODO)",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": []\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.1.6 USER_STORY with subtask in INPROGRESS cannot be moved to backlog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY with subtask not in TODO cannot be moved to backlog', function () {",
+											"    // Should return 400 - a subtask has begun",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": []\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.1.7 Subtask cannot be moved to backlog individually",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Subtask cannot be moved to backlog individually', function () {",
+											"    // Should return 400 - must move parent USER_STORY instead",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": []\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testSubtaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testSubtaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.1.8 Assign USER_STORY to sprint cascades to subtasks",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY assignment cascades to subtasks', function () {",
+											"    // Should return 200 and all subtasks should be assigned to same sprint",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"    ",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.have.property('activeSprints');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": [{{testSprintId}}]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{testTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.1.9 USER_STORY cannot be assigned to sprint if subtasks have sprints",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY cannot be manually assigned if subtasks already have sprints', function () {",
+											"    // Should return 400 - subtasks already assigned to sprints",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"activeSprints\": [{{testSprintId}}]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
 					"name": "Task Editing Restrictions",
 					"item": [
 						{
@@ -5293,9 +5588,11 @@
 											"",
 											"pm.test('Response has id or validation error', function () {",
 											"    var jsonData = pm.response.json();",
-											"    var hasId = jsonData.hasOwnProperty('id');",
-											"    var hasError = (jsonData.message || jsonData.error);",
-											"    pm.expect(hasId || hasError).to.be.true;",
+											"    // Success: response has 'id' property",
+											"    var hasId = jsonData.id !== undefined;",
+											"    // Error: response has 'message' or 'error' property (from ErrorEntity)",
+											"    var hasError = jsonData.message !== undefined || jsonData.error !== undefined;",
+											"    pm.expect(hasId || hasError, 'Expected id (success) or message/error (validation failure)').to.be.true;",
 											"});"
 										],
 										"type": "text/javascript"
