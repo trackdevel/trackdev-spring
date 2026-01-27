@@ -150,5 +150,10 @@ public final class ErrorConstants {
     public static final String USER_STORY_SUBTASKS_NOT_TODO = "error.userstory.subtasks.not.todo";
     public static final String SUBTASK_CANNOT_MOVE_TO_BACKLOG = "error.subtask.cannot.move.to.backlog";
     
+    // Comment errors
+    public static final String COMMENT_NOT_FOUND = "error.comment.not.found";
+    public static final String CANNOT_EDIT_OTHERS_COMMENT = "error.comment.edit.not.author";
+    public static final String CANNOT_DELETE_COMMENT = "error.comment.delete.not.allowed";
+    
     public static final String EMPTY = "";
 }

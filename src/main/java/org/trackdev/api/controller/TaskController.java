@@ -25,6 +25,7 @@ import org.trackdev.api.model.MergePatchTask;
 import org.trackdev.api.model.response.StatusListResponse;
 import org.trackdev.api.model.response.TaskTypesResponse;
 import org.trackdev.api.service.AccessChecker;
+import org.trackdev.api.service.CommentService;
 import org.trackdev.api.service.PointsReviewService;
 import org.trackdev.api.service.PullRequestService;
 import org.trackdev.api.service.TaskChangeService;
@@ -51,6 +52,9 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @Autowired
     AccessChecker accessChecker;
+
+    @Autowired
+    CommentService commentService;
 
     @Autowired
     PointsReviewService pointsReviewService;
@@ -103,6 +107,31 @@ public class TaskController extends CrudController<Task, TaskService> {
         String userId = super.getUserId(principal);
         Comment comment = service.addComment(id, request.getContent(), userId);
         return commentMapper.toDTO(comment);
+    }
+
+    @Operation(summary = "Edit a comment", description = "Edit a comment. Students can only edit their own comments. Professors owning the project can edit any comment.")
+    @PatchMapping(path = "/{taskId}/comments/{commentId}")
+    public CommentDTO editComment(Principal principal,
+                                   @PathVariable(name = "taskId") Long taskId,
+                                   @PathVariable(name = "commentId") Long commentId,
+                                   @Valid @RequestBody CreateCommentRequest request) {
+        String userId = super.getUserId(principal);
+        // Verify user can view the task first
+        service.getTask(taskId, userId);
+        Comment comment = commentService.editComment(commentId, request.getContent(), userId);
+        return commentMapper.toDTO(comment);
+    }
+
+    @Operation(summary = "Delete a comment", description = "Delete a comment. Only professors owning the project can delete comments.")
+    @DeleteMapping(path = "/{taskId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(Principal principal,
+                               @PathVariable(name = "taskId") Long taskId,
+                               @PathVariable(name = "commentId") Long commentId) {
+        String userId = super.getUserId(principal);
+        // Verify user can view the task first
+        service.getTask(taskId, userId);
+        commentService.deleteComment(commentId, userId);
     }
 
     @Operation(summary = "Edit task information", description = "Edit task information")
