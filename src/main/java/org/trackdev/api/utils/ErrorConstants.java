@@ -55,6 +55,7 @@ public final class ErrorConstants {
     public static final String SUBTASK_MUST_BE_TASK_OR_BUG = "error.task.subtask.type.invalid";
     public static final String TASK_IS_FROZEN = "error.task.frozen";
     public static final String ONLY_PROFESSOR_CAN_FREEZE_TASK = "error.task.freeze.professor.only";
+    public static final String TASK_STATUS_CHANGE_IN_FUTURE_SPRINT = "error.task.status.future.sprint";
     
     // Project errors
     public static final String PRJ_WITHOUT_MEMBERS = "error.project.no.members";
