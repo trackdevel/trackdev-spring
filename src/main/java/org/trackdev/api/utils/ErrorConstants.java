@@ -144,5 +144,10 @@ public final class ErrorConstants {
     public static final String PROFILE_ENUM_REF_NOT_FOUND = "error.profile.enum.ref.not.found";
     public static final String PROFILE_ENUM_REF_REQUIRED = "error.profile.enum.ref.required";
     
+    // Backlog movement rules
+    public static final String TASK_BEGUN_CANNOT_MOVE_TO_BACKLOG = "error.task.begun.cannot.move.to.backlog";
+    public static final String USER_STORY_SUBTASKS_NOT_TODO = "error.userstory.subtasks.not.todo";
+    public static final String SUBTASK_CANNOT_MOVE_TO_BACKLOG = "error.subtask.cannot.move.to.backlog";
+    
     public static final String EMPTY = "";
 }
