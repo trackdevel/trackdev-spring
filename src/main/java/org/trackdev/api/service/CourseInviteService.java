@@ -171,7 +171,11 @@ public class CourseInviteService extends BaseServiceLong<CourseInvite, CourseInv
             }
             
             String username = email.split("@")[0];
-            user = new User(username, username, email, passwordEncoder.encode(password));
+            // Use fullName from invite, or fallback to username if not provided
+            String fullName = invite.getFullName() != null && !invite.getFullName().isBlank() 
+                    ? invite.getFullName() 
+                    : username;
+            user = new User(username, fullName, email, passwordEncoder.encode(password));
             user.setChangePassword(false);
             user.setEnabled(true);
             Role studentRole = roleService.get(UserType.STUDENT);
