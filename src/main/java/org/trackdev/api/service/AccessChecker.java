@@ -659,6 +659,51 @@ public class AccessChecker {
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
+    /**
+     * Check if current user can manage (edit) a student in their courses.
+     * - ADMIN can manage any student
+     * - WORKSPACE_ADMIN can manage students in their workspace
+     * - PROFESSOR can manage STUDENT users enrolled in courses they own
+     */
+    public void checkCanManageCourseStudent(User currentUser, User targetUser) {
+        // Cannot edit yourself
+        if (currentUser.getId().equals(targetUser.getId())) {
+            throw new ServiceException(ErrorConstants.CANNOT_MANAGE_SELF);
+        }
+        
+        // Target must be a STUDENT
+        if (!targetUser.isUserType(UserType.STUDENT)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        // ADMIN can manage any student
+        if (currentUser.isUserType(UserType.ADMIN)) {
+            return;
+        }
+        
+        // WORKSPACE_ADMIN can manage students in their workspace
+        if (currentUser.isUserType(UserType.WORKSPACE_ADMIN)) {
+            if (currentUser.getWorkspace() != null && targetUser.getWorkspace() != null &&
+                currentUser.getWorkspace().getId().equals(targetUser.getWorkspace().getId())) {
+                return;
+            }
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        // PROFESSOR can manage students enrolled in courses they own
+        if (currentUser.isUserType(UserType.PROFESSOR)) {
+            Collection<Course> ownedCourses = courseService.getCoursesForUser(currentUser.getId());
+            for (Course course : ownedCourses) {
+                if (course.isStudentEnrolled(targetUser.getId())) {
+                    return;
+                }
+            }
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
     // USER VIEWING
 
     /**

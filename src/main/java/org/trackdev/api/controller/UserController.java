@@ -295,4 +295,32 @@ public class UserController extends BaseController {
             userRequest.changePassword, userRequest.githubToken, userRequest.githubUsername, userRequest.enabled, userRequest.timezone));
     }
 
+    /**
+     * Edit a student. Professors can edit students enrolled in their courses.
+     */
+    @Operation(summary = "Edit student by professor", description = "Edit a student enrolled in the professor's course")
+    @PatchMapping(path = "/student/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
+    public UserWithProjectsDTO editStudent(Principal principal,
+                            @Valid @RequestBody EditU userRequest,
+                            @PathVariable(name = "id") String id) {
+        if (userRequest.username != null){
+            if (userRequest.username.get().isEmpty() || userRequest.username.get().length() > User.USERNAME_LENGTH) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_SIZE);
+            }
+            if (!userRequest.username.get().matches(User.USERNAME_PATTERN)) {
+                throw new ControllerException(ErrorConstants.INVALID_USERNAME_FORMAT);
+            }
+        }
+        String userId = super.getUserId(principal);
+        User currentUser = userService.get(userId);
+        User targetUser = userService.get(id);
+        
+        accessChecker.checkCanManageCourseStudent(currentUser, targetUser);
+        
+        return userMapper.toWithProjectsDTO(userService.editMyUser(currentUser, targetUser, 
+            userRequest.username, userRequest.fullName, userRequest.email, userRequest.color, userRequest.capitalLetters, 
+            userRequest.changePassword, userRequest.githubToken, userRequest.githubUsername, userRequest.enabled, userRequest.timezone));
+    }
+
 }
