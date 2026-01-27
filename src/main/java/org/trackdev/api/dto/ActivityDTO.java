@@ -19,6 +19,7 @@ public class ActivityDTO {
     // Actor info
     private String actorId;
     private String actorUsername;
+    private String actorFullName;
     private String actorEmail;
     
     // Project info
