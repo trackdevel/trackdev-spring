@@ -36,16 +36,19 @@ public class ActivityController extends BaseController {
     ActivityMapper activityMapper;
 
     @Operation(summary = "Get activity feed", 
-               description = "Get paginated list of activities for the logged-in user's projects")
+               description = "Get paginated list of activities for the logged-in user's projects with optional filters")
     @GetMapping
     public ActivitiesResponseDTO getActivities(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "projectId", required = false) Long projectId,
+            @RequestParam(name = "sprintId", required = false) Long sprintId,
+            @RequestParam(name = "actorId", required = false) String actorId,
             Principal principal) {
         String userId = getUserId(principal);
         Pageable pageable = PageRequest.of(page, Math.min(size, 100)); // Cap at 100
         
-        Page<Activity> activityPage = activityService.getActivitiesForUser(userId, pageable);
+        Page<Activity> activityPage = activityService.getActivitiesForUserWithFilters(userId, projectId, sprintId, actorId, pageable);
         List<ActivityDTO> activityDTOs = activityMapper.toDTOList(activityPage.getContent());
         
         return new ActivitiesResponseDTO(
