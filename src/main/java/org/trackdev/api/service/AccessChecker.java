@@ -324,6 +324,14 @@ public class AccessChecker {
     }
 
     /**
+     * Check if user is the reporter (creator) of a task.
+     * Returns true if the user created this task.
+     */
+    public boolean isTaskReporter(org.trackdev.api.entity.Task task, String userId) {
+        return task.getReporter() != null && task.getReporter().getId().equals(userId);
+    }
+
+    /**
      * Check if user can create subtasks for a task.
      * Any project member can create subtasks for a USER_STORY.
      * Professors (subject owners) and admins can also create subtasks.
@@ -393,7 +401,7 @@ public class AccessChecker {
 
     /**
      * Check if user can edit a task (name, description, estimation points, etc.).
-     * Students: must be the assignee AND be a project member
+     * Students: must be the assignee OR the reporter AND be a project member
      * Professors: course owner or subject owner can edit any task in their course
      * Admin: can edit any task
      */
@@ -417,9 +425,9 @@ public class AccessChecker {
             return;
         }
         
-        // For students: must be a project member AND be the assignee
+        // For students: must be a project member AND be the assignee OR reporter
         if (project.isMember(userId)) {
-            if (isTaskAssignee(task, userId)) {
+            if (isTaskAssignee(task, userId) || isTaskReporter(task, userId)) {
                 return;
             }
             throw new ServiceException(ErrorConstants.ONLY_ASSIGNEE_CAN_EDIT_TASK);
@@ -431,7 +439,7 @@ public class AccessChecker {
 
     /**
      * Check if user can edit a task (returns boolean, doesn't throw).
-     * Students: must be the assignee AND be a project member
+     * Students: must be the assignee OR the reporter AND be a project member
      * Professors: course owner or subject owner can edit any task in their course
      * Admin: can edit any task
      */
@@ -455,8 +463,8 @@ public class AccessChecker {
             return true;
         }
         
-        // For students: must be a project member AND be the assignee
-        if (project.isMember(userId) && isTaskAssignee(task, userId)) {
+        // For students: must be a project member AND be the assignee OR reporter
+        if (project.isMember(userId) && (isTaskAssignee(task, userId) || isTaskReporter(task, userId))) {
             return true;
         }
         
