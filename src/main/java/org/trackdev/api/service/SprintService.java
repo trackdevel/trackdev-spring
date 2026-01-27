@@ -163,41 +163,41 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     }
 
 
-    public Collection<Sprint> getSpritnsByIds(Collection<Long> sprintIds) {
+    public Collection<Sprint> getSprintsByIds(Collection<Long> sprintIds) {
         return repo.findAllById(sprintIds);
     }
 
-    @Transactional
-    @Scheduled(fixedRate = SPRINT_STATUS_CHANGE_RATE)
-    public void triggerSprintStatusChange() {
-        logger.info("--- Start triggering sprint status change");
-        Collection<Sprint> sprintsToClose = repo().sprintsToClose();
-        if (sprintsToClose.size() > 0) {
-            logger.info("-- Sprints to CLOSE status: " + sprintsToClose.size());
-            for (Sprint sprint : sprintsToClose) {
-                sprint.setStatus(SprintStatus.CLOSED);
-            }
-            repo.saveAll(sprintsToClose);
-            logger.info("-- Sprints to CLOSED status changed");
-        }
-        Collection<Sprint> sprintsToDraft = repo().sprintsToDraft();
-        if(sprintsToDraft.size() > 0) {
-            logger.info("-- Sprints to DRAFT status: " + sprintsToDraft.size());
-            for(Sprint sprint : sprintsToDraft) {
-                sprint.setStatus(SprintStatus.DRAFT);
-            }
-            repo.saveAll(sprintsToDraft);
-            logger.info("-- Sprints to DRAFT status changed");
-        }
-        Collection<Sprint> sprintsToActive = repo().sprintsToActive();
-        if(sprintsToActive.size() > 0) {
-            logger.info("-- Sprints to ACTIVE status: " + sprintsToActive.size());
-            for (Sprint sprint : sprintsToActive) {
-                sprint.setStatus(SprintStatus.ACTIVE);
-            }
-            repo.saveAll(sprintsToActive);
-            logger.info("-- Sprints to ACTIVE status changed");
-        }
-        logger.info("--- Done triggering sprint status change");
-    }
+    // @Transactional
+    // @Scheduled(fixedRate = SPRINT_STATUS_CHANGE_RATE)
+    // public void triggerSprintStatusChange() {
+    //     logger.info("--- Start triggering sprint status change");
+    //     Collection<Sprint> sprintsToClose = repo().sprintsToClose();
+    //     if (sprintsToClose.size() > 0) {
+    //         logger.info("-- Sprints to CLOSE status: " + sprintsToClose.size());
+    //         for (Sprint sprint : sprintsToClose) {
+    //             sprint.setStatus(SprintStatus.CLOSED);
+    //         }
+    //         repo.saveAll(sprintsToClose);
+    //         logger.info("-- Sprints to CLOSED status changed");
+    //     }
+    //     Collection<Sprint> sprintsToDraft = repo().sprintsToDraft();
+    //     if(sprintsToDraft.size() > 0) {
+    //         logger.info("-- Sprints to DRAFT status: " + sprintsToDraft.size());
+    //         for(Sprint sprint : sprintsToDraft) {
+    //             sprint.setStatus(SprintStatus.DRAFT);
+    //         }
+    //         repo.saveAll(sprintsToDraft);
+    //         logger.info("-- Sprints to DRAFT status changed");
+    //     }
+    //     Collection<Sprint> sprintsToActive = repo().sprintsToActive();
+    //     if(sprintsToActive.size() > 0) {
+    //         logger.info("-- Sprints to ACTIVE status: " + sprintsToActive.size());
+    //         for (Sprint sprint : sprintsToActive) {
+    //             sprint.setStatus(SprintStatus.ACTIVE);
+    //         }
+    //         repo.saveAll(sprintsToActive);
+    //         logger.info("-- Sprints to ACTIVE status changed");
+    //     }
+    //     logger.info("--- Done triggering sprint status change");
+    // }
 }
