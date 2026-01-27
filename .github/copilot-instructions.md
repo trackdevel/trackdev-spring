@@ -391,6 +391,19 @@ Windows PowerShell
     - Name and description are copied from the pattern item
     - Start and end datetime are copied from the pattern
     - Tasks can only be assigned to sprints that belong to the same project
+    - **Status is computed dynamically** via `Sprint.getEffectiveStatus()`:
+      - If manually set to CLOSED → always CLOSED (manual close sticks)
+      - Before startDate → DRAFT (future sprint)
+      - Between startDate and endDate → ACTIVE
+      - After endDate → CLOSED
+    - Use `getEffectiveStatus()` (not `getStatus()`) when checking sprint state in business logic
+    - The stored `status` field is only for manual overrides (e.g., force-close)
+    - No scheduled job needed for status transitions
+
+- Task status in future sprints:
+    - Tasks can be moved from backlog to a future sprint (status becomes TODO)
+    - Tasks in a future sprint (DRAFT status) cannot change from TODO until the sprint becomes ACTIVE
+    - Once at least one sprint containing the task is ACTIVE, status changes are allowed
 
 - Relationship between tasks and sprints:
     - A USER_STORY will belong to any sprint where at least one of its subtasks is assigned. So a USER_STORY can belong to more than 1 sprint
