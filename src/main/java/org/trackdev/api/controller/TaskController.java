@@ -116,7 +116,8 @@ public class TaskController extends CrudController<Task, TaskService> {
             }
         }
         String userId = super.getUserId(principal);
-        return taskMapper.toCompleteDTO(service.editTask(id, taskRequest, userId));
+        Task task = service.editTask(id, taskRequest, userId);
+        return taskMapper.toCompleteDTO(task);
     }
 
     @Operation(summary = "Get history of logs of the task", description = "Get history of logs of the task")
@@ -169,14 +170,16 @@ public class TaskController extends CrudController<Task, TaskService> {
     @PostMapping("/{id}/assign")
     public TaskCompleteDTO selfAssignTask(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
-        return taskMapper.toCompleteDTO(service.selfAssignTask(id, userId));
+        Task task = service.selfAssignTask(id, userId);
+        return taskMapper.toCompleteDTO(task);
     }
 
     @Operation(summary = "Unassign task from current user", description = "Allows the assigned user to unassign themselves from a task")
     @DeleteMapping("/{id}/assign")
     public TaskCompleteDTO unassignTask(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
-        return taskMapper.toCompleteDTO(service.unassignTask(id, userId));
+        Task task = service.unassignTask(id, userId);
+        return taskMapper.toCompleteDTO(task);
     }
 
     @Operation(summary = "Get list of tasks status", description = "Get list of tasks status")
@@ -246,6 +249,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         Task task = service.unfreezeTask(taskId, userId);
         return taskMapper.toBasicDTO(task);
     }
+
 
     static class NewSubTask {
         @NotBlank
