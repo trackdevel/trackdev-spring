@@ -211,14 +211,12 @@ public class AccessChecker {
         if(isSubjectOwner(subject, userId)) {
             return;
         }
-        // Enrolled students can view projects in their enrolled courses
-        if(course.isStudentEnrolled(userId)) {
-            return;
-        }
         // Admins can view all projects
         if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
+        // Note: Students enrolled in the course do NOT automatically get access to all projects
+        // They must be explicit members of the project to view it
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
