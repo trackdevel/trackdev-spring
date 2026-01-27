@@ -81,6 +81,10 @@ public class Activity extends BaseEntityLong {
         return actor != null ? actor.getUsername() : null;
     }
 
+    public String getActorFullName() {
+        return actor != null ? actor.getFullName() : null;
+    }
+
     public String getActorEmail() {
         return actor != null ? actor.getEmail() : null;
     }
