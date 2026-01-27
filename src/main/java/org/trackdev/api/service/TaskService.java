@@ -397,7 +397,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
             
             // Validate sprint is active or future (DRAFT status = future)
-            Collection<Sprint> sprints = sprintService.getSpritnsByIds(sprintsIds);
+            Collection<Sprint> sprints = sprintService.getSprintsByIds(sprintsIds);
             for (Sprint sprint : sprints) {
                 if (sprint.getStatus() == SprintStatus.CLOSED) {
                     throw new ServiceException(ErrorConstants.SPRINT_NOT_ACTIVE_OR_FUTURE);
@@ -562,7 +562,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         if(editTask.activeSprints != null) {
             Collection<Long> sprintIds = editTask.activeSprints.orElse(new ArrayList<>());
-            Collection<Sprint> sprints = sprintService.getSpritnsByIds(sprintIds);
+            Collection<Sprint> sprints = sprintService.getSprintsByIds(sprintIds);
             task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
             task.setActiveSprints(sprints);
             sprints.stream().forEach(sprint -> sprint.addTask(task, user));
