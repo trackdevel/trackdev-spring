@@ -275,10 +275,9 @@ public class AuthController extends BaseController {
 
         String token = Jwts
                 .builder()
-                .setId(COOKIE_NAME)
-                .setSubject(user.getId())
+                .setId(java.util.UUID.randomUUID().toString())  // Unique JTI for each token
+                .setSubject(user.getId())  // User UUID as subject
                 .claim("authorities", userRoles)
-                .claim("email", user.getEmail())  // Include email for audit purposes
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
                 .signWith(authorizationConfiguration.getKey())
