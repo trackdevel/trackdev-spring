@@ -19,20 +19,20 @@ import java.util.List;
 public interface SprintMapper {
 
     @Named("sprintToBasicDTO")
-    @Mapping(target = "status", source = "status", qualifiedByName = "sprintStatusToString")
-    @Mapping(target = "statusText", source = "statusText")
+    @Mapping(target = "status", expression = "java(statusToString(sprint.getEffectiveStatus()))")
+    @Mapping(target = "statusText", expression = "java(sprint.getStatusText())")
     SprintBasicDTO toBasicDTO(Sprint sprint);
 
     @Named("sprintToCompleteDTO")
-    @Mapping(target = "status", source = "status", qualifiedByName = "sprintStatusToString")
-    @Mapping(target = "statusText", source = "statusText")
+    @Mapping(target = "status", expression = "java(statusToString(sprint.getEffectiveStatus()))")
+    @Mapping(target = "statusText", expression = "java(sprint.getStatusText())")
     @Mapping(target = "project", source = "project", qualifiedByName = "projectToBasicDTOSimple")
     @Mapping(target = "activeTasks", ignore = true)
     SprintCompleteDTO toCompleteDTO(Sprint sprint);
 
     @Named("sprintToBoardDTO")
-    @Mapping(target = "status", source = "status", qualifiedByName = "sprintStatusToString")
-    @Mapping(target = "statusText", source = "statusText")
+    @Mapping(target = "status", expression = "java(statusToString(sprint.getEffectiveStatus()))")
+    @Mapping(target = "statusText", expression = "java(sprint.getStatusText())")
     @Mapping(target = "project", source = "project", qualifiedByName = "projectToBasicDTOSimple")
     @Mapping(target = "tasks", ignore = true)
     SprintBoardDTO toBoardDTO(Sprint sprint);

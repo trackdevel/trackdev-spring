@@ -288,6 +288,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             
+            // Check if task is in a future sprint - cannot change status from TODO
+            TaskStatus currentStatus = task.getStatus();
+            if (currentStatus == TaskStatus.TODO && status != TaskStatus.TODO) {
+                Collection<Sprint> activeSprints = task.getActiveSprints();
+                if (activeSprints != null && !activeSprints.isEmpty()) {
+                    // Check if ALL sprints are in DRAFT (future) status
+                    boolean allSprintsInFuture = activeSprints.stream()
+                            .allMatch(sprint -> sprint.getEffectiveStatus() == SprintStatus.DRAFT);
+                    if (allSprintsInFuture) {
+                        throw new ServiceException(ErrorConstants.TASK_STATUS_CHANGE_IN_FUTURE_SPRINT);
+                    }
+                }
+            }
+            
             // Check if task can be moved to VERIFY
             if (status == TaskStatus.VERIFY && !task.canMoveToVerify()) {
                 throw new ServiceException(ErrorConstants.TASK_CANNOT_VERIFY_WITHOUT_PULL_REQUEST);
@@ -396,10 +410,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 throw new ServiceException(ErrorConstants.CANNOT_REASSIGN_DONE_TASK);
             }
             
-            // Validate sprint is active or future (DRAFT status = future)
+            // Validate sprint is active or future (not closed)
             Collection<Sprint> sprints = sprintService.getSprintsByIds(sprintsIds);
             for (Sprint sprint : sprints) {
-                if (sprint.getStatus() == SprintStatus.CLOSED) {
+                if (sprint.getEffectiveStatus() == SprintStatus.CLOSED) {
                     throw new ServiceException(ErrorConstants.SPRINT_NOT_ACTIVE_OR_FUTURE);
                 }
                 // Also verify sprint belongs to same project

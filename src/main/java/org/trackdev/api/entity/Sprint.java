@@ -85,9 +85,53 @@ public class Sprint extends BaseEntityLong {
         this.endDate = endDate;
     }
 
+    /**
+     * Returns the stored status field (raw database value).
+     * For most use cases, prefer getEffectiveStatus() which computes from dates.
+     */
     public SprintStatus getStatus() { return this.status; }
 
-    public String getStatusText() { return this.status.toString(); }
+    /**
+     * Computes the effective status based on dates and any manual overrides.
+     * Rules:
+     * 1. If manually set to CLOSED, always return CLOSED (manual close sticks)
+     * 2. Otherwise compute from dates:
+     *    - Before startDate → DRAFT
+     *    - Between startDate and endDate (inclusive) → ACTIVE
+     *    - After endDate → CLOSED
+     * 3. If dates are null, fall back to stored status
+     */
+    public SprintStatus getEffectiveStatus() {
+        // If manually closed, respect that
+        if (this.status == SprintStatus.CLOSED) {
+            return SprintStatus.CLOSED;
+        }
+        
+        // If dates are not set, use stored status
+        if (startDate == null || endDate == null) {
+            return this.status;
+        }
+        
+        ZonedDateTime now = ZonedDateTime.now();
+        
+        // Before start date -> DRAFT
+        if (now.isBefore(startDate)) {
+            return SprintStatus.DRAFT;
+        }
+        
+        // After end date -> CLOSED
+        if (now.isAfter(endDate)) {
+            return SprintStatus.CLOSED;
+        }
+        
+        // Between start and end (inclusive) -> ACTIVE
+        return SprintStatus.ACTIVE;
+    }
+
+    /**
+     * Returns a human-readable status text based on effective status.
+     */
+    public String getStatusText() { return getEffectiveStatus().toString(); }
 
     public void setStatus(SprintStatus status) {
         if(status == SprintStatus.ACTIVE) {
@@ -132,7 +176,8 @@ public class Sprint extends BaseEntityLong {
 
     public void addTask(Task task, User modifier) {
         this.activeTasks.add(task);
-        if(this.status == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.BACKLOG) {
+        // When adding task to an active sprint, change from BACKLOG to TODO
+        if(this.getEffectiveStatus() == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.BACKLOG) {
             task.setStatus(TaskStatus.TODO);
         }
     }

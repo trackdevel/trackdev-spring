@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.ServiceException;
@@ -27,8 +26,6 @@ import java.util.List;
 
 @Service
 public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
-
-    private static final int SPRINT_STATUS_CHANGE_RATE = 1000 * 2 * 30; //1 second
 
     private static final Logger logger = LoggerFactory.getLogger(SprintService.class);
 
@@ -167,37 +164,16 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         return repo.findAllById(sprintIds);
     }
 
-    // @Transactional
-    // @Scheduled(fixedRate = SPRINT_STATUS_CHANGE_RATE)
-    // public void triggerSprintStatusChange() {
-    //     logger.info("--- Start triggering sprint status change");
-    //     Collection<Sprint> sprintsToClose = repo().sprintsToClose();
-    //     if (sprintsToClose.size() > 0) {
-    //         logger.info("-- Sprints to CLOSE status: " + sprintsToClose.size());
-    //         for (Sprint sprint : sprintsToClose) {
-    //             sprint.setStatus(SprintStatus.CLOSED);
-    //         }
-    //         repo.saveAll(sprintsToClose);
-    //         logger.info("-- Sprints to CLOSED status changed");
-    //     }
-    //     Collection<Sprint> sprintsToDraft = repo().sprintsToDraft();
-    //     if(sprintsToDraft.size() > 0) {
-    //         logger.info("-- Sprints to DRAFT status: " + sprintsToDraft.size());
-    //         for(Sprint sprint : sprintsToDraft) {
-    //             sprint.setStatus(SprintStatus.DRAFT);
-    //         }
-    //         repo.saveAll(sprintsToDraft);
-    //         logger.info("-- Sprints to DRAFT status changed");
-    //     }
-    //     Collection<Sprint> sprintsToActive = repo().sprintsToActive();
-    //     if(sprintsToActive.size() > 0) {
-    //         logger.info("-- Sprints to ACTIVE status: " + sprintsToActive.size());
-    //         for (Sprint sprint : sprintsToActive) {
-    //             sprint.setStatus(SprintStatus.ACTIVE);
-    //         }
-    //         repo.saveAll(sprintsToActive);
-    //         logger.info("-- Sprints to ACTIVE status changed");
-    //     }
-    //     logger.info("--- Done triggering sprint status change");
-    // }
+    /*
+     * NOTE: Sprint status is now computed dynamically via Sprint.getEffectiveStatus()
+     * based on startDate/endDate. No scheduled job is needed.
+     * 
+     * The rules are:
+     * 1. If manually set to CLOSED → always CLOSED (manual close sticks)
+     * 2. Before startDate → DRAFT
+     * 3. Between startDate and endDate → ACTIVE
+     * 4. After endDate → CLOSED
+     * 
+     * The stored status field is only used for manual overrides (e.g., force-close).
+     */
 }
