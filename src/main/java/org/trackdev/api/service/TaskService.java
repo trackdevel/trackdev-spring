@@ -335,9 +335,35 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             
+            // Moving to backlog (removing from sprint) validations
+            if (sprintsIds.isEmpty()) {
+                // Subtasks cannot be moved to backlog individually - must move parent USER_STORY
+                if (task.getTaskType() != TaskType.USER_STORY && task.getParentTask() != null) {
+                    throw new ServiceException(ErrorConstants.SUBTASK_CANNOT_MOVE_TO_BACKLOG);
+                }
+                
+                // TASK/BUG (without parent) can only move to backlog if status is TODO
+                if (task.getTaskType() != TaskType.USER_STORY && task.getStatus() != TaskStatus.TODO) {
+                    throw new ServiceException(ErrorConstants.TASK_BEGUN_CANNOT_MOVE_TO_BACKLOG);
+                }
+                
+                // USER_STORY can only move to backlog if ALL subtasks are in TODO status
+                if (task.getTaskType() == TaskType.USER_STORY) {
+                    Collection<Task> childTasks = task.getChildTasks();
+                    if (childTasks != null && !childTasks.isEmpty()) {
+                        boolean anySubtaskNotTodo = childTasks.stream()
+                            .anyMatch(subtask -> subtask.getStatus() != TaskStatus.TODO);
+                        if (anySubtaskNotTodo) {
+                            throw new ServiceException(ErrorConstants.USER_STORY_SUBTASKS_NOT_TODO);
+                        }
+                    }
+                }
+            }
+            
             // USER_STORY can only be assigned to sprint if ALL subtasks are unassigned from any sprint
             // When assigned, all subtasks will be automatically assigned to the same sprint
-            if (task.getTaskType() == TaskType.USER_STORY) {
+            // This check only applies when ASSIGNING to a sprint (not when removing/moving to backlog)
+            if (!sprintsIds.isEmpty() && task.getTaskType() == TaskType.USER_STORY) {
                 Collection<Task> childTasks = task.getChildTasks();
                 if (childTasks != null && !childTasks.isEmpty()) {
                     // Force initialization of child tasks and their sprints to avoid lazy loading issues
