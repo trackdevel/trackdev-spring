@@ -23,6 +23,12 @@ public class ActivityService extends BaseServiceLong<Activity, ActivityRepositor
     @Autowired
     UserService userService;
 
+    @Autowired
+    ProjectService projectService;
+
+    @Autowired
+    SprintService sprintService;
+
     /**
      * Record a new activity event.
      */
@@ -67,6 +73,42 @@ public class ActivityService extends BaseServiceLong<Activity, ActivityRepositor
             return Page.empty(pageable);
         }
         return repo().findByProjectInOrderByCreatedAtDesc(projects, pageable);
+    }
+
+    /**
+     * Get activities for a user's projects with optional filters, paginated.
+     */
+    public Page<Activity> getActivitiesForUserWithFilters(String userId, Long projectId, Long sprintId, String actorId, Pageable pageable) {
+        User user = userService.get(userId);
+        Collection<Project> projects = user.getProjects();
+        if (projects == null || projects.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // If no projectId specified, return all activities for user's projects
+        if (projectId == null) {
+            return repo().findByProjectInOrderByCreatedAtDesc(projects, pageable);
+        }
+
+        // Get the specific project and verify user has access
+        Project project = projectService.get(projectId);
+        if (!projects.contains(project)) {
+            return Page.empty(pageable);
+        }
+
+        // Apply filters based on what's provided
+        Sprint sprint = sprintId != null ? sprintService.get(sprintId) : null;
+        User actor = actorId != null ? userService.get(actorId) : null;
+
+        if (sprint != null && actor != null) {
+            return repo().findByProjectAndSprintAndActorOrderByCreatedAtDesc(project, sprint, actor, pageable);
+        } else if (sprint != null) {
+            return repo().findByProjectAndSprintOrderByCreatedAtDesc(project, sprint, pageable);
+        } else if (actor != null) {
+            return repo().findByProjectAndActorOrderByCreatedAtDesc(project, actor, pageable);
+        } else {
+            return repo().findByProjectOrderByCreatedAtDesc(project, pageable);
+        }
     }
 
     /**
