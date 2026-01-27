@@ -2382,21 +2382,21 @@
 					"name": "9.1 Student Access Restrictions",
 					"item": [
 						{
-							"name": "9.1.1 Student CAN view project from same course (different group)",
+							"name": "9.1.1 IDOR: Student CANNOT view project from different project (same course)",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test('Status code is 200 (Allowed) - Students can view other projects in same course', function () {",
-											"    // NOTE: By design, enrolled students CAN view all projects in their course",
-											"    pm.expect(pm.response.code).to.equal(200);",
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    // IDOR FIX: Students can ONLY view projects they are members of",
+											"    // Even if enrolled in same course, cannot view other project groups",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
 											"});",
 											"",
-											"pm.test('Student from pds25b can view pds25a project (same course)', function () {",
-											"    // student4 is in pds25b, can view pds25a project because they're in same course",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.have.property('id');",
+											"pm.test('SECURITY: Student from pds25b CANNOT view pds25a project (different project)', function () {",
+											"    // student2 is in pds25b, CANNOT view pds25a project even in same course",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
 											"});"
 										],
 										"type": "text/javascript"
@@ -2419,20 +2419,19 @@
 							}
 						},
 						{
-							"name": "9.1.2 Student CAN view tasks from same course (different group)",
+							"name": "9.1.2 IDOR: Student CANNOT view tasks from different project (same course)",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test('Status code is 200 (Allowed) - Students can view tasks in same course', function () {",
-											"    // NOTE: By design, enrolled students CAN view all project tasks in their course",
-											"    pm.expect(pm.response.code).to.equal(200);",
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    // IDOR FIX: Students can ONLY view tasks from projects they are members of",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
 											"});",
 											"",
-											"pm.test('Student can view tasks from same course project', function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.have.property('tasks');",
+											"pm.test('SECURITY: Student CANNOT view tasks from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
 											"});"
 										],
 										"type": "text/javascript"
@@ -2455,21 +2454,19 @@
 							}
 						},
 						{
-							"name": "9.1.3 Student CAN view specific task from same course",
+							"name": "9.1.3 IDOR: Student CANNOT view specific task from different project (same course)",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test('Status code is 200 (Allowed) - Students can view task details in same course', function () {",
-											"    // NOTE: By design, enrolled students CAN view all task details in their course",
-											"    pm.expect(pm.response.code).to.equal(200);",
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    // IDOR FIX: Students can ONLY view task details from projects they are members of",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
 											"});",
 											"",
-											"pm.test('Student can view task details from same course', function () {",
-											"    var jsonData = pm.response.json();",
-											"    // Response contains task object with id property",
-											"    pm.expect(jsonData).to.have.property('id');",
+											"pm.test('SECURITY: Student CANNOT view task details from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
 											"});"
 										],
 										"type": "text/javascript"
@@ -2492,13 +2489,13 @@
 							}
 						},
 						{
-							"name": "9.1.4 Student CANNOT edit task from different project",
+							"name": "9.1.4 IDOR: Student CANNOT edit task from different project",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test('Status code is 403 (Forbidden)', function () {",
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
 											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
 											"});",
 											"",
@@ -4085,6 +4082,592 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "9.7 IDOR - Insecure Direct Object Reference Tests",
+					"item": [
+						{
+							"name": "9.7.1 IDOR: Student CANNOT self-assign task from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    // IDOR FIX: Students can ONLY self-assign tasks from projects they are members of",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot self-assign task from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+								}
+							}
+						},
+						{
+							"name": "9.7.2 IDOR: Student CANNOT view task comments from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view comments from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "comments"]
+								}
+							}
+						},
+						{
+							"name": "9.7.3 IDOR: Student CANNOT post comment on task from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot post comment on task from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"content\": \"IDOR attack: Comment from student in different project\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "comments"]
+								}
+							}
+						},
+						{
+							"name": "9.7.4 IDOR: Student CANNOT view task history from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view task history from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/history",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "history"]
+								}
+							}
+						},
+						{
+							"name": "9.7.5 IDOR: Student CANNOT view PR history from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view PR history from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/pr-history",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "pr-history"]
+								}
+							}
+						},
+						{
+							"name": "9.7.6 IDOR: Student CANNOT create subtask in task from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot create subtask in different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"IDOR attack: Subtask from student in different project\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/subtasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "subtasks"]
+								}
+							}
+						},
+						{
+							"name": "9.7.7 IDOR: Student CANNOT delete task from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot delete task from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.7.8 IDOR: Student CANNOT view sprints from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view sprints from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/sprints",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "sprints"]
+								}
+							}
+						},
+						{
+							"name": "9.7.9 IDOR: Student CANNOT view backlog from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view backlog from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/backlog",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "backlog"]
+								}
+							}
+						},
+						{
+							"name": "9.7.10 IDOR: Student CANNOT create task in different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot create task in different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"IDOR attack: Task from student in different project\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "tasks"]
+								}
+							}
+						},
+						{
+							"name": "9.7.11 IDOR: Student CANNOT view activity from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot view activity from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/activity",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}", "activity"]
+								}
+							}
+						},
+						{
+							"name": "9.7.12 IDOR: Student CANNOT modify task status from different project (same course)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student cannot modify task status from different project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{student2Token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"IN_PROGRESS\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.7.13 IDOR: UB Student CANNOT view UdG task by ID manipulation",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Cross-workspace IDOR - UB student cannot view UdG task', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.7.14 IDOR: UB Student CANNOT view UdG project by ID manipulation",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Cross-workspace IDOR - UB student cannot view UdG project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.7.15 IDOR: UdG Student CANNOT view UB task by ID manipulation",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Cross-workspace IDOR - UdG student cannot view UB task', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{ubTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "9.7.16 IDOR: UdG Student CANNOT view UB project by ID manipulation",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY IDOR: Status code is 403 (Forbidden)', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Cross-workspace IDOR - UdG student cannot view UB project', function () {",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{studentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{ubProjectId}}"]
+								}
+							}
+						}
+					]
 				}
 			]
 		},
@@ -5084,7 +5667,7 @@
 								"header": [
 									{
 										"key": "Authorization",
-										"value": "{{professorToken}}"
+										"value": "{{professorUdGToken}}"
 									},
 									{
 										"key": "Content-Type",
@@ -5125,7 +5708,7 @@
 								"header": [
 									{
 										"key": "Authorization",
-										"value": "{{professorToken}}"
+										"value": "{{professorUdGToken}}"
 									},
 									{
 										"key": "Content-Type",
@@ -5450,8 +6033,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test('Status code is 400 or 403', function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+											"pm.test('Status code is 400, 403, or 404', function () {",
+											"    // 400 = business rule violation",
+											"    // 403 = forbidden (not authorized)",
+											"    // 404 = not found (IDOR protection hides the resource)",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
 											"});",
 											"",
 											"pm.test('SECURITY: Only assignee can edit task', function () {",
@@ -5508,7 +6094,7 @@
 								"header": [
 									{
 										"key": "Authorization",
-										"value": "{{professorToken}}"
+										"value": "{{professorUdGToken}}"
 									},
 									{
 										"key": "Content-Type",
@@ -5690,7 +6276,7 @@
 								"header": [
 									{
 										"key": "Authorization",
-										"value": "{{professorToken}}"
+										"value": "{{professorUdGToken}}"
 									},
 									{
 										"key": "Content-Type",
@@ -6855,7 +7441,7 @@
 								"header": [
 									{
 										"key": "Authorization",
-										"value": "{{professorToken}}"
+										"value": "{{professorUdGToken}}"
 									},
 									{
 										"key": "Content-Type",
