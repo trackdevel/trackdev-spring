@@ -11,7 +11,9 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.model.MergePatchReport;
 import org.trackdev.api.repository.CourseRepository;
 import org.trackdev.api.repository.GroupRepository;
+import org.trackdev.api.repository.ProfileAttributeRepository;
 import org.trackdev.api.repository.ReportRepository;
+import org.trackdev.api.repository.TaskAttributeValueRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.util.*;
@@ -31,6 +33,12 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
 
     @Autowired
     GroupRepository projectRepository;
+
+    @Autowired
+    ProfileAttributeRepository profileAttributeRepository;
+
+    @Autowired
+    TaskAttributeValueRepository taskAttributeValueRepository;
 
     @Transactional
     public Report createReport(String name, String userId) {
@@ -125,6 +133,40 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         // Update magnitude if present
         if (reportRequest.magnitude != null) {
             report.setMagnitude(reportRequest.magnitude.orElse(null));
+            // If setting a built-in magnitude, clear the profile attribute
+            if (reportRequest.magnitude.isPresent()) {
+                report.setProfileAttribute(null);
+            }
+        }
+
+        // Update profileAttributeId if present
+        if (reportRequest.profileAttributeId != null) {
+            Long attrId = reportRequest.profileAttributeId.orElse(null);
+            if (attrId != null) {
+                ProfileAttribute attr = profileAttributeRepository.findById(attrId)
+                    .orElseThrow(() -> new EntityNotFound("ProfileAttribute", attrId));
+                // Validate attribute is numeric and targets TASK
+                if (attr.getType() != AttributeType.INTEGER && attr.getType() != AttributeType.FLOAT) {
+                    throw new ServiceException("Profile attribute must be of type INTEGER or FLOAT");
+                }
+                if (attr.getTarget() != AttributeTarget.TASK) {
+                    throw new ServiceException("Profile attribute must target TASK");
+                }
+                // Validate attribute belongs to the report's course profile
+                if (report.getCourse() != null && report.getCourse().getProfile() != null) {
+                    Profile profile = report.getCourse().getProfile();
+                    boolean belongsToProfile = profile.getAttributes().stream()
+                        .anyMatch(a -> a.getId().equals(attrId));
+                    if (!belongsToProfile) {
+                        throw new ServiceException("Profile attribute does not belong to the course's profile");
+                    }
+                }
+                report.setProfileAttribute(attr);
+                // Clear the built-in magnitude when using profile attribute
+                report.setMagnitude(null);
+            } else {
+                report.setProfileAttribute(null);
+            }
         }
 
         // Update course if present (courseId)
@@ -243,8 +285,12 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         }
         
         // Verify report configuration is complete
+        // Either built-in magnitude or profile attribute must be set
+        boolean hasBuiltInMagnitude = report.getMagnitude() != null;
+        boolean hasProfileAttribute = report.getProfileAttribute() != null;
+        
         if (report.getRowType() == null || report.getColumnType() == null ||
-            report.getElement() == null || report.getMagnitude() == null) {
+            report.getElement() == null || (!hasBuiltInMagnitude && !hasProfileAttribute)) {
             throw new ServiceException("Report configuration is incomplete");
         }
         
@@ -257,7 +303,15 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         result.setRowType(report.getRowType().name());
         result.setColumnType(report.getColumnType().name());
         result.setElement(report.getElement().name());
-        result.setMagnitude(report.getMagnitude().name());
+        
+        // Set magnitude info - either built-in or profile attribute
+        if (hasProfileAttribute) {
+            result.setMagnitude("PROFILE_ATTRIBUTE");
+            result.setProfileAttributeId(report.getProfileAttribute().getId());
+            result.setProfileAttributeName(report.getProfileAttribute().getName());
+        } else {
+            result.setMagnitude(report.getMagnitude().name());
+        }
         
         // Get project tasks
         Collection<Task> allTasks = project.getTasks();
@@ -296,10 +350,55 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
             columnTotals.put(colHeader.getId(), 0);
         }
         
+        // If using profile attribute, load all attribute values for filtered tasks
+        Map<Long, Integer> taskAttributeValues = new HashMap<>();
+        int defaultAttrValue = 0;
+        if (hasProfileAttribute) {
+            ProfileAttribute profileAttr = report.getProfileAttribute();
+            Long attrId = profileAttr.getId();
+            
+            // Parse default value if defined
+            if (profileAttr.getDefaultValue() != null && !profileAttr.getDefaultValue().isBlank()) {
+                try {
+                    if (profileAttr.getType() == AttributeType.INTEGER) {
+                        defaultAttrValue = Integer.parseInt(profileAttr.getDefaultValue());
+                    } else if (profileAttr.getType() == AttributeType.FLOAT) {
+                        defaultAttrValue = (int) Math.round(Double.parseDouble(profileAttr.getDefaultValue()));
+                    }
+                } catch (NumberFormatException e) {
+                    // Invalid default value, keep 0
+                }
+            }
+            
+            for (Task task : filteredTasks) {
+                TaskAttributeValue attrValue = taskAttributeValueRepository
+                    .findByTaskIdAndAttributeId(task.getId(), attrId)
+                    .orElse(null);
+                if (attrValue != null && attrValue.getValue() != null) {
+                    try {
+                        // Parse numeric value (INTEGER or FLOAT)
+                        if (profileAttr.getType() == AttributeType.INTEGER) {
+                            taskAttributeValues.put(task.getId(), Integer.parseInt(attrValue.getValue()));
+                        } else if (profileAttr.getType() == AttributeType.FLOAT) {
+                            // Convert float to integer for aggregation (rounding)
+                            taskAttributeValues.put(task.getId(), (int) Math.round(Double.parseDouble(attrValue.getValue())));
+                        }
+                    } catch (NumberFormatException e) {
+                        // Skip invalid values, will use default
+                    }
+                }
+            }
+        }
+        
         // Process each task
         for (Task task : filteredTasks) {
-            // Get value based on magnitude
-            int value = getMagnitudeValue(task, report.getMagnitude());
+            // Get value based on magnitude (built-in or profile attribute)
+            int value;
+            if (hasProfileAttribute) {
+                value = taskAttributeValues.getOrDefault(task.getId(), defaultAttrValue);
+            } else {
+                value = getMagnitudeValue(task, report.getMagnitude());
+            }
             if (value == 0) continue;
             
             // Get row identifiers for this task
