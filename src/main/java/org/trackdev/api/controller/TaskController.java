@@ -12,12 +12,16 @@ import org.trackdev.api.controller.exceptions.ControllerException;
 import org.trackdev.api.dto.*;
 import org.trackdev.api.entity.Comment;
 import org.trackdev.api.entity.PointsReview;
+import org.trackdev.api.entity.ProfileAttribute;
 import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.TaskAttributeValue;
 import org.trackdev.api.entity.TaskStatus;
 import org.trackdev.api.entity.TaskType;
 import org.trackdev.api.entity.prchanges.PullRequestChange;
 import org.trackdev.api.entity.taskchanges.TaskChange;
 import org.trackdev.api.mapper.CommentMapper;
+import org.trackdev.api.mapper.ProfileMapper;
+import org.trackdev.api.mapper.TaskAttributeValueMapper;
 import org.trackdev.api.mapper.TaskChangeMapper;
 import org.trackdev.api.mapper.TaskMapper;
 import org.trackdev.api.model.CreateCommentRequest;
@@ -67,6 +71,12 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     @Autowired
     CommentMapper commentMapper;
+
+    @Autowired
+    TaskAttributeValueMapper taskAttributeValueMapper;
+
+    @Autowired
+    ProfileMapper profileMapper;
 
     @Operation(summary = "Get information of tasks", description = "Get information of tasks")
     @GetMapping
@@ -279,6 +289,51 @@ public class TaskController extends CrudController<Task, TaskService> {
         return taskMapper.toBasicDTO(task);
     }
 
+    // ==================== Task Attribute Values ====================
+
+    @Operation(summary = "Get attribute values for a task", description = "Get all attribute values set for a task")
+    @GetMapping(path = "/{taskId}/attributes")
+    public List<TaskAttributeValueDTO> getTaskAttributeValues(
+            Principal principal, 
+            @PathVariable(name = "taskId") Long taskId) {
+        String userId = super.getUserId(principal);
+        List<TaskAttributeValue> values = service.getTaskAttributeValues(taskId, userId);
+        return taskAttributeValueMapper.toDTOList(values);
+    }
+
+    @Operation(summary = "Get available attributes for a task", description = "Get attributes from course profile that can be applied to this task")
+    @GetMapping(path = "/{taskId}/available-attributes")
+    public List<ProfileAttributeDTO> getAvailableTaskAttributes(
+            Principal principal, 
+            @PathVariable(name = "taskId") Long taskId) {
+        String userId = super.getUserId(principal);
+        List<ProfileAttribute> attributes = service.getAvailableTaskAttributes(taskId, userId);
+        return profileMapper.attributesToDTO(attributes);
+    }
+
+    @Operation(summary = "Set attribute value for a task", description = "Set or update an attribute value for a task (PROFESSOR only)")
+    @PutMapping(path = "/{taskId}/attributes/{attributeId}")
+    public TaskAttributeValueDTO setTaskAttributeValue(
+            Principal principal,
+            @PathVariable(name = "taskId") Long taskId,
+            @PathVariable(name = "attributeId") Long attributeId,
+            @RequestBody SetAttributeValueRequest request) {
+        String userId = super.getUserId(principal);
+        TaskAttributeValue value = service.setTaskAttributeValue(taskId, attributeId, request.value, userId);
+        return taskAttributeValueMapper.toDTO(value);
+    }
+
+    @Operation(summary = "Delete attribute value from a task", description = "Remove an attribute value from a task (PROFESSOR only)")
+    @DeleteMapping(path = "/{taskId}/attributes/{attributeId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTaskAttributeValue(
+            Principal principal,
+            @PathVariable(name = "taskId") Long taskId,
+            @PathVariable(name = "attributeId") Long attributeId) {
+        String userId = super.getUserId(principal);
+        service.deleteTaskAttributeValue(taskId, attributeId, userId);
+    }
+
 
     static class NewSubTask {
         @NotBlank
@@ -291,5 +346,9 @@ public class TaskController extends CrudController<Task, TaskService> {
         public Long sprintId;
         
         public TaskType type;
+    }
+
+    static class SetAttributeValueRequest {
+        public String value;
     }
 }
