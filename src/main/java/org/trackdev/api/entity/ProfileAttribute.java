@@ -48,6 +48,13 @@ public class ProfileAttribute extends BaseEntityLong {
     @Column(name = "enum_ref_id", insertable = false, updatable = false)
     private Long enumRefId;
 
+    /**
+     * Default value for this attribute when not explicitly set.
+     * For INTEGER/FLOAT types, this is used as fallback in reports.
+     */
+    @Column(length = 255)
+    private String defaultValue;
+
     public ProfileAttribute() {}
 
     public ProfileAttribute(String name, AttributeType type, AttributeTarget target, Profile profile) {
@@ -103,5 +110,13 @@ public class ProfileAttribute extends BaseEntityLong {
 
     public Long getEnumRefId() {
         return enumRefId;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
     }
 }
