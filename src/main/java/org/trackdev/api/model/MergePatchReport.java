@@ -24,4 +24,10 @@ public class MergePatchReport {
     public Optional<ReportElement> element;
     public Optional<ReportMagnitude> magnitude;
     public Optional<Long> courseId;
+    /**
+     * Optional reference to a profile attribute for custom magnitude.
+     * When set, the report uses this attribute's values instead of built-in magnitudes.
+     * Set to null to clear the profile attribute (use built-in magnitude instead).
+     */
+    public Optional<Long> profileAttributeId;
 }
