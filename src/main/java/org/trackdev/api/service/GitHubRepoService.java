@@ -186,6 +186,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
     /**
      * Internal method to create a webhook on a GitHub repository.
      * Generates a unique secret per repository for signature verification.
+     * If a webhook with the same URL already exists, it will be reused.
      */
     private void createWebhookInternal(GitHubRepo gitHubRepo, String webhookUrl) {
         String owner = gitHubRepo.getOwner();
@@ -193,6 +194,17 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
 
         if (owner == null || repoName == null) {
             throw new ServiceException(ErrorConstants.INVALID_GITHUB_URL);
+        }
+
+        // Check if webhook already exists with this URL - delete it first to recreate with our secret
+        Long existingWebhookId = findExistingWebhook(gitHubRepo, webhookUrl);
+        if (existingWebhookId != null) {
+            log.info("Webhook already exists for repository {} with id {}, deleting to recreate", gitHubRepo.getFullName(), existingWebhookId);
+            try {
+                deleteWebhookById(gitHubRepo, existingWebhookId);
+            } catch (Exception e) {
+                log.warn("Failed to delete existing webhook {}: {}", existingWebhookId, e.getMessage());
+            }
         }
 
         // Generate a unique secret for this repository
@@ -252,6 +264,45 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
     }
 
     /**
+     * Find an existing webhook with the given URL on the GitHub repository.
+     * @return The webhook ID if found, null otherwise
+     */
+    private Long findExistingWebhook(GitHubRepo gitHubRepo, String webhookUrl) {
+        String owner = gitHubRepo.getOwner();
+        String repoName = gitHubRepo.getRepoName();
+
+        try {
+            HttpHeaders headers = createAuthHeaders(gitHubRepo.getAccessToken());
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            String webhooksUrl = GithubConstants.getWebhooksUrl(owner, repoName);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    webhooksUrl,
+                    HttpMethod.GET,
+                    request,
+                    String.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                JsonNode webhooks = objectMapper.readTree(response.getBody());
+                for (JsonNode webhook : webhooks) {
+                    JsonNode config = webhook.get("config");
+                    if (config != null && config.has("url")) {
+                        String existingUrl = config.get("url").asText();
+                        if (webhookUrl.equals(existingUrl)) {
+                            return webhook.get("id").asLong();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to check existing webhooks for {}: {}", gitHubRepo.getFullName(), e.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
      * Generate a random webhook secret for signature verification.
      */
     private String generateWebhookSecret() {
@@ -262,6 +313,26 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
             sb.append(String.format("%02x", b));
         }
         return sb.toString();
+    }
+
+    /**
+     * Delete a webhook by ID from GitHub (does not update entity).
+     */
+    private void deleteWebhookById(GitHubRepo gitHubRepo, Long webhookId) {
+        String owner = gitHubRepo.getOwner();
+        String repoName = gitHubRepo.getRepoName();
+
+        HttpHeaders headers = createAuthHeaders(gitHubRepo.getAccessToken());
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        String webhookUrl = GithubConstants.getWebhookUrl(owner, repoName, webhookId);
+
+        restTemplate.exchange(
+                webhookUrl,
+                HttpMethod.DELETE,
+                request,
+                String.class
+        );
+        log.info("Deleted webhook {} from repository {}", webhookId, gitHubRepo.getFullName());
     }
 
     /**
