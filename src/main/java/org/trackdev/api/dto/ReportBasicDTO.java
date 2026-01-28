@@ -18,4 +18,14 @@ public class ReportBasicDTO {
     private ReportElement element;
     private ReportMagnitude magnitude;
     private CourseBasicDTO course;
+    /**
+     * ID of the profile attribute used as custom magnitude source.
+     * Null when using built-in magnitude (ESTIMATION_POINTS, PULL_REQUESTS).
+     */
+    private Long profileAttributeId;
+    /**
+     * Name of the profile attribute used as custom magnitude source.
+     * Null when using built-in magnitude.
+     */
+    private String profileAttributeName;
 }
