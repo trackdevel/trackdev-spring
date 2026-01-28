@@ -5,14 +5,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.ServiceException;
+import org.trackdev.api.dto.ProfileAttributeDTO;
+import org.trackdev.api.entity.AttributeTarget;
+import org.trackdev.api.entity.AttributeType;
 import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.Profile;
 import org.trackdev.api.entity.Subject;
 import org.trackdev.api.entity.User;
+import org.trackdev.api.mapper.ProfileMapper;
 import org.trackdev.api.repository.CourseRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseService extends BaseServiceLong<Course, CourseRepository> {
@@ -28,6 +35,9 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
 
     @Autowired
     AccessChecker accessChecker;
+
+    @Autowired
+    ProfileMapper profileMapper;
 
     @Transactional(readOnly = true)
     public Collection<Course> getAll(){
@@ -130,6 +140,34 @@ public class CourseService extends BaseServiceLong<Course, CourseRepository> {
         
         repo.save(course);
         return course;
+    }
+
+    /**
+     * Get numeric TASK-targeted profile attributes for use as report magnitude.
+     * Returns INTEGER and FLOAT attributes with target = TASK from the course's profile.
+     * 
+     * @param courseId The ID of the course
+     * @param userId The ID of the user performing the action
+     * @return List of profile attributes suitable for report magnitude
+     */
+    @Transactional(readOnly = true)
+    public List<ProfileAttributeDTO> getNumericTaskAttributes(Long courseId, String userId) {
+        Course course = get(courseId);
+        accessChecker.checkCanManageCourse(course, userId);
+        
+        Profile profile = course.getProfile();
+        if (profile == null) {
+            return Collections.emptyList();
+        }
+        
+        // Filter to only TASK-targeted numeric attributes (INTEGER or FLOAT)
+        List<ProfileAttributeDTO> attributes = profile.getAttributes().stream()
+            .filter(attr -> attr.getTarget() == AttributeTarget.TASK)
+            .filter(attr -> attr.getType() == AttributeType.INTEGER || attr.getType() == AttributeType.FLOAT)
+            .map(profileMapper::attributeToDTO)
+            .collect(Collectors.toList());
+        
+        return attributes;
     }
 
 }
