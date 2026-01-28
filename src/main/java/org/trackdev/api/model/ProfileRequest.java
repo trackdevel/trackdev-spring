@@ -60,5 +60,11 @@ public class ProfileRequest {
          * Reference to enum by name (required when type is ENUM)
          */
         public String enumRefName;
+
+        /**
+         * Default value for this attribute when not explicitly set on a task.
+         * For INTEGER/FLOAT types, this is used as fallback in reports.
+         */
+        public String defaultValue;
     }
 }

@@ -12,6 +12,8 @@ import org.trackdev.api.model.MergePatchTask;
 import org.trackdev.api.query.CriteriaParser;
 import org.trackdev.api.query.GenericSpecificationsBuilder;
 import org.trackdev.api.query.SearchSpecification;
+import org.trackdev.api.repository.ProfileAttributeRepository;
+import org.trackdev.api.repository.TaskAttributeValueRepository;
 import org.trackdev.api.repository.TaskRepository;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.HtmlSanitizer;
@@ -48,6 +50,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     @Autowired
     ActivityService activityService;
+
+    @Autowired
+    TaskAttributeValueRepository taskAttributeValueRepository;
+
+    @Autowired
+    ProfileAttributeRepository profileAttributeRepository;
 
     @Transactional
     public Task createTask(Long projectId, String name, String userId) {
@@ -798,5 +806,152 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         task.setFrozen(false);
         repo.save(task);
         return task;
+    }
+
+    // ==================== Task Attribute Values ====================
+
+    /**
+     * Get all attribute values for a task.
+     * Also returns attributes from the course profile that don't have values yet.
+     */
+    public List<TaskAttributeValue> getTaskAttributeValues(Long taskId, String userId) {
+        Task task = get(taskId);
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        
+        return taskAttributeValueRepository.findByTaskId(taskId);
+    }
+
+    /**
+     * Get available attributes for a task from the course profile.
+     * Only returns attributes with target = TASK.
+     */
+    public List<ProfileAttribute> getAvailableTaskAttributes(Long taskId, String userId) {
+        Task task = get(taskId);
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        
+        // Get the course profile
+        Course course = task.getProject().getCourse();
+        Profile profile = course.getProfile();
+        
+        if (profile == null) {
+            return Collections.emptyList();
+        }
+        
+        // Return only attributes with target = TASK
+        return profile.getAttributes().stream()
+                .filter(attr -> attr.getTarget() == AttributeTarget.TASK)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Set or update an attribute value for a task.
+     * Only professors can set attribute values.
+     */
+    @Transactional
+    public TaskAttributeValue setTaskAttributeValue(Long taskId, Long attributeId, String value, String userId) {
+        Task task = get(taskId);
+        User user = userService.get(userId);
+        
+        // Only professors can set attribute values
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        
+        // Verify the attribute belongs to the task's course profile
+        Course course = task.getProject().getCourse();
+        Profile profile = course.getProfile();
+        
+        if (profile == null) {
+            throw new ServiceException("No profile is applied to this course");
+        }
+        
+        ProfileAttribute attribute = profileAttributeRepository.findById(attributeId)
+                .orElseThrow(() -> new ServiceException("Attribute not found"));
+        
+        // Verify attribute belongs to the course's profile
+        if (!attribute.getProfileId().equals(profile.getId())) {
+            throw new ServiceException("Attribute does not belong to the course profile");
+        }
+        
+        // Verify attribute target is TASK
+        if (attribute.getTarget() != AttributeTarget.TASK) {
+            throw new ServiceException("Attribute is not applicable to tasks");
+        }
+        
+        // Validate value based on type
+        validateAttributeValue(attribute, value);
+        
+        // Find or create the attribute value
+        Optional<TaskAttributeValue> existingValue = 
+                taskAttributeValueRepository.findByTaskIdAndAttributeId(taskId, attributeId);
+        
+        TaskAttributeValue attributeValue;
+        if (existingValue.isPresent()) {
+            attributeValue = existingValue.get();
+            attributeValue.setValue(value);
+        } else {
+            attributeValue = new TaskAttributeValue(task, attribute, value);
+        }
+        
+        return taskAttributeValueRepository.save(attributeValue);
+    }
+
+    /**
+     * Delete an attribute value from a task.
+     * Only professors can delete attribute values.
+     */
+    @Transactional
+    public void deleteTaskAttributeValue(Long taskId, Long attributeId, String userId) {
+        Task task = get(taskId);
+        User user = userService.get(userId);
+        
+        // Only professors can delete attribute values
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+        
+        accessChecker.checkCanViewProject(task.getProject(), userId);
+        
+        taskAttributeValueRepository.deleteByTaskIdAndAttributeId(taskId, attributeId);
+    }
+
+    /**
+     * Validate the value based on attribute type
+     */
+    private void validateAttributeValue(ProfileAttribute attribute, String value) {
+        if (value == null || value.isBlank()) {
+            return; // Allow empty values
+        }
+        
+        switch (attribute.getType()) {
+            case INTEGER:
+                try {
+                    Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    throw new ServiceException("Invalid integer value");
+                }
+                break;
+            case FLOAT:
+                try {
+                    Double.parseDouble(value);
+                } catch (NumberFormatException e) {
+                    throw new ServiceException("Invalid decimal value");
+                }
+                break;
+            case ENUM:
+                if (attribute.getEnumRef() != null) {
+                    List<String> allowedValues = attribute.getEnumRef().getValues();
+                    if (!allowedValues.contains(value)) {
+                        throw new ServiceException("Invalid enum value. Allowed values: " + String.join(", ", allowedValues));
+                    }
+                }
+                break;
+            case STRING:
+            default:
+                // No validation needed for strings
+                break;
+        }
     }
 }

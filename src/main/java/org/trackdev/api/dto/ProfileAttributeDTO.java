@@ -4,6 +4,8 @@ import lombok.Data;
 import org.trackdev.api.entity.AttributeTarget;
 import org.trackdev.api.entity.AttributeType;
 
+import java.util.List;
+
 /**
  * DTO for ProfileAttribute
  */
@@ -15,4 +17,6 @@ public class ProfileAttributeDTO {
     private AttributeTarget target;
     private Long enumRefId;
     private String enumRefName;
+    private List<String> enumValues;
+    private String defaultValue;
 }

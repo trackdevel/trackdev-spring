@@ -223,6 +223,16 @@ public class CourseController extends BaseController {
         return new CourseReportsResponse(reportMapper.toBasicDTOList(reports), courseId);
     }
 
+    @Operation(summary = "Get numeric profile attributes for report magnitude", 
+               description = "Get TASK-targeted INTEGER and FLOAT attributes from the course's profile for use as report magnitude")
+    @GetMapping(path = "/{courseId}/report-magnitude-attributes")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public List<ProfileAttributeDTO> getReportMagnitudeAttributes(Principal principal,
+                                                                    @PathVariable(name = "courseId") Long courseId) {
+        String userId = super.getUserId(principal);
+        return service.getNumericTaskAttributes(courseId, userId);
+    }
+
     @Operation(summary = "Apply a profile to a course", description = "Apply a profile to a course, enabling custom attribute tracking for all projects (professors only)")
     @PostMapping(path = "/{courseId}/apply-profile/{profileId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")

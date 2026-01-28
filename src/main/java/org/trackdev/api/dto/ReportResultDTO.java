@@ -18,7 +18,11 @@ public class ReportResultDTO {
     private String rowType;    // "STUDENTS" or "SPRINTS"
     private String columnType; // "STUDENTS" or "SPRINTS"
     private String element;    // "TASK"
-    private String magnitude;  // "ESTIMATION_POINTS" or "PULL_REQUESTS"
+    private String magnitude;  // "ESTIMATION_POINTS", "PULL_REQUESTS", or "PROFILE_ATTRIBUTE"
+    
+    // Profile attribute info (when magnitude is PROFILE_ATTRIBUTE)
+    private Long profileAttributeId;
+    private String profileAttributeName;
     
     // Headers for rows and columns
     private List<AxisHeader> rowHeaders;    // List of {id, name}
@@ -102,6 +106,22 @@ public class ReportResultDTO {
 
     public void setMagnitude(String magnitude) {
         this.magnitude = magnitude;
+    }
+
+    public Long getProfileAttributeId() {
+        return profileAttributeId;
+    }
+
+    public void setProfileAttributeId(Long profileAttributeId) {
+        this.profileAttributeId = profileAttributeId;
+    }
+
+    public String getProfileAttributeName() {
+        return profileAttributeName;
+    }
+
+    public void setProfileAttributeName(String profileAttributeName) {
+        this.profileAttributeName = profileAttributeName;
     }
 
     public List<AxisHeader> getRowHeaders() {

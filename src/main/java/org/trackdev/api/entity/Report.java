@@ -50,6 +50,16 @@ public class Report extends BaseEntityLong {
     @JoinColumn(name = "course_id")
     private Course course;
 
+    /**
+     * Optional reference to a profile attribute for custom magnitude.
+     * When set, the report uses this attribute's values from TaskAttributeValue
+     * instead of the built-in magnitude (ESTIMATION_POINTS, PULL_REQUESTS).
+     * Only numeric attributes (INTEGER, FLOAT) with target=TASK are valid.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_attribute_id")
+    private ProfileAttribute profileAttribute;
+
     // Constructors
     public Report() {
         this.element = ReportElement.TASK; // Default to TASK
@@ -125,5 +135,13 @@ public class Report extends BaseEntityLong {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    public ProfileAttribute getProfileAttribute() {
+        return profileAttribute;
+    }
+
+    public void setProfileAttribute(ProfileAttribute profileAttribute) {
+        this.profileAttribute = profileAttribute;
     }
 }

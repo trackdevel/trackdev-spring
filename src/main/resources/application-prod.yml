@@ -13,7 +13,7 @@ spring:
   flyway:
     # Enable Flyway
     enabled: true
-    baseline-on-migrate: false
+    baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: true
   mvc:
