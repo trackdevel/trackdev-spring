@@ -12,6 +12,7 @@ import org.trackdev.api.entity.Profile;
 import org.trackdev.api.entity.ProfileAttribute;
 import org.trackdev.api.entity.ProfileEnum;
 
+import java.util.Collections;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -37,9 +38,18 @@ public interface ProfileMapper {
 
     @Named("attributeToDTO")
     @Mapping(target = "enumRefName", source = "enumRef.name")
+    @Mapping(target = "enumValues", source = "attribute", qualifiedByName = "getEnumValuesFromAttribute")
     ProfileAttributeDTO attributeToDTO(ProfileAttribute attribute);
 
     @Named("attributesToDTO")
     @IterableMapping(qualifiedByName = "attributeToDTO")
     List<ProfileAttributeDTO> attributesToDTO(List<ProfileAttribute> attributes);
+
+    @Named("getEnumValuesFromAttribute")
+    default List<String> getEnumValuesFromAttribute(ProfileAttribute attribute) {
+        if (attribute.getEnumRef() != null) {
+            return attribute.getEnumRef().getValues();
+        }
+        return Collections.emptyList();
+    }
 }
