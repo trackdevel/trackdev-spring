@@ -143,6 +143,9 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             attribute.setEnumRef(enumRef);
         }
 
+        // Set default value if provided
+        attribute.setDefaultValue(attrRequest.defaultValue);
+
         profile.addAttribute(attribute);
     }
 
@@ -210,6 +213,9 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                 } else {
                     existing.setEnumRef(null);
                 }
+                
+                // Update default value
+                existing.setDefaultValue(attrRequest.defaultValue);
             } else {
                 // Add new attribute
                 addAttributeToProfile(profile, attrRequest);
