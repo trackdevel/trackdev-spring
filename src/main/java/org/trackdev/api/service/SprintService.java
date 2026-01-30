@@ -164,6 +164,18 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         return repo.findAllById(sprintIds);
     }
 
+    /**
+     * Find the currently active sprint for a project.
+     * Active sprint = startDate <= now < endDate
+     */
+    public java.util.Optional<Sprint> findActiveSprintForProject(Long projectId) {
+        ZonedDateTime now = ZonedDateTime.now();
+        return repo.findByProjectId(projectId).stream()
+            .filter(s -> s.getStartDate() != null && s.getEndDate() != null)
+            .filter(s -> !s.getStartDate().isAfter(now) && s.getEndDate().isAfter(now))
+            .findFirst();
+    }
+
     /*
      * NOTE: Sprint status is now computed dynamically via Sprint.getEffectiveStatus()
      * based on startDate/endDate. No scheduled job is needed.

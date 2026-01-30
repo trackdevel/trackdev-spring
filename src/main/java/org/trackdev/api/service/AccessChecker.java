@@ -9,7 +9,11 @@ import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.Project;
+import org.trackdev.api.entity.Sprint;
+import org.trackdev.api.entity.SprintStatus;
 import org.trackdev.api.entity.Subject;
+import org.trackdev.api.entity.TaskStatus;
+import org.trackdev.api.entity.TaskType;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.entity.Workspace;
 import org.trackdev.api.utils.ErrorConstants;
@@ -827,6 +831,275 @@ public class AccessChecker {
         }
         
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    // =============================================================================
+    // TASK PERMISSION COMPUTATION (for DTO permission flags)
+    // =============================================================================
+
+    /**
+     * Check if user is a professor with access to the task's project.
+     * This includes course owner, subject owner, or admin.
+     */
+    public boolean isProfessorForTask(org.trackdev.api.entity.Task task, String userId) {
+        User user = userService.get(userId);
+        if (user.isUserType(UserType.ADMIN)) {
+            return true;
+        }
+        Course course = task.getProject().getCourse();
+        if (course.getOwnerId().equals(userId)) {
+            return true;
+        }
+        Subject subject = course.getSubject();
+        return isSubjectOwner(subject, userId);
+    }
+
+    /**
+     * Check if a TASK or BUG is in a past (CLOSED) sprint only.
+     * Returns false for USER_STORY or tasks with no sprints.
+     */
+    public boolean isTaskInPastSprintOnly(org.trackdev.api.entity.Task task) {
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            return false;
+        }
+        Collection<Sprint> sprints = task.getActiveSprints();
+        if (sprints == null || sprints.isEmpty()) {
+            return false;
+        }
+        // Check if ALL sprints are CLOSED (past)
+        return sprints.stream().allMatch(sprint -> sprint.getEffectiveStatus() == SprintStatus.CLOSED);
+    }
+
+    /**
+     * Compute canEditStatus permission.
+     * USER_STORY cannot have status changed manually.
+     * TASK/BUG in past sprint only cannot change status (unless professor).
+     */
+    public boolean canEditStatus(org.trackdev.api.entity.Task task, String userId) {
+        // USER_STORY status is computed from children, cannot be changed manually
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            return false;
+        }
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can edit
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // If in past sprint only, only professor can edit
+        if (isTaskInPastSprintOnly(task) && !isProfessor) {
+            return false;
+        }
+        // Check basic edit permission
+        return canEditTask(task, userId);
+    }
+
+    /**
+     * Compute canEditSprint permission.
+     * TASK/BUG in past sprint can still edit sprint to move to active/future (if not DONE).
+     */
+    public boolean canEditSprint(org.trackdev.api.entity.Task task, String userId) {
+        // USER_STORY sprint is derived from subtasks, cannot be changed directly
+        // (unless all subtasks are unassigned)
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            // Check if USER_STORY has subtasks with sprints
+            Collection<org.trackdev.api.entity.Task> children = task.getChildTasks();
+            if (children != null && !children.isEmpty()) {
+                boolean anySubtaskHasSprint = children.stream()
+                    .anyMatch(child -> child.getActiveSprints() != null && !child.getActiveSprints().isEmpty());
+                if (anySubtaskHasSprint) {
+                    return false;  // Sprint is derived from subtasks
+                }
+            }
+        }
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can edit
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // DONE status tasks cannot change sprint (except professor)
+        if (task.getStatus() == TaskStatus.DONE && !isProfessor) {
+            return false;
+        }
+        // Special case: TASK/BUG in past sprint can still edit sprint to escape
+        // (this is intentionally more permissive than canEdit)
+        if (isTaskInPastSprintOnly(task) && !isProfessor) {
+            // Allow sprint change to escape past sprint, if not DONE
+            return task.getStatus() != TaskStatus.DONE && canEditTask(task, userId);
+        }
+        return canEditTask(task, userId);
+    }
+
+    /**
+     * Compute canEditType permission.
+     * USER_STORY and BUG cannot change type.
+     * Subtasks can only be TASK or BUG.
+     */
+    public boolean canEditType(org.trackdev.api.entity.Task task, String userId) {
+        // USER_STORY cannot change type
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            return false;
+        }
+        // BUG cannot change type
+        if (task.getTaskType() == TaskType.BUG) {
+            return false;
+        }
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can edit
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // If in past sprint only, only professor can edit
+        if (isTaskInPastSprintOnly(task) && !isProfessor) {
+            return false;
+        }
+        return canEditTask(task, userId);
+    }
+
+    /**
+     * Compute canEditEstimation permission.
+     * Only TASK and BUG can have estimation edited (USER_STORY is sum of subtasks).
+     */
+    public boolean canEditEstimation(org.trackdev.api.entity.Task task, String userId) {
+        // USER_STORY estimation is sum of subtasks
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            return false;
+        }
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can edit
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // If in past sprint only, only professor can edit
+        if (isTaskInPastSprintOnly(task) && !isProfessor) {
+            return false;
+        }
+        return canEditTask(task, userId);
+    }
+
+    /**
+     * Compute canDelete permission.
+     * Only professor or assignee can delete (NOT reporter).
+     * USER_STORY can only be deleted if it has no subtasks.
+     * TASK/BUG can only be deleted if status is TODO or INPROGRESS.
+     */
+    public boolean canDeleteTask(org.trackdev.api.entity.Task task, String userId) {
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can delete
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // If in past sprint only, only professor can delete
+        if (isTaskInPastSprintOnly(task) && !isProfessor) {
+            return false;
+        }
+        // Only professor or assignee can delete (NOT reporter)
+        // This is stricter than canEditTask which allows reporter OR assignee
+        if (!isProfessor && !isTaskAssignee(task, userId)) {
+            return false;
+        }
+        // USER_STORY: can only delete if no subtasks
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            Collection<org.trackdev.api.entity.Task> children = task.getChildTasks();
+            return children == null || children.isEmpty();
+        }
+        // TASK/BUG: can only delete if status is TODO or INPROGRESS
+        return task.getStatus() == TaskStatus.TODO || task.getStatus() == TaskStatus.INPROGRESS;
+    }
+
+    /**
+     * Compute canSelfAssign permission.
+     * Only students can self-assign. Task must be unassigned.
+     */
+    public boolean canSelfAssign(org.trackdev.api.entity.Task task, String userId) {
+        User user = userService.get(userId);
+        // Only students can self-assign
+        if (!user.isUserType(UserType.STUDENT)) {
+            return false;
+        }
+        // Task must be unassigned
+        if (task.getAssignee() != null) {
+            return false;
+        }
+        // If frozen, cannot self-assign
+        if (task.isFrozen()) {
+            return false;
+        }
+        // If in past sprint only, cannot self-assign
+        if (isTaskInPastSprintOnly(task)) {
+            return false;
+        }
+        // Must be a project member
+        return task.getProject().isMember(userId);
+    }
+
+    /**
+     * Compute canUnassign permission.
+     * Assignee or professor can unassign.
+     */
+    public boolean canUnassign(org.trackdev.api.entity.Task task, String userId) {
+        // Must have an assignee to unassign
+        if (task.getAssignee() == null) {
+            return false;
+        }
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can unassign
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // If in past sprint only, only professor can unassign
+        if (isTaskInPastSprintOnly(task) && !isProfessor) {
+            return false;
+        }
+        // Assignee can unassign themselves
+        if (isTaskAssignee(task, userId)) {
+            return true;
+        }
+        // Professor can unassign anyone
+        return isProfessor;
+    }
+
+    /**
+     * Compute canAddSubtask permission.
+     * Only USER_STORY can have subtasks. Any project member can add.
+     */
+    public boolean canAddSubtask(org.trackdev.api.entity.Task task, String userId) {
+        // Only USER_STORY can have subtasks
+        if (task.getTaskType() != TaskType.USER_STORY) {
+            return false;
+        }
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can add subtasks
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // Check if user can create subtasks
+        return task.getProject().isMember(userId) || isProfessor;
+    }
+
+    /**
+     * Compute canFreeze permission.
+     * Only professors can freeze/unfreeze tasks.
+     */
+    public boolean canFreeze(org.trackdev.api.entity.Task task, String userId) {
+        return isProfessorForTask(task, userId);
+    }
+
+    /**
+     * Compute canComment permission.
+     * Any project member or professor can comment.
+     */
+    public boolean canComment(org.trackdev.api.entity.Task task, String userId) {
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can comment
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        // Project members can comment
+        if (task.getProject().isMember(userId)) {
+            return true;
+        }
+        // Professor can comment
+        return isProfessor;
     }
 
 }

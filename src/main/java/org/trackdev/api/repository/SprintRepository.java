@@ -1,6 +1,7 @@
 package org.trackdev.api.repository;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 import org.trackdev.api.entity.Sprint;
 
@@ -22,11 +23,19 @@ public interface SprintRepository extends BaseRepositoryLong<Sprint> {
     /**
      * Find all sprints created from a specific sprint pattern item
      */
-    List<Sprint> findBySprintPatternItem_Id(Long sprintPatternItemId);
+    @Query("SELECT s FROM Sprint s WHERE s.sprintPatternItem.id = :patternItemId")
+    List<Sprint> findByPatternItemId(@Param("patternItemId") Long patternItemId);
 
     /**
      * Find all sprints for a project, ordered by order index of the pattern item
      */
-    List<Sprint> findByProject_IdOrderBySprintPatternItem_OrderIndexAsc(Long projectId);
+    @Query("SELECT s FROM Sprint s WHERE s.project.id = :projectId ORDER BY s.sprintPatternItem.orderIndex ASC")
+    List<Sprint> findByProjectIdOrderByPatternItemOrderIndex(@Param("projectId") Long projectId);
+
+    /**
+     * Find all sprints for a project
+     */
+    @Query("SELECT s FROM Sprint s WHERE s.project.id = :projectId")
+    List<Sprint> findByProjectId(@Param("projectId") Long projectId);
 
 }

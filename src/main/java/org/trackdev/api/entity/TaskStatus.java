@@ -9,8 +9,7 @@ public enum TaskStatus {
     TODO("task.status.todo"),
     INPROGRESS("task.status.inprogress"),
     VERIFY("task.status.verify"),
-    DONE("task.status.done"),
-    DEFINED("task.status.defined");
+    DONE("task.status.done");
 
     private final String messageKey;
 

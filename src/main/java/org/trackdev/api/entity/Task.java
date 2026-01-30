@@ -345,7 +345,22 @@ public class Task extends BaseEntityLong {
     }
 
 
+    /**
+     * Returns the sprints where this task is active.
+     * For USER_STORY: computed from the union of all childTasks' sprints
+     * For TASK/BUG: returns the stored activeSprints
+     */
     public Collection<Sprint> getActiveSprints() {
+        // For USER_STORY, compute from childTasks' sprints
+        if (type == TaskType.USER_STORY && childTasks != null && !childTasks.isEmpty()) {
+            Set<Sprint> computedSprints = new HashSet<>();
+            for (Task child : childTasks) {
+                if (child.activeSprints != null) {
+                    computedSprints.addAll(child.activeSprints);
+                }
+            }
+            return computedSprints;
+        }
         return activeSprints;
     }
 

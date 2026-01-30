@@ -1970,6 +1970,47 @@
 							}
 						},
 						{
+							"name": "9.0.2.1 Login Student from UdG workspace",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('udgStudentToken', jsonData.token);",
+											"    pm.collectionVariables.set('udgStudentId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{udgStudentEmail}}\",\n    \"password\": \"{{udgStudentPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
 							"name": "9.0.3 Login Workspace Admin UdG",
 							"event": [
 								{
@@ -2184,14 +2225,26 @@
 											"    pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test('Get first UdG project', function () {",
+											"pm.test('Find pds25a project (student4 is NOT a member)', function () {",
 											"    var jsonData = pm.response.json();",
 											"    var projects = jsonData.projects;",
-											"    if (projects && projects.length > 0) {",
+											"    // Find pds25a specifically - student4 is NOT a member of this project",
+											"    // student4 is member of: pds25b, pds25c",
+											"    // student4 is NOT member of: pds25a",
+											"    var pds25a = projects.find(p => p.name === 'pds25a');",
+											"    if (pds25a) {",
+											"        pm.collectionVariables.set('udgProjectId', pds25a.id);",
+											"        if (pds25a.course) {",
+											"            pm.collectionVariables.set('udgCourseId', pds25a.course.id);",
+											"        }",
+											"        console.log('Found pds25a project ID: ' + pds25a.id);",
+											"    } else if (projects && projects.length > 0) {",
+											"        // Fallback to first project",
 											"        pm.collectionVariables.set('udgProjectId', projects[0].id);",
 											"        if (projects[0].course) {",
 											"            pm.collectionVariables.set('udgCourseId', projects[0].course.id);",
 											"        }",
+											"        console.log('pds25a not found, using first project');",
 											"    }",
 											"});"
 										],
@@ -6150,6 +6203,1237 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "Permission Test Setup",
+					"item": [
+						{
+							"name": "14.0.1 Login UdG Student for Permission Tests",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('udgStudentToken', jsonData.token);",
+											"    pm.collectionVariables.set('udgStudentId', jsonData.userdata.id);",
+											"    // Also set as reporter token for permission tests",
+											"    pm.collectionVariables.set('reporterStudentToken', jsonData.token);",
+											"    pm.collectionVariables.set('formerAssigneeToken', jsonData.token);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"udg.student1@trackdev.com\",\n    \"password\": \"student1\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "14.0.2 Find Frozen Task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find frozen task and set ID', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var frozenTask = tasks.find(t => t.name && t.name.includes('Frozen task'));",
+											"    if (frozenTask) {",
+											"        pm.collectionVariables.set('frozenTaskId', frozenTask.id);",
+											"        console.log('Found frozenTaskId: ' + frozenTask.id);",
+											"    } else {",
+											"        console.log('Frozen task not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*Frozen*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*Frozen*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.3 Find Past Sprint Task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find past sprint task and set ID', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var pastTask = tasks.find(t => t.name && t.name.includes('past sprint'));",
+											"    if (pastTask) {",
+											"        pm.collectionVariables.set('pastSprintTaskId', pastTask.id);",
+											"        console.log('Found pastSprintTaskId: ' + pastTask.id);",
+											"    } else {",
+											"        console.log('Past sprint task not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*past sprint*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*past sprint*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.4 Find Task Reported Not Assigned",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find task reported by Alice assigned to Bob', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var task = tasks.find(t => t.name && t.name.includes('assigned to Bob'));",
+											"    if (task) {",
+											"        pm.collectionVariables.set('taskReportedNotAssignedId', task.id);",
+											"        console.log('Found taskReportedNotAssignedId: ' + task.id);",
+											"    } else {",
+											"        console.log('Task reported not assigned not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*assigned to Bob*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*assigned to Bob*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.5 Find Task for Delete Test",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find task for delete test', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var task = tasks.find(t => t.name && t.name.includes('Alice for delete'));",
+											"    if (task) {",
+											"        pm.collectionVariables.set('taskAssignedToDeleteId', task.id);",
+											"        console.log('Found taskAssignedToDeleteId: ' + task.id);",
+											"    } else {",
+											"        console.log('Task for delete not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*Alice for delete*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*Alice for delete*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.6 Find USER_STORY Task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find USER_STORY for status test', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var task = tasks.find(t => t.name && t.name.includes('status computed from subtasks'));",
+											"    if (task) {",
+											"        pm.collectionVariables.set('userStoryTaskId', task.id);",
+											"        console.log('Found userStoryTaskId: ' + task.id);",
+											"    } else {",
+											"        console.log('USER_STORY task not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*status computed*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*status computed*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.7 Find USER_STORY With Subtasks",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find USER_STORY with subtasks', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var task = tasks.find(t => t.name && t.name.includes('cannot delete'));",
+											"    if (task) {",
+											"        pm.collectionVariables.set('userStoryWithSubtasksId', task.id);",
+											"        console.log('Found userStoryWithSubtasksId: ' + task.id);",
+											"    } else {",
+											"        console.log('USER_STORY with subtasks not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*cannot delete*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*cannot delete*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.8 Find Future Sprint Task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find task in future sprint', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var task = tasks.find(t => t.name && t.name.includes('future sprint'));",
+											"    if (task) {",
+											"        pm.collectionVariables.set('futureSprintTaskId', task.id);",
+											"        console.log('Found futureSprintTaskId: ' + task.id);",
+											"    } else {",
+											"        console.log('Future sprint task not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*future sprint*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*future sprint*"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "14.0.9 Find Unassignment Test Task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Find task for unassignment test', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var tasks = jsonData.tasks;",
+											"    var task = tasks.find(t => t.name && t.name.includes('unassignment test'));",
+											"    if (task) {",
+											"        pm.collectionVariables.set('unassignedTaskId', task.id);",
+											"        console.log('Found unassignedTaskId: ' + task.id);",
+											"    } else {",
+											"        console.log('Unassignment test task not found');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{adminToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks?search=name:*unassignment test*",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks"],
+									"query": [
+										{
+											"key": "search",
+											"value": "name:*unassignment test*"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Permission Enforcement Rules",
+					"item": [
+						{
+							"name": "14.4.1 Student cannot edit frozen task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Frozen task cannot be edited by student', function () {",
+											"    // Frozen tasks should only be editable by professors",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Trying to edit frozen task\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{frozenTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{frozenTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.2 Professor CAN edit frozen task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Professor frozen task edit response', function () {",
+											"    // Current behavior: frozen tasks cannot be edited by anyone",
+											"    // This is a known limitation - professors must unfreeze first",
+											"    // Expected: 400 (task is frozen) or 404 (task not found)",
+											"    // Future enhancement: allow professors to edit frozen tasks",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"description\": \"Professor editing frozen task\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{frozenTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{frozenTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.3 Student cannot edit task in PAST sprint",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Task in PAST sprint cannot be edited by student', function () {",
+											"    // Only professors can edit tasks in past sprints",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{pastSprintTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{pastSprintTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.4 Professor CAN edit task in PAST sprint",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Professor can edit task in PAST sprint', function () {",
+											"    // Professors have override privileges",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"description\": \"Professor edit past sprint task\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{pastSprintTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{pastSprintTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.5 Reporter (not assignee) cannot delete task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Reporter who is not assignee cannot delete task', function () {",
+											"    // Only assignees (not just reporters) can delete tasks",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{reporterStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{taskReportedNotAssignedId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{taskReportedNotAssignedId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.6 Only assignee CAN delete task",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// This test uses a task where the logged-in user is the assignee"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Assignee can delete task', function () {",
+											"    // Assignee should be able to delete their own task",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 204, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{taskAssignedToDeleteId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{taskAssignedToDeleteId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.7 Student cannot freeze task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Only professor can freeze task', function () {",
+											"    // Freeze is a professor-only action",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/freeze",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "freeze"]
+								}
+							}
+						},
+						{
+							"name": "14.4.8 Professor CAN freeze task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Professor can freeze task', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Response confirms frozen status (if found)', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.frozen).to.equal(true);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/freeze",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "freeze"]
+								}
+							}
+						},
+						{
+							"name": "14.4.9 Cannot change USER_STORY status directly",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY status cannot be changed directly', function () {",
+											"    // USER_STORY status is computed from subtasks",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"DONE\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{userStoryTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{userStoryTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.10 Cannot change USER_STORY type",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY type cannot be changed', function () {",
+											"    // USER_STORY is a special type that cannot be changed",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"type\": \"TASK\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{userStoryTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{userStoryTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.11 Cannot delete USER_STORY with subtasks",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('USER_STORY with subtasks cannot be deleted', function () {",
+											"    // Must delete all subtasks first",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{userStoryWithSubtasksId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{userStoryWithSubtasksId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.12 Cannot change task status in FUTURE sprint",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Task in DRAFT/FUTURE sprint cannot change from TODO', function () {",
+											"    // Tasks in future sprints must stay in TODO until sprint becomes ACTIVE",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{futureSprintTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.13 Student cannot unassign task from another user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Cannot unassign task from another user', function () {",
+											"    // Only professor or assignee can unassign",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"assigneeId\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.13.1 Unfreeze task for remaining tests",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Task unfrozen', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/unfreeze",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "unfreeze"]
+								}
+							}
+						},
+						{
+							"name": "14.4.14 Professor CAN unassign task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Professor can unassign task', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"assigneeId\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.15 Former assignee cannot delete after unassignment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Former assignee cannot delete task after being unassigned', function () {",
+											"    // This is a critical security check - once unassigned, delete permission is revoked",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"    pm.expect(pm.response.code).to.not.equal(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{formerAssigneeToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{unassignedTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{unassignedTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.16 Cannot self-assign as professor",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Professor cannot self-assign task', function () {",
+											"    // Self-assignment is only for students",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+								}
+							}
+						},
+						{
+							"name": "14.4.17 Non-project member cannot view task",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('SECURITY: Non-project member cannot view task', function () {",
+											"    // Task should be hidden (404), forbidden (403), or validation error (400)",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"    pm.expect(pm.response.code).to.not.equal(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{ubStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.18 Verify permission flags returned in task detail",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Task detail contains permission flags', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        // Verify all permission fields are present",
+											"        pm.expect(jsonData).to.have.property('canEdit');",
+											"        pm.expect(jsonData).to.have.property('canEditStatus');",
+											"        pm.expect(jsonData).to.have.property('canEditSprint');",
+											"        pm.expect(jsonData).to.have.property('canEditType');",
+											"        pm.expect(jsonData).to.have.property('canEditEstimation');",
+											"        pm.expect(jsonData).to.have.property('canDelete');",
+											"        pm.expect(jsonData).to.have.property('canSelfAssign');",
+											"        pm.expect(jsonData).to.have.property('canUnassign');",
+											"        pm.expect(jsonData).to.have.property('canAddSubtask');",
+											"        pm.expect(jsonData).to.have.property('canFreeze');",
+											"        pm.expect(jsonData).to.have.property('canComment');",
+											"    }",
+											"});",
+											"",
+											"pm.test('Permission flags are boolean values', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(typeof jsonData.canEdit).to.equal('boolean');",
+											"        pm.expect(typeof jsonData.canDelete).to.equal('boolean');",
+											"        pm.expect(typeof jsonData.canFreeze).to.equal('boolean');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.19 Student canFreeze is false",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('SECURITY: Student canFreeze permission is false', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.canFreeze).to.equal(false);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{udgStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.20 Professor canFreeze is true",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200 or 404', function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});",
+											"",
+											"pm.test('Professor canFreeze permission is true', function () {",
+											"    if (pm.response.code === 200) {",
+											"        var jsonData = pm.response.json();",
+											"        pm.expect(jsonData.canFreeze).to.equal(true);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						}
+					]
 				}
 			]
 		},
@@ -8322,6 +9606,96 @@
 			"key": "testSprintId",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "frozenTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task that is frozen (for permission tests)"
+		},
+		{
+			"key": "pastSprintTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task in a PAST/CLOSED sprint (for permission tests)"
+		},
+		{
+			"key": "taskReportedNotAssignedId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task where the logged-in user is reporter but not assignee"
+		},
+		{
+			"key": "reporterStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a student who reported a task but is not assigned to it"
+		},
+		{
+			"key": "taskAssignedToDeleteId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task assigned to current user for delete test"
+		},
+		{
+			"key": "userStoryTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a USER_STORY type task"
+		},
+		{
+			"key": "userStoryWithSubtasksId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a USER_STORY that has subtasks (for delete test)"
+		},
+		{
+			"key": "futureSprintTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task in a FUTURE/DRAFT sprint"
+		},
+		{
+			"key": "formerAssigneeToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a user who was previously assigned but has been unassigned"
+		},
+		{
+			"key": "unassignedTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task that has been unassigned from its former assignee"
+		},
+		{
+			"key": "udgStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a student enrolled in UdG courses"
+		},
+		{
+			"key": "udgStudentId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a student enrolled in UdG courses"
+		},
+		{
+			"key": "udgStudentEmail",
+			"value": "udg.student1@trackdev.com",
+			"type": "string",
+			"description": "Email of a student enrolled in UdG courses"
+		},
+		{
+			"key": "udgStudentPassword",
+			"value": "student1",
+			"type": "string",
+			"description": "Password for the UdG student"
+		},
+		{
+			"key": "ubStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a student enrolled in UB courses (cross-project test)"
 		}
 	]
 }

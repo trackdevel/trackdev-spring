@@ -96,7 +96,20 @@ public class TaskController extends CrudController<Task, TaskService> {
         List<PointsReview> pointsReview = pointsReviewService.getPointsReview(userId);
         TaskDetailDTO dto = taskMapper.toDetailDTO(task);
         dto.setPointsReview(pointsReview);
+        
+        // Compute all permission flags based on current user context
         dto.setCanEdit(accessChecker.canEditTask(task, userId));
+        dto.setCanEditStatus(accessChecker.canEditStatus(task, userId));
+        dto.setCanEditSprint(accessChecker.canEditSprint(task, userId));
+        dto.setCanEditType(accessChecker.canEditType(task, userId));
+        dto.setCanEditEstimation(accessChecker.canEditEstimation(task, userId));
+        dto.setCanDelete(accessChecker.canDeleteTask(task, userId));
+        dto.setCanSelfAssign(accessChecker.canSelfAssign(task, userId));
+        dto.setCanUnassign(accessChecker.canUnassign(task, userId));
+        dto.setCanAddSubtask(accessChecker.canAddSubtask(task, userId));
+        dto.setCanFreeze(accessChecker.canFreeze(task, userId));
+        dto.setCanComment(accessChecker.canComment(task, userId));
+        
         return dto;
     }
 
