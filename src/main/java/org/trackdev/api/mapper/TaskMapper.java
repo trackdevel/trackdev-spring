@@ -75,7 +75,18 @@ public interface TaskMapper {
     @Mapping(target = "parentTask", ignore = true)
     @Mapping(target = "childTasks", source = "childTasks", qualifiedByName = "childTasksToBasicDTO")
     @Mapping(target = "pointsReview", ignore = true)
+    // Permission flags - computed in controller based on user context
     @Mapping(target = "canEdit", ignore = true)
+    @Mapping(target = "canEditStatus", ignore = true)
+    @Mapping(target = "canEditSprint", ignore = true)
+    @Mapping(target = "canEditType", ignore = true)
+    @Mapping(target = "canEditEstimation", ignore = true)
+    @Mapping(target = "canDelete", ignore = true)
+    @Mapping(target = "canSelfAssign", ignore = true)
+    @Mapping(target = "canUnassign", ignore = true)
+    @Mapping(target = "canAddSubtask", ignore = true)
+    @Mapping(target = "canFreeze", ignore = true)
+    @Mapping(target = "canComment", ignore = true)
     TaskDetailDTO toDetailDTO(Task task);
 
     /**
