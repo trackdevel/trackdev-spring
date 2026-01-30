@@ -18,6 +18,7 @@ import org.trackdev.api.repository.TaskRepository;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.HtmlSanitizer;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -140,6 +141,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     @Transactional
     public Task createSubTask(Long taskId, String name, String userId, Long sprintId, TaskType type) {
+        return createSubTaskInternal(taskId, name, userId, sprintId, type, false);
+    }
+
+    /**
+     * Internal method for creating subtasks with option to bypass past sprint check.
+     * Used by DemoDataSeeder to create subtasks in past sprints for demo purposes.
+     */
+    @Transactional
+    public Task createSubTaskInternal(Long taskId, String name, String userId, Long sprintId, TaskType type, boolean allowPastSprint) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
         
@@ -161,22 +171,58 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             subtask.setType(TaskType.TASK);
         }
         subtask.setParentTask(parentTask);
-        subtask.setStatus(parentTask.getStatus());  // Inherit status from parent USER_STORY
+        
+        // Set subtask status based on parent USER_STORY state:
+        // - If parent is in BACKLOG, subtask starts in BACKLOG
+        // - If parent is assigned to a sprint, subtask starts in TODO
+        if (parentTask.getStatus() == TaskStatus.BACKLOG) {
+            subtask.setStatus(TaskStatus.BACKLOG);
+        } else {
+            subtask.setStatus(TaskStatus.TODO);
+        }
         
         // Auto-assign subtask to the student who creates it
         if (user.isUserType(UserType.STUDENT)) {
             subtask.setAssignee(user);
         }
         
-        // Assign to sprint if sprintId is provided
+        // Assign subtask to ONE sprint only:
+        // - If sprintId is provided (created from Sprint view):
+        //   - If that sprint is past (endDate < now), assign to the current active sprint instead
+        //     (unless allowPastSprint is true, for demo data seeding)
+        //   - Otherwise, use that sprint
+        // - If sprintId is null (created from Task view), use the newest sprint from parent USER_STORY
+        Sprint targetSprint = null;
+        ZonedDateTime now = ZonedDateTime.now();
+        
         if (sprintId != null) {
-            Sprint sprint = sprintService.get(sprintId);
+            Sprint requestedSprint = sprintService.get(sprintId);
             // Verify the sprint belongs to the same project
-            if (!sprint.getProject().getId().equals(parentTask.getProject().getId())) {
+            if (!requestedSprint.getProject().getId().equals(parentTask.getProject().getId())) {
                 throw new ServiceException(ErrorConstants.SPRINT_NOT_IN_PROJECT);
             }
-            subtask.getActiveSprints().add(sprint);
-            sprint.addTask(subtask, user);  // Add to both sides of the relationship
+            
+            // If the requested sprint is in the past, find the active sprint for this project
+            // (unless allowPastSprint is true for demo data seeding)
+            if (!allowPastSprint && requestedSprint.getEndDate() != null && requestedSprint.getEndDate().isBefore(now)) {
+                // Find active sprint (startDate < now < endDate) in the project
+                targetSprint = sprintService.findActiveSprintForProject(parentTask.getProject().getId())
+                    .orElse(requestedSprint);  // Fallback to requested if no active sprint found
+            } else {
+                targetSprint = requestedSprint;
+            }
+        } else if (parentTask.getChildTasks() != null && !parentTask.getChildTasks().isEmpty()) {
+            // Find the newest sprint from existing subtasks (not parent's sprints)
+            targetSprint = parentTask.getChildTasks().stream()
+                .filter(child -> child.getActiveSprints() != null && !child.getActiveSprints().isEmpty())
+                .flatMap(child -> child.getActiveSprints().stream())
+                .max((s1, s2) -> s1.getStartDate().compareTo(s2.getStartDate()))
+                .orElse(null);
+        }
+        
+        if (targetSprint != null) {
+            subtask.getActiveSprints().add(targetSprint);
+            targetSprint.addTask(subtask, user);
         }
         
         parentTask.getProject().addTask(subtask);  // This sets project, taskNumber, and taskKey
@@ -235,9 +281,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             
             // Validate type change according to entity constraints
             if (oldType != newType) {
-                // USER_STORY with child tasks cannot change type
-                if (oldType == TaskType.USER_STORY && task.getChildTasks() != null && !task.getChildTasks().isEmpty()) {
-                    throw new ServiceException(ErrorConstants.USER_STORY_WITH_CHILDREN_CANNOT_CHANGE_TYPE);
+                // USER_STORY cannot change type (regardless of having children)
+                if (oldType == TaskType.USER_STORY) {
+                    throw new ServiceException(ErrorConstants.USER_STORY_CANNOT_CHANGE_TYPE);
+                }
+                
+                // BUG cannot change type
+                if (oldType == TaskType.BUG) {
+                    throw new ServiceException(ErrorConstants.BUG_CANNOT_CHANGE_TYPE);
                 }
                 
                 // Subtasks (tasks with parent) can only be TASK or BUG
@@ -600,6 +651,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         User user = userService.get(userId);
         // Only task reporter, subject owner (professor), or admin can delete tasks
         accessChecker.checkCanDeleteTask(task, userId);
+        
+        // Validate delete constraints
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            // USER_STORY can only be deleted if it has no subtasks
+            if (task.getChildTasks() != null && !task.getChildTasks().isEmpty()) {
+                throw new ServiceException(ErrorConstants.USER_STORY_HAS_SUBTASKS_CANNOT_DELETE);
+            }
+        } else {
+            // TASK or BUG can only be deleted if status is TODO or INPROGRESS
+            if (task.getStatus() != TaskStatus.TODO && task.getStatus() != TaskStatus.INPROGRESS) {
+                throw new ServiceException(ErrorConstants.TASK_STATUS_CANNOT_DELETE);
+            }
+        }
+        
         task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
         task.setActiveSprints(new ArrayList<>());
         if (task.getParentTask() == null){
@@ -628,7 +693,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     /**
-     * Get subtask status values (DEFINED, INPROGRESS, DONE) with localized names.
+     * Get subtask status values (TODO, INPROGRESS, VERIFY, DONE) with localized names.
      * Locale is determined from the Accept-Language header.
      */
     public Map<String,String> getListOfTaskStatus() {
