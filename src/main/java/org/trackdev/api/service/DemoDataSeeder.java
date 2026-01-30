@@ -307,15 +307,15 @@ public class DemoDataSeeder {
         // 9. CREATE SPRINT PATTERNS
         // ============================================
         
-        // Calculate sprint dates so that the 4th sprint is active today
+        // Calculate sprint dates so that the 3rd sprint is active today and 4th is in the future
         LocalDate today = LocalDate.now();
-        LocalDate sprint4Start = today.minusDays(7);
+        LocalDate sprint3Start = today.minusDays(7);   // Sprint 3 started 7 days ago (ACTIVE)
+        LocalDate sprint3End = sprint3Start.plusDays(14);  // Sprint 3 ends in 7 days
+        LocalDate sprint4Start = sprint3End;           // Sprint 4 starts when sprint 3 ends (FUTURE)
         LocalDate sprint4End = sprint4Start.plusDays(14);
-        LocalDate sprint3Start = sprint4Start.minusDays(14);
-        LocalDate sprint3End = sprint4Start;
-        LocalDate sprint2Start = sprint3Start.minusDays(14);
+        LocalDate sprint2Start = sprint3Start.minusDays(14);  // Sprint 2 ended when sprint 3 started (CLOSED)
         LocalDate sprint2End = sprint3Start;
-        LocalDate sprint1Start = sprint2Start.minusDays(14);
+        LocalDate sprint1Start = sprint2Start.minusDays(14);  // Sprint 1 ended when sprint 2 started (CLOSED)
         LocalDate sprint1End = sprint2Start;
 
         // Sprint pattern for UdG courses
@@ -367,16 +367,16 @@ public class DemoDataSeeder {
         // 10. CREATE PROJECTS WITH SPRINTS AND TASKS
         // ============================================
         
-        // Project for PDS course (UdG) - apply sprint pattern to create sprints
-        Project projectPDS = createProjectWithSprintsAndTasks(
-            "pds25a",
-            studentsUdG.subList(0, 3),  // First 3 students
+        // Project pds25a: HARDCODED deterministic data for Alice Johnson (udg.student1@trackdev.com)
+        // Shows all possible scenarios: tasks in different sprints with various statuses
+        Project projectPDS = createPds25aProject(
+            studentsUdG.subList(0, 3),  // First 3 students (Alice, Bob, Carol)
             coursePDS,
             professorPDS,
             patternUdG
         );
         
-        // Second project for PDS course
+        // Second project for PDS course (random data)
         Project projectPDS2 = createProjectWithSprintsAndTasks(
             "pds25b",
             studentsUdG.subList(3, 6),  // Last 3 students
@@ -490,6 +490,21 @@ public class DemoDataSeeder {
         Profile demoProfile = createDemoProfile(professorPDS);
         logger.info("Created demo profile '{}' for professor {}", demoProfile.getName(), professorPDS.getEmail());
 
+        // ============================================
+        // 14. CREATE PERMISSION TEST DATA
+        // ============================================
+        
+        // Get sprints for pds25a (the hardcoded project)
+        List<Sprint> pds25aSprints = sprintRepository.findByProjectIdOrderByPatternItemOrderIndex(projectPDS.getId());
+        Sprint pastSprint = pds25aSprints.get(0);  // Sprint 1 - CLOSED
+        Sprint activeSprint = pds25aSprints.get(2);  // Sprint 3 - ACTIVE
+        Sprint futureSprint = pds25aSprints.get(3);  // Sprint 4 - DRAFT (future)
+        
+        createPermissionTestData(projectPDS, pastSprint, activeSprint, futureSprint, 
+                                 studentsUdG.get(0),  // Alice Johnson (udg.student1)
+                                 studentsUdG.get(1),  // Bob Smith (udg.student2)
+                                 professorPDS);
+
         logger.info("Database seeding completed successfully!");
         logger.info("Summary:");
         logger.info("  - 2 workspaces");
@@ -592,19 +607,42 @@ public class DemoDataSeeder {
         project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
 
         // Get sprints created from pattern (sorted by order index) - fetch from repository to avoid lazy loading issues
-        List<Sprint> allSprints = sprintRepository.findByProject_IdOrderBySprintPatternItem_OrderIndexAsc(project.getId());
+        List<Sprint> allSprints = sprintRepository.findByProjectIdOrderByPatternItemOrderIndex(project.getId());
         
         int storyIndex = random.nextInt(storyTemplates.size());
+        
+        // Find Alice Johnson (first student in list for pds25a project)
+        User aliceJohnson = students.stream()
+            .filter(s -> s.getFullName() != null && s.getFullName().equals("Alice Johnson"))
+            .findFirst()
+            .orElse(null);
+        
+        // Debug logging
+        if (projectName.equals("pds25a")) {
+            logger.info("pds25a: Looking for Alice Johnson in {} students", students.size());
+            for (User s : students) {
+                logger.info("  - Student: {} ({})", s.getFullName(), s.getEmail());
+            }
+            logger.info("pds25a: Alice Johnson found: {}", aliceJohnson != null ? aliceJohnson.getEmail() : "NOT FOUND");
+        }
 
         for (int i = 0; i < allSprints.size(); i++) {
             Sprint sprint = allSprints.get(i);
-            boolean isActiveSprint = (i == 3);
-            boolean isClosedSprint = (i < 3);
+            boolean isActiveSprint = (i == 2);  // Sprint 3 is active (index 2)
+            boolean isClosedSprint = (i < 2);   // Sprints 1-2 are closed (index 0, 1)
+            boolean isFutureSprint = (i == 3);  // Sprint 4 is in the future (index 3)
+            boolean isSprint2ForPds25a = (i == 1) && projectName.equals("pds25a");  // Sprint 2 for pds25a
 
-            // Activate the sprint first
-            activateSprint(sprint, professor.getId());
+            // Activate the sprint first (except future sprints)
+            if (!isFutureSprint) {
+                activateSprint(sprint, professor.getId());
+            }
 
-            // Create 4-6 stories per sprint
+            // Create 4-6 stories per sprint (except future sprint which has no tasks)
+            if (isFutureSprint) {
+                continue;  // Skip task creation for future sprint
+            }
+            
             int storiesCount = 4 + random.nextInt(3);
             for (int s = 0; s < storiesCount; s++) {
                 User reporter = students.get(random.nextInt(students.size()));
@@ -613,14 +651,32 @@ public class DemoDataSeeder {
 
                 Task story = taskService.createTask(project.getId(), storyName, reporter.getId());
 
-                User assignee = students.get(random.nextInt(students.size()));
+                // For pds25a sprint 2, assign some stories to Alice Johnson
+                User assignee;
+                if (isSprint2ForPds25a && aliceJohnson != null && s < 2) {
+                    assignee = aliceJohnson;  // First 2 stories assigned to Alice
+                    logger.info("pds25a Sprint 2: Assigning story '{}' (s={}) to Alice Johnson ({})", storyName, s, aliceJohnson.getEmail());
+                } else {
+                    assignee = students.get(random.nextInt(students.size()));
+                }
+                
                 MergePatchTask storyEdit = new MergePatchTask();
                 storyEdit.assignee = Optional.of(assignee.getEmail());
                 // USER_STORY estimation points are calculated from subtasks, don't set manually
-                storyEdit.activeSprints = Optional.of(List.of(sprint.getId()));
+                // USER_STORY activeSprints are computed from subtasks, don't set manually
                 storyEdit.rank = Optional.of(s + 1);
 
-                if (isClosedSprint) {
+                if (isClosedSprint && !isSprint2ForPds25a) {
+                    storyEdit.status = Optional.of(TaskStatus.DONE);
+                } else if (isSprint2ForPds25a && assignee == aliceJohnson) {
+                    // Alice's tasks in Sprint 2: mix of DONE, INPROGRESS, and TODO
+                    // First story (s=0): DONE, Second story (s=1): INPROGRESS
+                    if (s == 0) {
+                        storyEdit.status = Optional.of(TaskStatus.DONE);
+                    } else {
+                        storyEdit.status = Optional.of(TaskStatus.INPROGRESS);
+                    }
+                } else if (isClosedSprint) {
                     storyEdit.status = Optional.of(TaskStatus.DONE);
                 } else if (isActiveSprint) {
                     storyEdit.status = Optional.of(getRandomActiveStatus());
@@ -639,11 +695,25 @@ public class DemoDataSeeder {
                     TaskType subtaskType = random.nextBoolean() ? TaskType.TASK : TaskType.BUG;
                     Task subtask = taskService.createSubTask(story.getId(), subtaskName, assignee.getId(), sprint.getId(), subtaskType);
 
-                    User subtaskAssignee = students.get(random.nextInt(students.size()));
+                    User subtaskAssignee;
+                    if (isSprint2ForPds25a && assignee == aliceJohnson) {
+                        subtaskAssignee = aliceJohnson;  // Alice's subtasks also assigned to her
+                    } else {
+                        subtaskAssignee = students.get(random.nextInt(students.size()));
+                    }
                     
                     // Determine subtask status first
                     TaskStatus subtaskStatus = null;
-                    if (isClosedSprint) {
+                    if (isSprint2ForPds25a && assignee == aliceJohnson) {
+                        // Alice's subtasks in Sprint 2: match parent story status with some TODO mixed in
+                        if (s == 0) {
+                            // First story is DONE, so all its subtasks should be DONE
+                            subtaskStatus = TaskStatus.DONE;
+                        } else {
+                            // Second story is INPROGRESS: mix of TODO, INPROGRESS
+                            subtaskStatus = (t == 0) ? TaskStatus.TODO : TaskStatus.INPROGRESS;
+                        }
+                    } else if (isClosedSprint) {
                         subtaskStatus = TaskStatus.DONE;
                     } else if (isActiveSprint) {
                         subtaskStatus = getRandomActiveStatus();
@@ -671,8 +741,8 @@ public class DemoDataSeeder {
                 }
             }
 
-            // Close sprints 1-3
-            if (isClosedSprint) {
+            // Close sprints 1-2
+            if (isClosedSprint && !(isSprint2ForPds25a)) {
                 closeSprint(sprint, professor.getId());
             }
         }
@@ -701,6 +771,128 @@ public class DemoDataSeeder {
         item.endDate = toDate(end);
         item.orderIndex = order;
         return item;
+    }
+
+    // ==========================================================================
+    // HARDCODED PROJECT: pds25a with deterministic data for udg.student1@trackdev.com
+    // ==========================================================================
+
+    /**
+     * Create pds25a project with hardcoded, deterministic data for Alice Johnson (udg.student1@trackdev.com).
+     * This shows all possible scenarios in a project:
+     * - Sprint 1 (closed): 1 story with 2 subtasks in DONE
+     * - Sprint 2 (closed): 1 story with 2 subtasks in DONE + 1 story with 2 subtasks in DONE and 1 in INPROGRESS
+     * - Sprint 3 (active): 3 stories, each with 3 subtasks (1 INPROGRESS, 1 VERIFY, 1 DONE)
+     * - Sprint 4 (future): no tasks
+     */
+    private Project createPds25aProject(List<User> students, Course course, User professor, SprintPattern sprintPattern) {
+        // Create project
+        List<String> studentIds = students.stream().map(User::getId).toList();
+        Project project = projectService.createProject("pds25a", studentIds, course.getId(), professor.getId());
+
+        // Apply sprint pattern to create sprints
+        project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
+
+        // Get sprints (sorted by order index)
+        List<Sprint> allSprints = sprintRepository.findByProjectIdOrderByPatternItemOrderIndex(project.getId());
+        Sprint sprint1 = allSprints.get(0);
+        Sprint sprint2 = allSprints.get(1);
+        Sprint sprint3 = allSprints.get(2);
+        // Sprint 4 is future, no tasks needed
+
+        // Get Alice Johnson (udg.student1@trackdev.com)
+        User alice = students.stream()
+            .filter(s -> s.getEmail() != null && s.getEmail().equals("udg.student1@trackdev.com"))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Alice Johnson not found in students list"));
+
+        logger.info("pds25a: Creating hardcoded data for Alice Johnson ({})", alice.getEmail());
+
+        // Activate sprints 1, 2, 3 (not 4 - it's future)
+        activateSprint(sprint1, professor.getId());
+        activateSprint(sprint2, professor.getId());
+        activateSprint(sprint3, professor.getId());
+
+        // ========== SPRINT 1: 1 story with 2 subtasks in DONE ==========
+        createHardcodedStory(project, sprint1, alice, professor, "User authentication flow",
+            new String[]{"Implement login form", "Add password validation"},
+            new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE},
+            new int[]{3, 2});
+
+        // Close Sprint 1
+        closeSprint(sprint1, professor.getId());
+
+        // ========== SPRINT 2: 2 stories ==========
+        // Story 1: 2 subtasks in DONE
+        createHardcodedStory(project, sprint2, alice, professor, "Dashboard overview page",
+            new String[]{"Create dashboard layout", "Add statistics widgets"},
+            new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE},
+            new int[]{5, 3});
+
+        // Story 2: 2 subtasks in DONE + 1 in INPROGRESS
+        createHardcodedStory(project, sprint2, alice, professor, "User profile management",
+            new String[]{"Design profile edit form", "Implement avatar upload", "Add email change flow"},
+            new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE, TaskStatus.INPROGRESS},
+            new int[]{2, 3, 0}); // INPROGRESS has no estimation points
+
+        // Note: Sprint 2 is NOT closed because it has an INPROGRESS task
+
+        // ========== SPRINT 3 (active): 3 stories, each with 3 subtasks (1 INPROGRESS, 1 VERIFY, 1 DONE) ==========
+        createHardcodedStory(project, sprint3, alice, professor, "Task board drag and drop",
+            new String[]{"Implement drag handlers", "Add drop zones", "Update task status on drop"},
+            new TaskStatus[]{TaskStatus.INPROGRESS, TaskStatus.VERIFY, TaskStatus.DONE},
+            new int[]{0, 5, 3}); // INPROGRESS has no estimation points
+
+        createHardcodedStory(project, sprint3, alice, professor, "Sprint navigation feature",
+            new String[]{"Add prev/next arrows", "Fetch project sprints", "Compute navigation links"},
+            new TaskStatus[]{TaskStatus.INPROGRESS, TaskStatus.VERIFY, TaskStatus.DONE},
+            new int[]{0, 2, 5});
+
+        createHardcodedStory(project, sprint3, alice, professor, "Backlog task management",
+            new String[]{"Create backlog panel", "Implement drag to sprint", "Add validation rules"},
+            new TaskStatus[]{TaskStatus.INPROGRESS, TaskStatus.VERIFY, TaskStatus.DONE},
+            new int[]{0, 3, 2});
+
+        // ========== BACKLOG: Add a couple of stories ==========
+        taskService.createTask(project.getId(), "As a user, I want to export reports to PDF", alice.getId());
+        taskService.createTask(project.getId(), "As a user, I want to receive email notifications", alice.getId());
+
+        logger.info("pds25a: Completed hardcoded data creation");
+        return project;
+    }
+
+    /**
+     * Helper method to create a hardcoded story with subtasks
+     */
+    private void createHardcodedStory(Project project, Sprint sprint, User assignee, User professor,
+                                       String storyName, String[] subtaskNames,
+                                       TaskStatus[] subtaskStatuses, int[] estimationPoints) {
+        // Create the USER_STORY
+        Task story = taskService.createTask(project.getId(), "As a user, I want to " + storyName.toLowerCase(), assignee.getId());
+
+        // Set story assignee
+        MergePatchTask storyEdit = new MergePatchTask();
+        storyEdit.assignee = Optional.of(assignee.getEmail());
+        taskService.editTaskInternal(story.getId(), storyEdit, assignee.getId());
+
+        // Create subtasks - use createSubTaskInternal with allowPastSprint=true for demo data
+        for (int i = 0; i < subtaskNames.length; i++) {
+            TaskType subtaskType = (i % 2 == 0) ? TaskType.TASK : TaskType.BUG; // Alternate TASK/BUG
+            Task subtask = taskService.createSubTaskInternal(story.getId(), subtaskNames[i], assignee.getId(), sprint.getId(), subtaskType, true);
+
+            // Set subtask status
+            MergePatchTask subtaskEdit = new MergePatchTask();
+            subtaskEdit.assignee = Optional.of(assignee.getEmail());
+            subtaskEdit.status = Optional.of(subtaskStatuses[i]);
+            taskService.editTaskInternal(subtask.getId(), subtaskEdit, assignee.getId());
+
+            // Set estimation points if > 0 (only for VERIFY or DONE)
+            if (estimationPoints[i] > 0) {
+                MergePatchTask estimationEdit = new MergePatchTask();
+                estimationEdit.estimationPoints = Optional.of(estimationPoints[i]);
+                taskService.editTaskInternal(subtask.getId(), estimationEdit, assignee.getId());
+            }
+        }
     }
 
     /**
@@ -739,7 +931,7 @@ public class DemoDataSeeder {
         project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
         
         // Activate all sprints but don't create any tasks
-        List<Sprint> allSprints = sprintRepository.findByProject_IdOrderBySprintPatternItem_OrderIndexAsc(project.getId());
+        List<Sprint> allSprints = sprintRepository.findByProjectIdOrderByPatternItemOrderIndex(project.getId());
         for (int i = 0; i < allSprints.size(); i++) {
             Sprint sprint = allSprints.get(i);
             activateSprint(sprint, professor.getId());
@@ -859,5 +1051,112 @@ public class DemoDataSeeder {
         profile.addAttribute(prQualityScore);
 
         return profileRepository.save(profile);
+    }
+
+    // ==========================================================================
+    // PERMISSION TEST DATA
+    // ==========================================================================
+
+    /**
+     * Create specific test data for API permission enforcement tests.
+     * These tasks have predictable IDs and states for Postman tests.
+     */
+    private void createPermissionTestData(Project project, Sprint pastSprint, Sprint activeSprint, 
+                                           Sprint futureSprint, User alice, User bob, User professor) {
+        logger.info("");
+        logger.info("=== PERMISSION TEST DATA ===");
+        logger.info("Use these IDs in Postman collection variables:");
+        logger.info("");
+
+        // 1. FROZEN TASK - A task that is frozen (only professor can edit)
+        Task frozenTask = taskService.createTask(project.getId(), "PERMISSION TEST: Frozen task", alice.getId());
+        MergePatchTask frozenEdit = new MergePatchTask();
+        frozenEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(frozenTask.getId(), frozenEdit, alice.getId());
+        taskService.freezeTask(frozenTask.getId(), professor.getId());
+        logger.info("frozenTaskId = {}", frozenTask.getId());
+
+        // 2. PAST SPRINT TASK - A task in a closed/past sprint (student cannot edit status)
+        // Create a USER_STORY in backlog, then add a subtask to the past sprint
+        Task pastStory = taskService.createTask(project.getId(), "PERMISSION TEST: Past sprint story", alice.getId());
+        MergePatchTask pastStoryEdit = new MergePatchTask();
+        pastStoryEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(pastStory.getId(), pastStoryEdit, alice.getId());
+        
+        // Create subtask in past sprint using internal method that allows past sprint
+        Task pastSprintTask = taskService.createSubTaskInternal(pastStory.getId(), 
+            "PERMISSION TEST: Task in past sprint", alice.getId(), pastSprint.getId(), TaskType.TASK, true);
+        MergePatchTask pastTaskEdit = new MergePatchTask();
+        pastTaskEdit.assignee = Optional.of(alice.getEmail());
+        pastTaskEdit.status = Optional.of(TaskStatus.DONE);
+        taskService.editTaskInternal(pastSprintTask.getId(), pastTaskEdit, alice.getId());
+        logger.info("pastSprintTaskId = {}", pastSprintTask.getId());
+
+        // 3. TASK REPORTED BY ALICE BUT ASSIGNED TO BOB (for delete permission test)
+        // Reporter is Alice, Assignee is Bob - Alice should NOT be able to delete
+        Task reportedNotAssigned = taskService.createTask(project.getId(), 
+            "PERMISSION TEST: Reported by Alice, assigned to Bob", alice.getId());
+        MergePatchTask reportedEdit = new MergePatchTask();
+        reportedEdit.assignee = Optional.of(bob.getEmail());
+        taskService.editTaskInternal(reportedNotAssigned.getId(), reportedEdit, professor.getId());
+        logger.info("taskReportedNotAssignedId = {} (reporter: Alice, assignee: Bob)", reportedNotAssigned.getId());
+
+        // 4. TASK ASSIGNED TO ALICE FOR DELETE TEST
+        Task taskToDelete = taskService.createTask(project.getId(), 
+            "PERMISSION TEST: Task assigned to Alice for delete", alice.getId());
+        MergePatchTask deleteEdit = new MergePatchTask();
+        deleteEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(taskToDelete.getId(), deleteEdit, alice.getId());
+        logger.info("taskAssignedToDeleteId = {}", taskToDelete.getId());
+
+        // 5. USER_STORY (for testing that status cannot be changed directly)
+        Task userStory = taskService.createTask(project.getId(), 
+            "PERMISSION TEST: User story (status computed from subtasks)", alice.getId());
+        MergePatchTask storyEdit = new MergePatchTask();
+        storyEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(userStory.getId(), storyEdit, alice.getId());
+        logger.info("userStoryTaskId = {}", userStory.getId());
+
+        // 6. USER_STORY WITH SUBTASKS (for testing cannot delete if has subtasks)
+        Task userStoryWithSubtasks = taskService.createTask(project.getId(), 
+            "PERMISSION TEST: User story with subtasks (cannot delete)", alice.getId());
+        MergePatchTask storyWithSubtasksEdit = new MergePatchTask();
+        storyWithSubtasksEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(userStoryWithSubtasks.getId(), storyWithSubtasksEdit, alice.getId());
+        
+        // Add a subtask to make it non-deletable
+        Task subtask1 = taskService.createSubTask(userStoryWithSubtasks.getId(), 
+            "PERMISSION TEST: Subtask 1", alice.getId(), activeSprint.getId(), TaskType.TASK);
+        MergePatchTask subtaskEdit = new MergePatchTask();
+        subtaskEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(subtask1.getId(), subtaskEdit, alice.getId());
+        logger.info("userStoryWithSubtasksId = {}", userStoryWithSubtasks.getId());
+
+        // 7. TASK IN FUTURE SPRINT (cannot change status from TODO)
+        Task futureTask = taskService.createTask(project.getId(), 
+            "PERMISSION TEST: Task in future sprint", alice.getId());
+        MergePatchTask futureEdit = new MergePatchTask();
+        futureEdit.assignee = Optional.of(alice.getEmail());
+        futureEdit.activeSprints = Optional.of(List.of(futureSprint.getId()));
+        taskService.editTaskInternal(futureTask.getId(), futureEdit, alice.getId());
+        logger.info("futureSprintTaskId = {}", futureTask.getId());
+
+        // 8. TASK FOR UNASSIGNMENT TEST
+        // First create a task assigned to Alice, then we'll unassign it via test
+        Task unassignmentTask = taskService.createTask(project.getId(), 
+            "PERMISSION TEST: Task for unassignment test", alice.getId());
+        MergePatchTask unassignEdit = new MergePatchTask();
+        unassignEdit.assignee = Optional.of(alice.getEmail());
+        taskService.editTaskInternal(unassignmentTask.getId(), unassignEdit, alice.getId());
+        logger.info("unassignedTaskId = {} (initially assigned to Alice)", unassignmentTask.getId());
+
+        logger.info("");
+        logger.info("=== USER TOKENS ===");
+        logger.info("udgStudentEmail = udg.student1@trackdev.com (Alice - password: student1)");
+        logger.info("ubStudentEmail = ub.student1@trackdev.com (UB student - password: student1)");
+        logger.info("professorUdGEmail = maria.garcia@trackdev.com (password: professor)");
+        logger.info("");
+        logger.info("=== END PERMISSION TEST DATA ===");
+        logger.info("");
     }
 }
