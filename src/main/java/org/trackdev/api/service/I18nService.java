@@ -81,19 +81,20 @@ public class I18nService {
     }
 
     /**
-     * Get a map of subtask status values (DEFINED, INPROGRESS, DONE) with localized names.
+     * Get a map of subtask status values (TODO, INPROGRESS, VERIFY, DONE) with localized names.
      */
     public Map<String, String> getSubtaskStatusLocalized() {
         return getSubtaskStatusLocalized(LocaleContextHolder.getLocale());
     }
 
     /**
-     * Get a map of subtask status values (DEFINED, INPROGRESS, DONE) with localized names for a specific locale.
+     * Get a map of subtask status values (TODO, INPROGRESS, VERIFY, DONE) with localized names for a specific locale.
      */
     public Map<String, String> getSubtaskStatusLocalized(Locale locale) {
         Map<String, String> statusMap = new LinkedHashMap<>();
-        statusMap.put(TaskStatus.DEFINED.name(), getLocalizedName(TaskStatus.DEFINED, locale));
+        statusMap.put(TaskStatus.TODO.name(), getLocalizedName(TaskStatus.TODO, locale));
         statusMap.put(TaskStatus.INPROGRESS.name(), getLocalizedName(TaskStatus.INPROGRESS, locale));
+        statusMap.put(TaskStatus.VERIFY.name(), getLocalizedName(TaskStatus.VERIFY, locale));
         statusMap.put(TaskStatus.DONE.name(), getLocalizedName(TaskStatus.DONE, locale));
         return statusMap;
     }
