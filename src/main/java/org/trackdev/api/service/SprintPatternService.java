@@ -143,7 +143,7 @@ public class SprintPatternService extends BaseServiceLong<SprintPattern, SprintP
      * Propagate changes from a SprintPatternItem to all associated Sprints.
      */
     private void propagateChangesToSprints(SprintPatternItem item) {
-        List<Sprint> associatedSprints = sprintRepository.findBySprintPatternItem_Id(item.getId());
+        List<Sprint> associatedSprints = sprintRepository.findByPatternItemId(item.getId());
         for (Sprint sprint : associatedSprints) {
             sprint.setName(item.getName());
             sprint.setStartDate(item.getStartDate());
