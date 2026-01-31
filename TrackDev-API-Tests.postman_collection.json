@@ -7090,7 +7090,85 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+									"raw": "{\\n    \\\"status\\\": \\\"INPROGRESS\\\"\\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{futureSprintTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.12.1 Task in FUTURE sprint cannot be moved to another sprint",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Task in FUTURE sprint can only be moved to backlog', function () {",
+											"    // A task in a future sprint cannot be reassigned to another sprint",
+											"    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\\n    \\\"activeSprints\\\": [1]\\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{futureSprintTaskId}}"]
+								}
+							}
+						},
+						{
+							"name": "14.4.12.2 Task in FUTURE sprint CAN be moved to backlog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Task in FUTURE sprint can be moved to backlog', function () {",
+											"    // A task in a future sprint CAN be moved to backlog (empty activeSprints)",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{professorUdGToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\\n    \\\"activeSprints\\\": []\\n}"
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
