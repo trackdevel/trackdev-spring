@@ -172,20 +172,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         subtask.setParentTask(parentTask);
         
-        // Set subtask status based on parent USER_STORY state:
-        // - If parent is in BACKLOG, subtask starts in BACKLOG
-        // - If parent is assigned to a sprint, subtask starts in TODO
-        if (parentTask.getStatus() == TaskStatus.BACKLOG) {
-            subtask.setStatus(TaskStatus.BACKLOG);
-        } else {
-            subtask.setStatus(TaskStatus.TODO);
-        }
-        
         // Auto-assign subtask to the student who creates it
         if (user.isUserType(UserType.STUDENT)) {
             subtask.setAssignee(user);
         }
         
+        // Determine the target sprint FIRST, then set status based on sprint assignment
         // Assign subtask to ONE sprint only:
         // - If sprintId is provided (created from Sprint view):
         //   - If that sprint is past (endDate < now), assign to the current active sprint instead
@@ -220,9 +212,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 .orElse(null);
         }
         
+        // Set subtask status based on sprint assignment:
+        // - If subtask will be assigned to a sprint, status is TODO (never BACKLOG with sprint)
+        // - If no sprint assigned, status is BACKLOG
         if (targetSprint != null) {
+            subtask.setStatus(TaskStatus.TODO);
             subtask.getActiveSprints().add(targetSprint);
             targetSprint.addTask(subtask, user);
+        } else {
+            subtask.setStatus(TaskStatus.BACKLOG);
         }
         
         parentTask.getProject().addTask(subtask);  // This sets project, taskNumber, and taskKey
@@ -467,6 +465,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             // Cannot reassign if task is DONE
             if (task.getStatus() == TaskStatus.DONE && !sprintsIds.isEmpty()) {
                 throw new ServiceException(ErrorConstants.CANNOT_REASSIGN_DONE_TASK);
+            }
+            
+            // Task in FUTURE sprint can only be moved to backlog (not to another sprint)
+            if (!sprintsIds.isEmpty() && accessChecker.isTaskInFutureSprintOnly(task)) {
+                throw new ServiceException(ErrorConstants.TASK_IN_FUTURE_SPRINT_ONLY_TO_BACKLOG);
             }
             
             // Validate sprint is active or future (not closed)
