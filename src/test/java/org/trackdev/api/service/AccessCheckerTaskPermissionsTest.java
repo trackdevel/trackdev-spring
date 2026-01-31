@@ -239,6 +239,57 @@ class AccessCheckerTaskPermissionsTest {
     }
 
     // =============================================================================
+    // isTaskInFutureSprintOnly Tests
+    // =============================================================================
+
+    @Nested
+    @DisplayName("isTaskInFutureSprintOnly")
+    class IsTaskInFutureSprintOnlyTests {
+
+        @Test
+        @DisplayName("USER_STORY should never be considered in future sprint only")
+        void userStory_shouldNeverBeInFutureSprintOnly() {
+            ReflectionTestUtils.setField(userStoryTask, "activeSprints", List.of(draftSprint));
+            assertFalse(accessChecker.isTaskInFutureSprintOnly(userStoryTask));
+        }
+
+        @Test
+        @DisplayName("TASK in DRAFT sprint should be in future sprint only")
+        void taskInDraftSprint_shouldBeInFutureSprintOnly() {
+            ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(draftSprint));
+            assertTrue(accessChecker.isTaskInFutureSprintOnly(taskTask));
+        }
+
+        @Test
+        @DisplayName("TASK in ACTIVE sprint should NOT be in future sprint only")
+        void taskInActiveSprint_shouldNotBeInFutureSprintOnly() {
+            ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(activeSprint));
+            assertFalse(accessChecker.isTaskInFutureSprintOnly(taskTask));
+        }
+
+        @Test
+        @DisplayName("TASK in CLOSED sprint should NOT be in future sprint only")
+        void taskInClosedSprint_shouldNotBeInFutureSprintOnly() {
+            ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
+            assertFalse(accessChecker.isTaskInFutureSprintOnly(taskTask));
+        }
+
+        @Test
+        @DisplayName("TASK with no sprints should NOT be in future sprint only")
+        void taskWithNoSprints_shouldNotBeInFutureSprintOnly() {
+            ReflectionTestUtils.setField(taskTask, "activeSprints", new ArrayList<>());
+            assertFalse(accessChecker.isTaskInFutureSprintOnly(taskTask));
+        }
+
+        @Test
+        @DisplayName("BUG in DRAFT sprint should be in future sprint only")
+        void bugInDraftSprint_shouldBeInFutureSprintOnly() {
+            ReflectionTestUtils.setField(bugTask, "activeSprints", List.of(draftSprint));
+            assertTrue(accessChecker.isTaskInFutureSprintOnly(bugTask));
+        }
+    }
+
+    // =============================================================================
     // canEditStatus Tests
     // =============================================================================
 
