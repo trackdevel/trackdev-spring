@@ -403,6 +403,7 @@ Windows PowerShell
 - Task status in future sprints:
     - Tasks can be moved from backlog to a future sprint (status becomes TODO)
     - Tasks in a future sprint (DRAFT status) cannot change from TODO until the sprint becomes ACTIVE
+    - Tasks in a FUTURE sprint can only be moved to the backlog (not to another sprint)
     - Once at least one sprint containing the task is ACTIVE, status changes are allowed
 
 - Relationship between tasks and sprints:

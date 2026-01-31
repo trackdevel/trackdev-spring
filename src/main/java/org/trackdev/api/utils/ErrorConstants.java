@@ -96,6 +96,7 @@ public final class ErrorConstants {
     public static final String TASK_CAN_ONLY_BE_IN_ONE_SPRINT = "error.sprint.task.one.sprint";
     public static final String CANNOT_REASSIGN_DONE_TASK = "error.sprint.done.task.reassign";
     public static final String SPRINT_NOT_ACTIVE_OR_FUTURE = "error.sprint.not.active.or.future";
+    public static final String TASK_IN_FUTURE_SPRINT_ONLY_TO_BACKLOG = "error.task.future.sprint.only.backlog";
     public static final String SPRINT_END_DATE_BEFORE_START = "error.sprint.end.before.start";
     public static final String SPRINT_PATTERN_ALREADY_APPLIED = "error.sprint.pattern.already.applied";
     public static final String SPRINT_PATTERN_NOT_IN_COURSE = "error.sprint.pattern.not.in.course";
