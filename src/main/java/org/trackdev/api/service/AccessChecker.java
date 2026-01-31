@@ -871,6 +871,22 @@ public class AccessChecker {
     }
 
     /**
+     * Check if a TASK or BUG is in a future (DRAFT) sprint only.
+     * Returns false for USER_STORY or tasks with no sprints.
+     */
+    public boolean isTaskInFutureSprintOnly(org.trackdev.api.entity.Task task) {
+        if (task.getTaskType() == TaskType.USER_STORY) {
+            return false;
+        }
+        Collection<Sprint> sprints = task.getActiveSprints();
+        if (sprints == null || sprints.isEmpty()) {
+            return false;
+        }
+        // Check if ALL sprints are DRAFT (future)
+        return sprints.stream().allMatch(sprint -> sprint.getEffectiveStatus() == SprintStatus.DRAFT);
+    }
+
+    /**
      * Compute canEditStatus permission.
      * USER_STORY cannot have status changed manually.
      * TASK/BUG in past sprint only cannot change status (unless professor).
