@@ -548,7 +548,8 @@ public class DemoDataSeeder {
     }
 
     /**
-     * Create students for a workspace
+     * Create students for a workspace.
+     * For the first student (Alice Johnson) in the "udg" workspace, uses STUDENT1_EMAIL env var if set.
      */
     private List<User> createStudentsForWorkspace(Workspace workspace, String prefix, int count) {
         List<String> firstNames = Arrays.asList(
@@ -560,13 +561,25 @@ public class DemoDataSeeder {
             "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore"
         );
         
+        // Check for custom email for first student (Alice Johnson) in udg workspace
+        String student1Email = environment.getProperty("STUDENT1_EMAIL");
+        
         List<User> students = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             String firstName = firstNames.get(i % firstNames.size());
             String lastName = lastNames.get(i % lastNames.size());
             String fullName = firstName + " " + lastName;
             String username = (firstName + "-" + lastName).toLowerCase();
-            String email = prefix + ".student" + (i + 1) + "@trackdev.com";
+            
+            // Use STUDENT1_EMAIL for Alice Johnson (first student in udg workspace)
+            String email;
+            if (i == 0 && "udg".equals(prefix) && student1Email != null && !student1Email.isEmpty()) {
+                email = student1Email;
+                logger.info("Using custom email for Alice Johnson from STUDENT1_EMAIL: {}", email);
+            } else {
+                email = prefix + ".student" + (i + 1) + "@trackdev.com";
+            }
+            
             User student = createUserWithWorkspace(
                 username,
                 fullName, 
@@ -817,9 +830,9 @@ public class DemoDataSeeder {
         Sprint sprint3 = allSprints.get(2);
         // Sprint 4 is future, no tasks needed
 
-        // Get Alice Johnson (udg.student1@trackdev.com)
+        // Get Alice Johnson (first student in list - may have custom email from STUDENT1_EMAIL)
         User alice = students.stream()
-            .filter(s -> s.getEmail() != null && s.getEmail().equals("udg.student1@trackdev.com"))
+            .filter(s -> s.getFullName() != null && s.getFullName().equals("Alice Johnson"))
             .findFirst()
             .orElseThrow(() -> new RuntimeException("Alice Johnson not found in students list"));
 
@@ -1220,7 +1233,12 @@ public class DemoDataSeeder {
 
         logger.info("");
         logger.info("=== USER TOKENS ===");
-        logger.info("udgStudentEmail = udg.student1@trackdev.com (Alice - password: student1)");
+        String student1Email = environment.getProperty("STUDENT1_EMAIL");
+        if (student1Email != null && !student1Email.isEmpty()) {
+            logger.info("udgStudentEmail = {} (Alice Johnson - password: student1) [from STUDENT1_EMAIL]", student1Email);
+        } else {
+            logger.info("udgStudentEmail = udg.student1@trackdev.com (Alice - password: student1)");
+        }
         logger.info("ubStudentEmail = ub.student1@trackdev.com (UB student - password: student1)");
         logger.info("professorUdGEmail = maria.garcia@trackdev.com (password: professor)");
         logger.info("");
