@@ -78,6 +78,27 @@ public class PullRequest extends BaseEntityUUID {
      */
     private Boolean merged;
 
+    /**
+     * Number of lines added in this PR (fetched from GitHub API)
+     */
+    private Integer additions;
+
+    /**
+     * Number of lines deleted in this PR (fetched from GitHub API)
+     */
+    private Integer deletions;
+
+    /**
+     * Number of files changed in this PR (fetched from GitHub API)
+     */
+    private Integer changedFiles;
+
+    /**
+     * When the PR stats were last fetched from GitHub
+     */
+    @Column(columnDefinition = "TIMESTAMP")
+    private ZonedDateTime statsFetchedAt;
+
     // Getters and Setters
 
     public String getNodeId() {
@@ -182,5 +203,37 @@ public class PullRequest extends BaseEntityUUID {
      */
     public boolean isMerged() {
         return Boolean.TRUE.equals(this.merged);
+    }
+
+    public Integer getAdditions() {
+        return additions;
+    }
+
+    public void setAdditions(Integer additions) {
+        this.additions = additions;
+    }
+
+    public Integer getDeletions() {
+        return deletions;
+    }
+
+    public void setDeletions(Integer deletions) {
+        this.deletions = deletions;
+    }
+
+    public Integer getChangedFiles() {
+        return changedFiles;
+    }
+
+    public void setChangedFiles(Integer changedFiles) {
+        this.changedFiles = changedFiles;
+    }
+
+    public ZonedDateTime getStatsFetchedAt() {
+        return statsFetchedAt;
+    }
+
+    public void setStatsFetchedAt(ZonedDateTime statsFetchedAt) {
+        this.statsFetchedAt = statsFetchedAt;
     }
 }
