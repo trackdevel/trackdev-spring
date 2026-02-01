@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import org.trackdev.api.configuration.UserType;
+import org.trackdev.api.converter.EncryptedStringConverter;
 import org.trackdev.api.serializer.JsonRolesSerializer;
 
 @Entity
@@ -18,7 +19,7 @@ public class User extends BaseEntityUUID {
   public static final int MIN_USERNAME_LENGTH = 1;
   public static final int USERNAME_LENGTH = 50;
   public static final int MIN_EMAIL_LENGHT = 4;
-  public static final int EMAIL_LENGTH = 128;
+  public static final int EMAIL_LENGTH = 512; // Increased for encrypted data
   public static final int CAPITAL_LETTERS_LENGTH = 2;
   public static final String USERNAME_PATTERN = "^[a-zA-Z0-9_#-]+$";
   public static final int MIN_FULL_NAME_LENGTH = 1;
@@ -46,6 +47,7 @@ public class User extends BaseEntityUUID {
 
   @NotNull
   @Column(unique=true, length=EMAIL_LENGTH)
+  @Convert(converter = EncryptedStringConverter.class)
   private String email;
 
   @NotNull
@@ -105,6 +107,7 @@ public class User extends BaseEntityUUID {
   @Column(length = TIMEZONE_LENGTH)
   private String timezone = DEFAULT_TIMEZONE;
 
+  @Transient
   private Random random = new Random();
 
  // -- GETTERS AND SETTERS
