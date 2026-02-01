@@ -11,6 +11,7 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.model.MergePatchSprint;
 import org.trackdev.api.model.MergePatchTask;
 import org.trackdev.api.model.SprintPatternRequest;
+import org.trackdev.api.repository.PullRequestRepository;
 import org.trackdev.api.repository.SprintRepository;
 
 import java.time.LocalDate;
@@ -100,6 +101,12 @@ public class DemoDataSeeder {
 
     @Autowired
     private GitHubRepoService gitHubRepoService;
+
+    @Autowired
+    private PullRequestRepository pullRequestRepository;
+
+    @Autowired
+    private PullRequestService pullRequestService;
 
     @Autowired
     private org.trackdev.api.repository.ProfileRepository profileRepository;
@@ -411,6 +418,16 @@ public class DemoDataSeeder {
                 environment.getProperty("GITHUB_REPO2_URL"), 
                 environment.getProperty("GITHUB_REPO2_TOKEN"),
                 professorPDS.getId()
+            );
+        }
+
+        // Add a hardcoded PR to a done task for Alice Johnson in pds25a
+        if (environment.getProperty("GITHUB_REPO1_URL") != null) {
+            createHardcodedPullRequest(
+                projectPDS,
+                studentsUdG.get(0), // Alice Johnson
+                environment.getProperty("GITHUB_REPO1_URL"),
+                8 // PR number 8
             );
         }
 
@@ -918,6 +935,57 @@ public class DemoDataSeeder {
         MergePatchSprint change = new MergePatchSprint();
         change.status = Optional.of(SprintStatus.CLOSED);
         sprintService.editSprintInternal(sprint.getId(), change, userId);
+    }
+
+    /**
+     * Create a pull request record linked to a done task for testing.
+     * Uses the first DONE task found for the given user in the project.
+     * Fetches real PR data from GitHub API.
+     */
+    private void createHardcodedPullRequest(Project project, User alice, String repoUrl, int prNumber) {
+        // Find a DONE task assigned to Alice in this project
+        List<Task> doneTasks = taskService.findByProjectIdAndStatusAndAssignee(
+            project.getId(), TaskStatus.DONE, alice.getId());
+        
+        if (doneTasks.isEmpty()) {
+            logger.warn("No DONE tasks found for {} in project {} - skipping PR creation", 
+                alice.getEmail(), project.getName());
+            return;
+        }
+        
+        // Get the task ID for linking
+        Long taskId = doneTasks.get(0).getId();
+        
+        // Extract owner/repo from URL (e.g., https://github.com/owner/repo)
+        String repoFullName = repoUrl.replace("https://github.com/", "")
+                                     .replace(".git", "");
+        
+        // Create the PR URL
+        String prUrl = "https://github.com/" + repoFullName + "/pull/" + prNumber;
+        
+        // Create a unique node ID for the PR (max 32 chars for DB column)
+        String nodeId = "PR_demo_" + prNumber;
+        
+        // Check if PR already exists
+        if (pullRequestRepository.findByNodeId(nodeId).isPresent()) {
+            logger.info("PR {} already exists - skipping", prUrl);
+            return;
+        }
+        
+        // Create a minimal PullRequest entity with just the essential info
+        PullRequest pr = new PullRequest(prUrl, nodeId);
+        pr.setAuthor(alice);
+        pr.setPrNumber(prNumber);
+        pr.setRepoFullName(repoFullName);
+        pullRequestRepository.save(pr);
+        
+        // Fetch real PR data from GitHub API
+        pullRequestService.fetchAndUpdatePRStats(pr);
+        
+        // Link PR to task using the transactional service method
+        taskService.linkPullRequestToTask(taskId, pr);
+        
+        logger.info("Created PR {} (merged: {}) linked to task ID: {}", prUrl, pr.getMerged(), taskId);
     }
 
     /**
