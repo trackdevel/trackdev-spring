@@ -1022,4 +1022,23 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 break;
         }
     }
+
+    /**
+     * Find all tasks in a project with a specific status and assignee.
+     * Useful for finding tasks for demo data or testing.
+     */
+    public List<Task> findByProjectIdAndStatusAndAssignee(Long projectId, TaskStatus status, String assigneeId) {
+        return this.repo.findByProjectIdAndStatusAndAssigneeId(projectId, status, assigneeId);
+    }
+
+    /**
+     * Link a pull request to a task.
+     * This method is transactional to ensure the task's lazy collections are accessible.
+     */
+    @Transactional
+    public void linkPullRequestToTask(Long taskId, PullRequest pr) {
+        Task task = this.get(taskId);
+        task.addPullRequest(pr);
+        this.save(task);
+    }
 }
