@@ -222,10 +222,16 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     /**
      * Get project sprints with authorization check.
      */
+    @Transactional(readOnly = true)
     public Collection<Sprint> getProjectSprints(Long projectId, String userId) {
         Project project = get(projectId);
         accessChecker.checkCanViewProject(project, userId);
-        return project.getSprints();
+        Collection<Sprint> sprints = project.getSprints();
+        // Force initialization of lazy collection
+        if (sprints != null) {
+            sprints.size();
+        }
+        return sprints;
     }
 
     /**
@@ -410,6 +416,43 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         
         repo.save(project);
         return project;
+    }
+
+    /**
+     * Get all DONE tasks in a project that have pull requests.
+     * Optionally filter by sprint and/or assignee.
+     * 
+     * @param projectId The project ID
+     * @param sprintId Optional sprint ID to filter by (null means all sprints)
+     * @param assigneeId Optional assignee ID to filter by (null means all team members)
+     * @param userId The user requesting the data
+     * @return Collection of DONE tasks with PRs
+     */
+    @Transactional(readOnly = true)
+    public Collection<Task> getDoneTasksWithPRs(Long projectId, Long sprintId, String assigneeId, String userId) {
+        Project project = get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+        
+        return taskRepository.findByProjectIdAndStatus(projectId, TaskStatus.DONE).stream()
+                .filter(task -> task.getPullRequests() != null && !task.getPullRequests().isEmpty())
+                .filter(task -> {
+                    // If no sprint filter, include all tasks
+                    if (sprintId == null) {
+                        return true;
+                    }
+                    // Check if task belongs to the specified sprint
+                    return task.getActiveSprints() != null && 
+                           task.getActiveSprints().stream().anyMatch(s -> s.getId().equals(sprintId));
+                })
+                .filter(task -> {
+                    // If no assignee filter, include all tasks
+                    if (assigneeId == null || assigneeId.isEmpty()) {
+                        return true;
+                    }
+                    // Check if task is assigned to the specified user
+                    return task.getAssignee() != null && assigneeId.equals(task.getAssignee().getId());
+                })
+                .toList();
     }
 
 }

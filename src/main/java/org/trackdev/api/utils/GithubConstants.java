@@ -3,6 +3,8 @@ package org.trackdev.api.utils;
 public final class GithubConstants {
 
     public static final String GITHUB_API_URL = "https://api.github.com";
+    
+    public static final String GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
 
     public static final String GITHUB_API_USER_URL = GITHUB_API_URL + "/user";
 
@@ -40,6 +42,21 @@ public final class GithubConstants {
     // Pull requests endpoint - format: /repos/{owner}/{repo}/pulls
     public static final String getPullsUrl(String owner, String repo) {
         return getRepoUrl(owner, repo) + "/pulls";
+    }
+
+    // Specific pull request endpoint - format: /repos/{owner}/{repo}/pulls/{pull_number}
+    public static final String getPullUrl(String owner, String repo, int pullNumber) {
+        return getPullsUrl(owner, repo) + "/" + pullNumber;
+    }
+
+    // PR commits endpoint - format: /repos/{owner}/{repo}/pulls/{pull_number}/commits
+    public static String getPullCommitsUrl(String owner, String repo, int pullNumber) {
+        return getPullUrl(owner, repo, pullNumber) + "/commits";
+    }
+
+    // PR files endpoint - format: /repos/{owner}/{repo}/pulls/{pull_number}/files
+    public static String getPullFilesUrl(String owner, String repo, int pullNumber) {
+        return getPullUrl(owner, repo, pullNumber) + "/files";
     }
 
 }

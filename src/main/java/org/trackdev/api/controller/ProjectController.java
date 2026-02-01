@@ -21,6 +21,7 @@ import org.trackdev.api.mapper.ProjectMapper;
 import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.mapper.TaskMapper;
 import org.trackdev.api.model.response.ProjectQualificationResponse;
+import org.trackdev.api.model.response.ProjectPRStatsResponse;
 import org.trackdev.api.model.response.ProjectSprintsResponse;
 import org.trackdev.api.service.AccessChecker;
 import org.trackdev.api.service.ProjectService;
@@ -66,6 +67,12 @@ public class ProjectController extends BaseController {
 
     @Autowired
     ReportService reportService;
+
+    @Autowired
+    org.trackdev.api.service.PullRequestService pullRequestService;
+
+    @Autowired
+    org.trackdev.api.mapper.PullRequestMapper pullRequestMapper;
 
     @Operation(summary = "Get all projects", description = "Get all projects")
     @GetMapping
@@ -172,6 +179,50 @@ public class ProjectController extends BaseController {
             qualifications.put(entry.getKey(), new ProjectQualificationResponse.UserQualification(entry.getValue()));
         }
         return new ProjectQualificationResponse(projectId, qualifications);
+    }
+
+    @Operation(summary = "Fetch and return PR statistics for completed tasks", 
+               description = "Fetches additions, deletions, and changed files from GitHub API for all PRs linked to DONE tasks in this project. Also computes surviving lines by analyzing git blame on the main branch. Optionally filter by sprint and/or team member.")
+    @PostMapping(path = "/{projectId}/pr-stats")
+    public ProjectPRStatsResponse fetchPRStats(Principal principal,
+                                               @PathVariable(name = "projectId") Long projectId,
+                                               @RequestParam(name = "sprintId", required = false) Long sprintId,
+                                               @RequestParam(name = "assigneeId", required = false) String assigneeId) {
+        String userId = super.getUserId(principal);
+        Project project = service.get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+        
+        // Fetch PR stats from GitHub (updates the DB) and return all PRs with their stats
+        pullRequestService.fetchPRStatsForProject(projectId);
+        
+        // Get all DONE tasks with their PRs (now with updated stats), optionally filtered by sprint and assignee
+        Collection<Task> doneTasks = service.getDoneTasksWithPRs(projectId, sprintId, assigneeId, userId);
+        
+        // Build response with surviving lines computed for each PR
+        return new ProjectPRStatsResponse(projectId, 
+            doneTasks.stream()
+                .map(task -> {
+                    // Convert PRs to DTOs and compute surviving lines
+                    Collection<PullRequestDTO> prDTOs = task.getPullRequests().stream()
+                        .map(pr -> {
+                            PullRequestDTO dto = pullRequestMapper.toDTO(pr);
+                            // Compute surviving lines dynamically
+                            dto.setSurvivingLines(pullRequestService.computeSurvivingLines(pr));
+                            return dto;
+                        })
+                        .toList();
+                    
+                    return new ProjectPRStatsResponse.TaskWithPRStats(
+                        task.getId(),
+                        task.getTaskKey(),
+                        task.getName(),
+                        task.getAssignee() != null ? task.getAssignee().getFullName() : null,
+                        task.getAssignee() != null ? task.getAssignee().getUsername() : null,
+                        prDTOs
+                    );
+                })
+                .toList()
+        );
     }
 
     private List<ProjectSprintsResponse.SprintSummary> buildSprintSummaries(Collection<Sprint> sprints) {

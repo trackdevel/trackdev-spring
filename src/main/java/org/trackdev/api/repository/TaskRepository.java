@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Task;
+import org.trackdev.api.entity.TaskStatus;
 import org.trackdev.api.entity.User;
 
 import java.util.Collection;
@@ -53,4 +54,14 @@ public interface TaskRepository extends BaseRepositoryLong<Task> {
      * Check if a project has any tasks
      */
     boolean existsByProjectId(Long projectId);
+
+    /**
+     * Find all tasks in a project with a specific status
+     */
+    List<Task> findByProjectIdAndStatus(Long projectId, TaskStatus status);
+
+    /**
+     * Find all tasks in a project with a specific status and assignee
+     */
+    List<Task> findByProjectIdAndStatusAndAssigneeId(Long projectId, TaskStatus status, String assigneeId);
 }
