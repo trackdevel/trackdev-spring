@@ -9407,6 +9407,463 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "21. Email Privacy Tests",
+			"description": "Tests to verify that STUDENT users cannot see other users' email addresses via API. Only ADMIN, WORKSPACE_ADMIN, and PROFESSOR can see all emails. Students can only see their own email.",
+			"item": [
+				{
+					"name": "21.1 Setup Privacy Tests",
+					"item": [
+						{
+							"name": "21.1.1 Login as Student (Alice - UdG)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Response contains token and user data', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.expect(jsonData).to.have.property('userdata');",
+											"    pm.collectionVariables.set('privacyStudentToken', jsonData.token);",
+											"    pm.collectionVariables.set('privacyStudentId', jsonData.userdata.id);",
+											"    pm.collectionVariables.set('privacyStudentEmail', jsonData.userdata.email);",
+											"});",
+											"",
+											"pm.test('Student can see own email in login response', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.userdata.email).to.not.be.null;",
+											"    pm.expect(jsonData.userdata.email).to.include('@');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{udgStudentEmail}}\",\n    \"password\": \"{{udgStudentPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "21.1.2 Login as Professor (UdG)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Response contains token', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('token');",
+											"    pm.collectionVariables.set('privacyProfessorToken', jsonData.token);",
+											"    pm.collectionVariables.set('privacyProfessorId', jsonData.userdata.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{professorUdGEmail}}\",\n    \"password\": \"{{professorUdGPassword}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["auth", "login"]
+								}
+							}
+						},
+						{
+							"name": "21.1.3 Get Other Student ID (Bob)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Found another student in the project', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var members = jsonData.members;",
+											"    var currentStudentId = pm.collectionVariables.get('privacyStudentId');",
+											"    ",
+											"    // Find a member that is not the current student",
+											"    var otherMember = members.find(m => m.id !== currentStudentId);",
+											"    pm.expect(otherMember).to.not.be.undefined;",
+											"    pm.collectionVariables.set('privacyOtherUserId', otherMember.id);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyProfessorToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "21.2 Student Email Privacy Tests",
+					"item": [
+						{
+							"name": "21.2.1 Student viewing other user - email should be null",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Other user email is hidden (null)', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.email).to.be.null;",
+											"});",
+											"",
+											"pm.test('Other user basic info is visible', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"    pm.expect(jsonData).to.have.property('username');",
+											"    pm.expect(jsonData).to.have.property('fullName');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/{{privacyOtherUserId}}/public",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "{{privacyOtherUserId}}", "public"]
+								}
+							}
+						},
+						{
+							"name": "21.2.2 Student viewing self - own email visible (for Settings)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Own email is visible (needed for Settings page)', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.email).to.not.be.null;",
+											"    pm.expect(jsonData.email).to.include('@');",
+											"});",
+											"",
+											"pm.test('fullName is visible', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.fullName).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/{{privacyStudentId}}/public",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "{{privacyStudentId}}", "public"]
+								}
+							}
+						},
+						{
+							"name": "21.2.3 Student viewing project members - only own email visible",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Own email visible, other emails hidden', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var members = jsonData.members;",
+											"    var currentStudentId = pm.collectionVariables.get('privacyStudentId');",
+											"    ",
+											"    members.forEach(function(member) {",
+											"        if (member.id === currentStudentId) {",
+											"            pm.expect(member.email).to.not.be.null;",
+											"            pm.expect(member.email).to.include('@');",
+											"        } else {",
+											"            pm.expect(member.email).to.be.null;",
+											"        }",
+											"        pm.expect(member.fullName).to.not.be.null;",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "21.2.4 Student viewing task - assignee/reporter emails hidden",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Task data is returned', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('id');",
+											"});",
+											"",
+											"pm.test('Assignee email is hidden if not self', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var currentStudentId = pm.collectionVariables.get('privacyStudentId');",
+											"    ",
+											"    if (jsonData.assignee && jsonData.assignee.id !== currentStudentId) {",
+											"        pm.expect(jsonData.assignee.email).to.be.null;",
+											"    }",
+											"});",
+											"",
+											"pm.test('Reporter email is hidden if not self', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var currentStudentId = pm.collectionVariables.get('privacyStudentId');",
+											"    ",
+											"    if (jsonData.reporter && jsonData.reporter.id !== currentStudentId) {",
+											"        pm.expect(jsonData.reporter.email).to.be.null;",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyStudentToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "21.3 Professor Email Access Tests",
+					"item": [
+						{
+							"name": "21.3.1 Professor viewing student - email should be visible",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Student email is visible to professor', function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.email).to.not.be.null;",
+											"    pm.expect(jsonData.email).to.include('@');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyProfessorToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/{{privacyStudentId}}/public",
+									"host": ["{{baseUrl}}"],
+									"path": ["users", "{{privacyStudentId}}", "public"]
+								}
+							}
+						},
+						{
+							"name": "21.3.2 Professor viewing project members - all emails visible",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('All member emails are visible', function () {",
+											"    var jsonData = pm.response.json();",
+											"    var members = jsonData.members;",
+											"    ",
+											"    pm.expect(members.length).to.be.greaterThan(0);",
+											"    members.forEach(function(member) {",
+											"        pm.expect(member.email).to.not.be.null;",
+											"        pm.expect(member.email).to.include('@');",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyProfessorToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["projects", "{{udgProjectId}}"]
+								}
+							}
+						},
+						{
+							"name": "21.3.3 Professor viewing task - all emails visible",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.expect(pm.response.code).to.equal(200);",
+											"});",
+											"",
+											"pm.test('Assignee email is visible', function () {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.assignee) {",
+											"        pm.expect(jsonData.assignee.email).to.not.be.null;",
+											"        pm.expect(jsonData.assignee.email).to.include('@');",
+											"    }",
+											"});",
+											"",
+											"pm.test('Reporter email is visible', function () {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.reporter) {",
+											"        pm.expect(jsonData.reporter.email).to.not.be.null;",
+											"        pm.expect(jsonData.reporter.email).to.include('@');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{privacyProfessorToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["tasks", "{{udgTaskId}}"]
+								}
+							}
+						}
+					]
+				}
+			]
 		}
 	],
 	"event": [
@@ -9774,6 +10231,42 @@
 			"value": "",
 			"type": "string",
 			"description": "Token of a student enrolled in UB courses (cross-project test)"
+		},
+		{
+			"key": "privacyStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token for student in email privacy tests"
+		},
+		{
+			"key": "privacyStudentId",
+			"value": "",
+			"type": "string",
+			"description": "ID of student in email privacy tests"
+		},
+		{
+			"key": "privacyStudentEmail",
+			"value": "",
+			"type": "string",
+			"description": "Email of student in email privacy tests"
+		},
+		{
+			"key": "privacyProfessorToken",
+			"value": "",
+			"type": "string",
+			"description": "Token for professor in email privacy tests"
+		},
+		{
+			"key": "privacyProfessorId",
+			"value": "",
+			"type": "string",
+			"description": "ID of professor in email privacy tests"
+		},
+		{
+			"key": "privacyOtherUserId",
+			"value": "",
+			"type": "string",
+			"description": "ID of another user to test email visibility"
 		}
 	]
 }
