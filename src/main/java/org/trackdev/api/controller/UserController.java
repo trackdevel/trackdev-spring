@@ -19,6 +19,7 @@ import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.mapper.UserMapper;
 import org.trackdev.api.model.response.AdminCheckResponse;
 import org.trackdev.api.service.AccessChecker;
+import org.trackdev.api.service.PrivacyAwareUserMapper;
 import org.trackdev.api.service.UserService;
 import org.trackdev.api.utils.ErrorConstants;
 
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 /**
  * Controller for user management.
  * Uses both Spring Security annotations and AccessChecker for defense in depth.
+ * Uses PrivacyAwareUserMapper to hide sensitive data (email) from students.
  */
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "2. Users")
@@ -52,20 +54,23 @@ public class UserController extends BaseController {
     @Autowired
     UserMapper userMapper;
 
+    @Autowired
+    PrivacyAwareUserMapper privacyAwareUserMapper;
+
     /**
      * Returns the public profile of any user.
      * @param principal The current authenticated entity
      * @param id The email of the user to request.
      * @return The User identified by username
      */
-    @Operation(summary = "Get user by id", description = "Get user by id. Authorization: ADMIN can view any user, WORKSPACE_ADMIN can view users in their workspace, PROFESSOR can view professors in their workspace and students in their courses, STUDENT can view students in same projects.")
+    @Operation(summary = "Get user by id", description = "Get user by id. Authorization: ADMIN can view any user, WORKSPACE_ADMIN can view users in their workspace, PROFESSOR can view professors in their workspace and students in their courses, STUDENT can view students in same projects. Note: STUDENT users cannot see other users' emails.")
     @GetMapping(path = "/uuid/{id}")
     public UserWithProjectsDTO getPublic(Principal principal, @PathVariable(name = "id") String id) {
         super.checkLoggedIn(principal);
         String currentUserId = getUserId(principal);
         User targetUser = userService.get(id);
         accessChecker.checkCanViewUser(currentUserId, targetUser);
-        return userMapper.toWithProjectsDTO(targetUser);
+        return privacyAwareUserMapper.toWithProjectsDTO(targetUser);
     }
 
     /**
@@ -74,14 +79,14 @@ public class UserController extends BaseController {
      * @param email The email of the user to request.
      * @return The User identified by username
      */
-    @Operation(summary = "Get user by email", description = "Get user by email. Authorization: ADMIN can view any user, WORKSPACE_ADMIN can view users in their workspace, PROFESSOR can view professors in their workspace and students in their courses, STUDENT can view students in same projects.")
+    @Operation(summary = "Get user by email", description = "Get user by email. Authorization: ADMIN can view any user, WORKSPACE_ADMIN can view users in their workspace, PROFESSOR can view professors in their workspace and students in their courses, STUDENT can view students in same projects. Note: STUDENT users cannot see other users' emails.")
     @GetMapping(path = "/{email}")
     public UserWithProjectsDTO getUserEmail(Principal principal, @PathVariable(name = "email") String email) {
         super.checkLoggedIn(principal);
         String currentUserId = getUserId(principal);
         User targetUser = userService.getByEmail(email);
         accessChecker.checkCanViewUser(currentUserId, targetUser);
-        return userMapper.toWithProjectsDTO(targetUser);
+        return privacyAwareUserMapper.toWithProjectsDTO(targetUser);
     }
 
     @Operation(summary = "Get all users", description = "Get all users, only admins can do this")
@@ -92,6 +97,7 @@ public class UserController extends BaseController {
         if (!accessChecker.isUserAdmin(userService.get(principal.getName()))){
             throw new SecurityException(ErrorConstants.EMPTY);
         }
+        // Admin can see all emails, use regular mapper
         return new UsersResponseDTO(userMapper.toWithProjectsDTOList(userService.findAll()));
     }
 
@@ -108,6 +114,7 @@ public class UserController extends BaseController {
         }
         
         Long workspaceId = currentUser.getWorkspace().getId();
+        // Workspace admin can see all emails, use regular mapper
         return new UsersResponseDTO(userMapper.toWithProjectsDTOList(userService.getWorkspaceUsers(workspaceId)));
     }
 

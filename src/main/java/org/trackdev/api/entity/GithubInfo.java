@@ -2,9 +2,12 @@ package org.trackdev.api.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.trackdev.api.converter.EncryptedStringConverter;
 
 @Entity
 @Table(name = "github_users_info")
@@ -14,8 +17,12 @@ public class GithubInfo extends BaseEntityUUID{
     @OneToOne(mappedBy = "githubInfo")
     private User user;
 
+    @Column(length = 512) // Increased for encrypted data
+    @Convert(converter = EncryptedStringConverter.class)
     private String github_token;
 
+    @Column(length = 256) // Increased for encrypted data
+    @Convert(converter = EncryptedStringConverter.class)
     private String login;
 
     private String avatar_url;
