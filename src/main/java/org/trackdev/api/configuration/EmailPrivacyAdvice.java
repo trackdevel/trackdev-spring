@@ -67,7 +67,6 @@ public class EmailPrivacyAdvice implements ResponseBodyAdvice<Object> {
 
         // Student user - filter emails from user DTOs except their own
         try {
-            logger.info("EMAIL_PRIVACY: Filtering for student userId={}, body type={}", currentUserId, body.getClass().getSimpleName());
             filterEmailsRecursively(body, currentUserId, new HashSet<>());
         } catch (Exception e) {
             logger.warn("Error filtering emails from response", e);

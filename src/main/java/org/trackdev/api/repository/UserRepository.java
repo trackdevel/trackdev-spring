@@ -47,7 +47,13 @@ public interface UserRepository extends BaseRepositoryUUID<User> {
 
     /**
      * Find user by their GitHub username (login)
+     * Note: This may not work correctly with encrypted fields
      */
     Optional<User> findByGithubInfoLogin(@Param("login") String login);
+
+    /**
+     * Find all users that have GitHub info linked
+     */
+    List<User> findByGithubInfoIsNotNull();
 
 }

@@ -143,12 +143,22 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     }
 
     /**
-     * Find a user by their GitHub login (username set in GitHub)
+     * Find a user by their GitHub login (username set in GitHub).
+     * Since the login field is encrypted, we need to load users and filter in memory.
      * @param githubLogin The GitHub username
      * @return The user with matching GitHub login, or null if not found
      */
     public User getByGithubLogin(String githubLogin) {
-        return repo().findByGithubInfoLogin(githubLogin).orElse(null);
+        if (githubLogin == null || githubLogin.isBlank()) {
+            return null;
+        }
+        // Query by encrypted field won't work, so we load users with GitHub info and filter
+        List<User> usersWithGithub = repo().findByGithubInfoIsNotNull();
+        return usersWithGithub.stream()
+                .filter(u -> u.getGithubInfo() != null && 
+                             githubLogin.equalsIgnoreCase(u.getGithubInfo().getLogin()))
+                .findFirst()
+                .orElse(null);
     }
 
     /**

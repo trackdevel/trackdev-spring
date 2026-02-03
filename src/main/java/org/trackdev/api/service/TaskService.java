@@ -1032,6 +1032,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     /**
+     * Find all tasks in a project with a specific status.
+     */
+    public List<Task> findByProjectIdAndStatus(Long projectId, TaskStatus status) {
+        return this.repo.findByProjectIdAndStatus(projectId, status);
+    }
+
+    /**
      * Link a pull request to a task.
      * This method is transactional to ensure the task's lazy collections are accessible.
      */
