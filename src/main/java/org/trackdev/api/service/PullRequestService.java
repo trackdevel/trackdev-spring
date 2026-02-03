@@ -29,17 +29,22 @@ import org.trackdev.api.repository.GitHubRepoRepository;
 import org.trackdev.api.repository.PullRequestChangeRepository;
 import org.trackdev.api.repository.PullRequestRepository;
 import org.trackdev.api.repository.TaskRepository;
+import org.trackdev.api.dto.PRFileDetailDTO;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.GithubConstants;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequestRepository> {
@@ -803,5 +808,608 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             }
         }
         return result;
+    }
+
+    /**
+     * Get detailed file-level analysis for a pull request, including surviving and deleted lines per file.
+     * 
+     * @param prId The pull request ID
+     * @return List of file details with line ranges, or empty list if unable to compute
+     */
+    public List<PRFileDetailDTO> getFileDetails(String prId) {
+        PullRequest pr = get(prId);
+        if (pr == null) {
+            throw new EntityNotFound(ErrorConstants.ENTITY_NOT_EXIST);
+        }
+        
+        if (pr.getRepoFullName() == null || pr.getPrNumber() == null) {
+            return List.of();
+        }
+        
+        // Only compute for merged PRs
+        if (!pr.isMerged()) {
+            log.debug("PR #{} is not merged, returning empty file details", pr.getPrNumber());
+            return List.of();
+        }
+        
+        String[] parts = pr.getRepoFullName().split("/");
+        if (parts.length != 2) {
+            return List.of();
+        }
+        String owner = parts[0];
+        String repoName = parts[1];
+        
+        // Find access token for this repository
+        Optional<GitHubRepo> gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName());
+        if (gitHubRepo.isEmpty()) {
+            gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
+        }
+        
+        String accessToken = gitHubRepo.map(GitHubRepo::getAccessToken).orElse(null);
+        if (accessToken == null) {
+            log.warn("No access token found for repository {}", pr.getRepoFullName());
+            return List.of();
+        }
+        
+        try {
+            // Get relevant commit SHAs
+            Set<String> relevantCommitShas = new HashSet<>();
+            
+            String mergeCommitSha = fetchMergeCommitSha(owner, repoName, pr.getPrNumber(), accessToken);
+            if (mergeCommitSha != null) {
+                relevantCommitShas.add(mergeCommitSha);
+            }
+            
+            Set<String> prCommitShas = fetchPRCommitShas(owner, repoName, pr.getPrNumber(), accessToken);
+            relevantCommitShas.addAll(prCommitShas);
+            
+            if (relevantCommitShas.isEmpty()) {
+                return List.of();
+            }
+            
+            // Get files with stats
+            List<PRFileDetailDTO> fileDetails = fetchPRFilesWithStats(owner, repoName, pr.getPrNumber(), accessToken);
+            
+            // Get PR author info for non-surviving lines
+            String prAuthorFullName = pr.getAuthor() != null ? pr.getAuthor().getFullName() : null;
+            String prAuthorGithubUsername = pr.getAuthor() != null && pr.getAuthor().getGithubInfo() != null 
+                    ? pr.getAuthor().getGithubInfo().getLogin() : null;
+            
+            // Process files in parallel to speed up analysis (2 API calls per file: content + blame)
+            // Use a limited thread pool to respect GitHub rate limits
+            ExecutorService executor = Executors.newFixedThreadPool(Math.min(4, fileDetails.size()));
+            try {
+                // Create final copies for lambda
+                final Set<String> finalRelevantCommitShas = relevantCommitShas;
+                final String finalMergeCommitSha = mergeCommitSha;
+                
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+                for (PRFileDetailDTO fileDetail : fileDetails) {
+                    if (!"deleted".equals(fileDetail.getStatus())) {
+                        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                            populateFileLineDetails(owner, repoName, pr.getPrNumber(), fileDetail, 
+                                    finalRelevantCommitShas, finalMergeCommitSha, accessToken, 
+                                    prAuthorFullName, prAuthorGithubUsername);
+                        }, executor);
+                        futures.add(future);
+                    }
+                }
+                
+                // Wait for all files to be processed
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            } finally {
+                executor.shutdown();
+            }
+            
+            return fileDetails;
+            
+        } catch (Exception e) {
+            log.error("Error getting file details for PR #{} in {}: {}", 
+                    pr.getPrNumber(), pr.getRepoFullName(), e.getMessage());
+            return List.of();
+        }
+    }
+
+    /**
+     * Fetch PR files with their stats (additions, deletions, status) and patch.
+     */
+    private List<PRFileDetailDTO> fetchPRFilesWithStats(String owner, String repo, int prNumber, String accessToken) {
+        List<PRFileDetailDTO> files = new ArrayList<>();
+        
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.set("Accept", "application/vnd.github+json");
+            headers.set("X-GitHub-Api-Version", "2022-11-28");
+            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+            
+            String url = GithubConstants.getPullFilesUrl(owner, repo, prNumber);
+            log.debug("Fetching PR files from: {}", url);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.GET, requestEntity, String.class);
+            
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode filesArray = objectMapper.readTree(response.getBody());
+                for (JsonNode fileNode : filesArray) {
+                    PRFileDetailDTO fileDetail = new PRFileDetailDTO();
+                    fileDetail.setFilePath(fileNode.path("filename").asText());
+                    fileDetail.setStatus(fileNode.path("status").asText());
+                    fileDetail.setAdditions(fileNode.path("additions").asInt(0));
+                    fileDetail.setDeletions(fileNode.path("deletions").asInt(0));
+                    fileDetail.setSurvivingLines(0);
+                    fileDetail.setDeletedLines(0);
+                    fileDetail.setLines(new ArrayList<>());
+                    // Store the patch for line-level analysis
+                    String patch = fileNode.path("patch").asText(null);
+                    fileDetail.setPatch(patch);
+                    files.add(fileDetail);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching PR files: {}", e.getMessage());
+        }
+        
+        return files;
+    }
+
+    /**
+     * Fetch file content at a specific commit.
+     */
+    private String fetchFileContentAtCommit(String owner, String repo, String filePath, String commitSha, String accessToken) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.set("Accept", "application/vnd.github.raw+json");
+            headers.set("X-GitHub-Api-Version", "2022-11-28");
+            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+            
+            // GitHub API to get file content at a specific ref
+            String url = String.format("https://api.github.com/repos/%s/%s/contents/%s?ref=%s", 
+                    owner, repo, filePath, commitSha);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.GET, requestEntity, String.class);
+            
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                return response.getBody();
+            }
+        } catch (HttpClientErrorException.NotFound e) {
+            // File doesn't exist at this commit (could be a new file)
+            log.debug("File {} not found at commit {}", filePath, commitSha);
+        } catch (Exception e) {
+            log.debug("Error fetching file content for {}: {}", filePath, e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Fetch current file content from default branch.
+     */
+    private String fetchCurrentFileContent(String owner, String repo, String filePath, String accessToken) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.set("Accept", "application/vnd.github.raw+json");
+            headers.set("X-GitHub-Api-Version", "2022-11-28");
+            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+            
+            String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", owner, repo, filePath);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.GET, requestEntity, String.class);
+            
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                return response.getBody();
+            }
+        } catch (HttpClientErrorException.NotFound e) {
+            log.debug("File {} not found in current branch", filePath);
+        } catch (Exception e) {
+            log.debug("Error fetching current file content for {}: {}", filePath, e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Holds PR information for a commit.
+     */
+    private static class CommitPrInfo {
+        final Integer prNumber;
+        final String prUrl;
+        
+        CommitPrInfo(Integer prNumber, String prUrl) {
+            this.prNumber = prNumber;
+            this.prUrl = prUrl;
+        }
+    }
+
+    /**
+     * Fetch PRs associated with given commit SHAs.
+     * Returns a map from commit SHA to PR info (number and URL).
+     * Only returns the first (most recent) merged PR for each commit.
+     */
+    private Map<String, CommitPrInfo> fetchPRsForCommits(String owner, String repo, 
+            Set<String> commitShas, String accessToken) {
+        Map<String, CommitPrInfo> result = new HashMap<>();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Accept", "application/vnd.github+json");
+        headers.set("X-GitHub-Api-Version", "2022-11-28");
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        
+        for (String commitSha : commitShas) {
+            try {
+                String url = String.format("https://api.github.com/repos/%s/%s/commits/%s/pulls", 
+                        owner, repo, commitSha);
+                
+                ResponseEntity<String> response = restTemplate.exchange(
+                        url, HttpMethod.GET, requestEntity, String.class);
+                
+                if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                    JsonNode prs = objectMapper.readTree(response.getBody());
+                    if (prs.isArray() && !prs.isEmpty()) {
+                        // Get the first merged PR (or any PR if none merged)
+                        for (JsonNode pr : prs) {
+                            if ("closed".equals(pr.path("state").asText()) && 
+                                !pr.path("merged_at").isNull()) {
+                                result.put(commitSha, new CommitPrInfo(
+                                        pr.path("number").asInt(),
+                                        pr.path("html_url").asText()
+                                ));
+                                break;
+                            }
+                        }
+                        // If no merged PR found, use first PR
+                        if (!result.containsKey(commitSha) && !prs.isEmpty()) {
+                            JsonNode firstPr = prs.get(0);
+                            result.put(commitSha, new CommitPrInfo(
+                                    firstPr.path("number").asInt(),
+                                    firstPr.path("html_url").asText()
+                            ));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("Error fetching PRs for commit {}: {}", commitSha, e.getMessage());
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * Populate line-level detail for a file using blame information and file content.
+     * Creates an interleaved view showing:
+     * - All current lines with their line numbers (marked as SURVIVING if from PR, CURRENT otherwise)
+     * - Deleted lines from the PR inserted at their approximate original positions (no line number)
+     */
+    private void populateFileLineDetails(String owner, String repo, int prNumber, PRFileDetailDTO fileDetail, 
+                                          Set<String> prCommitShas, String mergeCommitSha, String accessToken,
+                                          String prAuthorFullName, String prAuthorGithubUsername) {
+        try {
+            int survivingCount = 0;
+            int nonSurvivingCount = 0;
+            
+            // Generate the PR file URL - format: https://github.com/owner/repo/pull/number/files
+            String prFileUrl = String.format("https://github.com/%s/%s/pull/%d/files#diff-%s", 
+                    owner, repo, prNumber, 
+                    java.util.Base64.getEncoder().encodeToString(fileDetail.getFilePath().getBytes()).replace("=", ""));
+            
+            String patch = fileDetail.getPatch();
+            if (patch == null || patch.isEmpty()) {
+                fileDetail.setLines(new ArrayList<>());
+                fileDetail.setSurvivingLines(0);
+                fileDetail.setDeletedLines(0);
+                return;
+            }
+            
+            // Step 1: Parse the patch to extract lines ADDED by this PR with their context
+            List<PatchLineInfo> patchAddedLines = new ArrayList<>();
+            String[] patchLines = patch.split("\n");
+            int newLineNumber = 0;
+            
+            for (String patchLine : patchLines) {
+                if (patchLine.startsWith("@@")) {
+                    java.util.regex.Matcher matcher = java.util.regex.Pattern
+                            .compile("@@ -\\d+(?:,\\d+)? \\+(\\d+)(?:,\\d+)? @@")
+                            .matcher(patchLine);
+                    if (matcher.find()) {
+                        newLineNumber = Integer.parseInt(matcher.group(1));
+                    }
+                } else if (patchLine.startsWith("+") && !patchLine.startsWith("+++")) {
+                    String content = patchLine.substring(1);
+                    patchAddedLines.add(new PatchLineInfo(newLineNumber, content));
+                    newLineNumber++;
+                } else if (patchLine.startsWith("-") && !patchLine.startsWith("---")) {
+                    // Deleted line - don't increment newLineNumber
+                } else if (!patchLine.startsWith("\\")) {
+                    newLineNumber++;
+                }
+            }
+            
+            // Step 2: Get current file content
+            String currentContent = fetchCurrentFileContent(owner, repo, fileDetail.getFilePath(), accessToken);
+            String[] currentLines = currentContent != null ? currentContent.split("\n", -1) : new String[0];
+            
+            // Step 3: Use blame API to get commit attribution AND author info for current lines
+            Map<Integer, String> currentLineToCommit = new HashMap<>();
+            Map<Integer, String> currentLineToAuthor = new HashMap<>(); // line number -> GitHub username
+            Set<Integer> survivingLineNumbers = new HashSet<>();
+            
+            // Expanded query to include author login
+            String query = """
+                query {
+                  repository(owner: "%s", name: "%s") {
+                    defaultBranchRef {
+                      target {
+                        ... on Commit {
+                          blame(path: "%s") {
+                            ranges {
+                              startingLine
+                              endingLine
+                              commit {
+                                oid
+                                author {
+                                  user {
+                                    login
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """.formatted(owner, repo, fileDetail.getFilePath());
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            Map<String, String> body = new HashMap<>();
+            body.put("query", query);
+            
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                    GithubConstants.GITHUB_GRAPHQL_URL,
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
+            
+            // Cache for user lookups to avoid repeated database queries
+            Map<String, String> githubUsernameToFullName = new HashMap<>();
+            
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode jsonResponse = objectMapper.readTree(response.getBody());
+                
+                if (!jsonResponse.has("errors")) {
+                    JsonNode blame = jsonResponse.path("data").path("repository")
+                            .path("defaultBranchRef").path("target").path("blame");
+                    
+                    if (!blame.isMissingNode()) {
+                        JsonNode ranges = blame.path("ranges");
+                        for (JsonNode range : ranges) {
+                            String commitOid = range.path("commit").path("oid").asText();
+                            String authorLogin = range.path("commit").path("author").path("user").path("login").asText(null);
+                            int startLine = range.path("startingLine").asInt();
+                            int endLine = range.path("endingLine").asInt();
+                            
+                            for (int line = startLine; line <= endLine; line++) {
+                                currentLineToCommit.put(line, commitOid);
+                                if (authorLogin != null) {
+                                    currentLineToAuthor.put(line, authorLogin);
+                                }
+                                if (prCommitShas.contains(commitOid)) {
+                                    survivingLineNumbers.add(line);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Step 4: Build map of surviving line contents to their current line numbers
+            Map<String, List<Integer>> survivingContentToLineNums = new HashMap<>();
+            for (Integer lineNum : survivingLineNumbers) {
+                if (lineNum > 0 && lineNum <= currentLines.length) {
+                    String content = currentLines[lineNum - 1].trim();
+                    survivingContentToLineNums.computeIfAbsent(content, k -> new ArrayList<>()).add(lineNum);
+                }
+            }
+            Set<String> survivingLineContents = survivingContentToLineNums.keySet();
+            
+            // Step 5: Classify patch added lines as surviving or non-surviving
+            Map<Integer, List<PatchLineInfo>> insertAfterLine = new HashMap<>();
+            List<PatchLineInfo> insertAtEnd = new ArrayList<>();
+            List<PatchLineInfo> insertAtStart = new ArrayList<>();
+            
+            for (int i = 0; i < patchAddedLines.size(); i++) {
+                PatchLineInfo patchLine = patchAddedLines.get(i);
+                String trimmedContent = patchLine.content.trim();
+                
+                if (trimmedContent.isEmpty() || survivingLineContents.contains(trimmedContent)) {
+                    continue;
+                }
+                
+                Integer insertPoint = null;
+                for (int j = i - 1; j >= 0; j--) {
+                    String neighborContent = patchAddedLines.get(j).content.trim();
+                    if (!neighborContent.isEmpty() && survivingContentToLineNums.containsKey(neighborContent)) {
+                        List<Integer> lineNums = survivingContentToLineNums.get(neighborContent);
+                        insertPoint = lineNums.get(0);
+                        break;
+                    }
+                }
+                
+                if (insertPoint != null) {
+                    insertAfterLine.computeIfAbsent(insertPoint, k -> new ArrayList<>()).add(patchLine);
+                } else {
+                    for (int j = i + 1; j < patchAddedLines.size(); j++) {
+                        String neighborContent = patchAddedLines.get(j).content.trim();
+                        if (!neighborContent.isEmpty() && survivingContentToLineNums.containsKey(neighborContent)) {
+                            List<Integer> lineNums = survivingContentToLineNums.get(neighborContent);
+                            int targetLine = lineNums.get(0);
+                            int beforeLine = targetLine - 1;
+                            if (beforeLine > 0) {
+                                insertAfterLine.computeIfAbsent(beforeLine, k -> new ArrayList<>()).add(patchLine);
+                            } else {
+                                insertAtStart.add(patchLine);
+                            }
+                            insertPoint = -1;
+                            break;
+                        }
+                    }
+                    
+                    if (insertPoint == null) {
+                        insertAtEnd.add(patchLine);
+                    }
+                }
+            }
+            
+            // Helper to look up user fullName from GitHub username
+            java.util.function.Function<String, String> lookupFullName = (githubUsername) -> {
+                if (githubUsername == null) return null;
+                return githubUsernameToFullName.computeIfAbsent(githubUsername, login -> {
+                    User user = userService.findByGithubUsernameOrUsername(login);
+                    return user != null ? user.getFullName() : null;
+                });
+            };
+            
+            // NOTE: We skip fetching origin PR info for CURRENT lines (non-PR lines) as it's expensive
+            // (would require 1 API call per unique commit SHA) and not essential for survival analysis.
+            // The core metric is surviving vs deleted lines from THIS PR.
+            
+            // Create builder for consistent line creation
+            LineDetailBuilder lineBuilder = new LineDetailBuilder(owner, repo, prFileUrl, lookupFullName);
+            
+            // Step 6: Build the output - current file lines with non-surviving lines interleaved
+            List<PRFileDetailDTO.LineDetailDTO> resultLines = new ArrayList<>();
+            
+            // Add any non-surviving lines that should appear at the start
+            for (PatchLineInfo nonSurviving : insertAtStart) {
+                resultLines.add(lineBuilder.buildDeletedLine(
+                        nonSurviving.originalLineNumber, nonSurviving.content, 
+                        mergeCommitSha, prAuthorFullName, prAuthorGithubUsername));
+                nonSurvivingCount++;
+            }
+            
+            // Add current file lines with non-surviving lines inserted after appropriate positions
+            for (int lineNum = 1; lineNum <= currentLines.length; lineNum++) {
+                String content = currentLines[lineNum - 1];
+                String commitSha = currentLineToCommit.get(lineNum);
+                String authorGithub = currentLineToAuthor.get(lineNum);
+                PRFileDetailDTO.LineStatus status = survivingLineNumbers.contains(lineNum) 
+                        ? PRFileDetailDTO.LineStatus.SURVIVING 
+                        : PRFileDetailDTO.LineStatus.CURRENT;
+                
+                if (status == PRFileDetailDTO.LineStatus.SURVIVING) {
+                    survivingCount++;
+                }
+                
+                // Origin PR info for CURRENT lines is not fetched to reduce API calls
+                // The core survival analysis only needs to track lines from THIS PR
+                resultLines.add(lineBuilder.buildCurrentLine(lineNum, content, status, commitSha, authorGithub,
+                        null, null));
+                
+                // Insert any non-surviving lines that should appear after this line
+                List<PatchLineInfo> toInsert = insertAfterLine.get(lineNum);
+                if (toInsert != null) {
+                    for (PatchLineInfo nonSurviving : toInsert) {
+                        resultLines.add(lineBuilder.buildDeletedLine(
+                                nonSurviving.originalLineNumber, nonSurviving.content,
+                                mergeCommitSha, prAuthorFullName, prAuthorGithubUsername));
+                        nonSurvivingCount++;
+                    }
+                }
+            }
+            
+            // Add any remaining non-surviving lines at the end
+            for (PatchLineInfo nonSurviving : insertAtEnd) {
+                resultLines.add(lineBuilder.buildDeletedLine(
+                        nonSurviving.originalLineNumber, nonSurviving.content,
+                        mergeCommitSha, prAuthorFullName, prAuthorGithubUsername));
+                nonSurvivingCount++;
+            }
+            
+            fileDetail.setLines(resultLines);
+            fileDetail.setSurvivingLines(survivingCount);
+            fileDetail.setDeletedLines(nonSurvivingCount);
+            fileDetail.setCurrentLines(currentLines.length);
+            fileDetail.setPatch(null);
+            
+        } catch (Exception e) {
+            log.debug("Error populating file line details for {}: {}", fileDetail.getFilePath(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Helper class to track line information from PR patch
+     */
+    private static class PatchLineInfo {
+        final int originalLineNumber;
+        final String content;
+        
+        PatchLineInfo(int originalLineNumber, String content) {
+            this.originalLineNumber = originalLineNumber;
+            this.content = content;
+        }
+    }
+    
+    /**
+     * Helper class to build LineDetailDTO with all information from a single point.
+     * Ensures consistent logic for all line types.
+     */
+    private static class LineDetailBuilder {
+        private final String owner;
+        private final String repo;
+        private final String prFileUrl;
+        private final java.util.function.Function<String, String> lookupFullName;
+        
+        LineDetailBuilder(String owner, String repo, String prFileUrl, 
+                          java.util.function.Function<String, String> lookupFullName) {
+            this.owner = owner;
+            this.repo = repo;
+            this.prFileUrl = prFileUrl;
+            this.lookupFullName = lookupFullName;
+        }
+        
+        private String buildCommitUrl(String commitSha) {
+            if (commitSha == null) return null;
+            return String.format("https://github.com/%s/%s/commit/%s", owner, repo, commitSha);
+        }
+        
+        /**
+         * Build a LineDetailDTO for a current file line (SURVIVING or CURRENT status)
+         * @param originPrInfo Optional PR info for CURRENT lines (int[]{prNumber} and String prUrl)
+         */
+        PRFileDetailDTO.LineDetailDTO buildCurrentLine(int lineNumber, String content, 
+                PRFileDetailDTO.LineStatus status, String commitSha, String authorGithubUsername,
+                Integer originPrNumber, String originPrUrl) {
+            String authorFullName = lookupFullName.apply(authorGithubUsername);
+            String commitUrl = buildCommitUrl(commitSha);
+            // For SURVIVING lines, include prFileUrl; for CURRENT lines, don't include it
+            String fileUrl = status == PRFileDetailDTO.LineStatus.SURVIVING ? prFileUrl : null;
+            return new PRFileDetailDTO.LineDetailDTO(
+                    lineNumber, null, content, status, commitSha, 
+                    commitUrl, authorFullName, authorGithubUsername, fileUrl,
+                    originPrNumber, originPrUrl);
+        }
+        
+        /**
+         * Build a LineDetailDTO for a non-surviving (DELETED) line from the PR
+         */
+        PRFileDetailDTO.LineDetailDTO buildDeletedLine(int originalLineNumber, String content, 
+                String mergeCommitSha, String prAuthorFullName, String prAuthorGithubUsername) {
+            String commitUrl = buildCommitUrl(mergeCommitSha);
+            return new PRFileDetailDTO.LineDetailDTO(
+                    null, originalLineNumber, content, PRFileDetailDTO.LineStatus.DELETED, 
+                    mergeCommitSha, commitUrl, prAuthorFullName, prAuthorGithubUsername, prFileUrl,
+                    null, null);
+        }
     }
 }
