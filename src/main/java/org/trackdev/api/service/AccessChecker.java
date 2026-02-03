@@ -9,6 +9,7 @@ import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.entity.Course;
 import org.trackdev.api.entity.Project;
+import org.trackdev.api.entity.PullRequest;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.SprintStatus;
 import org.trackdev.api.entity.Subject;
@@ -246,6 +247,32 @@ public class AccessChecker {
         if (userService.get(userId).isUserType(UserType.ADMIN)) {
             return;
         }
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    /**
+     * Check if user can view a pull request.
+     * A user can view a PR if they can view any of the tasks linked to the PR.
+     */
+    public void checkCanViewPullRequest(PullRequest pr, String userId) {
+        // Admins can view all PRs
+        if (userService.get(userId).isUserType(UserType.ADMIN)) {
+            return;
+        }
+        
+        // Check if user can view any task linked to this PR
+        for (org.trackdev.api.entity.Task task : pr.getTasks()) {
+            Project project = task.getProject();
+            if (project != null) {
+                try {
+                    checkCanViewProject(project, userId);
+                    return; // User can view at least one linked project
+                } catch (ServiceException e) {
+                    // Continue checking other tasks
+                }
+            }
+        }
+        
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
     }
 
