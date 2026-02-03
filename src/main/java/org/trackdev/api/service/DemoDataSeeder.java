@@ -421,14 +421,16 @@ public class DemoDataSeeder {
             );
         }
 
-        // Add a hardcoded PR to a done task for Alice Johnson in pds25a
+        // Add hardcoded PRs to done tasks for Alice Johnson in pds25a
         if (environment.getProperty("GITHUB_REPO1_URL") != null) {
-            createHardcodedPullRequest(
-                projectPDS,
-                studentsUdG.get(0), // Alice Johnson
-                environment.getProperty("GITHUB_REPO1_URL"),
-                8 // PR number 8
-            );
+            String repoUrl = environment.getProperty("GITHUB_REPO1_URL");
+            User alice = studentsUdG.get(0); // Alice Johnson
+            
+            // Link PRs to different DONE tasks
+            createHardcodedPullRequest(projectPDS, alice, repoUrl, 8, 0);  // PR #8 to first DONE task
+            createHardcodedPullRequest(projectPDS, alice, repoUrl, 22, 1); // PR #22 to second DONE task
+            createHardcodedPullRequest(projectPDS, alice, repoUrl, 26, 2); // PR #26 to third DONE task
+            createHardcodedPullRequest(projectPDS, alice, repoUrl, 35, 3); // PR #35 to fourth DONE task
         }
 
         // Project for TFG course (UdG)
@@ -952,22 +954,29 @@ public class DemoDataSeeder {
 
     /**
      * Create a pull request record linked to a done task for testing.
-     * Uses the first DONE task found for the given user in the project.
+     * Uses the task at the specified index from DONE tasks found for the given user in the project.
      * Fetches real PR data from GitHub API.
+     * @param taskIndex The index of the DONE task to link the PR to (0-based)
      */
-    private void createHardcodedPullRequest(Project project, User alice, String repoUrl, int prNumber) {
-        // Find a DONE task assigned to Alice in this project
+    private void createHardcodedPullRequest(Project project, User user, String repoUrl, int prNumber, int taskIndex) {
+        // Find DONE tasks assigned to user in this project
         List<Task> doneTasks = taskService.findByProjectIdAndStatusAndAssignee(
-            project.getId(), TaskStatus.DONE, alice.getId());
+            project.getId(), TaskStatus.DONE, user.getId());
         
         if (doneTasks.isEmpty()) {
-            logger.warn("No DONE tasks found for {} in project {} - skipping PR creation", 
-                alice.getEmail(), project.getName());
+            logger.warn("No DONE tasks found for {} in project {} - skipping PR {} creation", 
+                user.getEmail(), project.getName(), prNumber);
+            return;
+        }
+        
+        if (taskIndex >= doneTasks.size()) {
+            logger.warn("Not enough DONE tasks for {} in project {} (need index {}, have {}) - skipping PR {} creation", 
+                user.getEmail(), project.getName(), taskIndex, doneTasks.size(), prNumber);
             return;
         }
         
         // Get the task ID for linking
-        Long taskId = doneTasks.get(0).getId();
+        Long taskId = doneTasks.get(taskIndex).getId();
         
         // Extract owner/repo from URL (e.g., https://github.com/owner/repo)
         String repoFullName = repoUrl.replace("https://github.com/", "")
@@ -987,7 +996,7 @@ public class DemoDataSeeder {
         
         // Create a minimal PullRequest entity with just the essential info
         PullRequest pr = new PullRequest(prUrl, nodeId);
-        pr.setAuthor(alice);
+        pr.setAuthor(user);
         pr.setPrNumber(prNumber);
         pr.setRepoFullName(repoFullName);
         pullRequestRepository.save(pr);
