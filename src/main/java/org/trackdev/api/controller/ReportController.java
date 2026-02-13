@@ -18,6 +18,7 @@ import org.trackdev.api.utils.ErrorConstants;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.security.Principal;
 import java.util.List;
 
@@ -25,6 +26,7 @@ import java.util.List;
 @Tag(name = "10. Reports")
 @RestController
 @RequestMapping(path = "/reports")
+@PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
 public class ReportController extends BaseController {
 
     @Autowired
