@@ -17,7 +17,7 @@ public final class ErrorConstants {
     public static final String USER_SHOULD_NOT_LOGEDIN = "error.user.should.not.be.logged.in";
     public static final String USER_NOT_LOGGED_IN = "error.user.not.logged.in";
     public static final String UNKNOWN_ROLE = "error.role.unknown";
-    
+
     // Validation errors
     public static final String INVALID_PRJ_NAME_LENGTH = "error.project.name.length";
     public static final String INVALID_COURSE_START_YEAR = "error.course.year.invalid";
@@ -33,10 +33,10 @@ public final class ErrorConstants {
     public static final String INVALID_USERNAME_FORMAT = "error.username.format.invalid";
     public static final String INVALID_FULL_NAME_SIZE = "error.fullname.size.invalid";
     public static final String INVALID_PASSWORD_FORMAT = "error.password.format.invalid";
-    
+
     // Authorization errors
     public static final String UNAUTHORIZED = "error.unauthorized";
-    
+
     // Task errors
     public static final String TASK_ALREADY_REVIEWED = "error.task.already.reviewed";
     public static final String ONLY_ASSIGNEE_CAN_CREATE_SUBTASK = "error.task.subtask.only.assignee";
@@ -60,7 +60,7 @@ public final class ErrorConstants {
     public static final String USER_STORY_CANNOT_CHANGE_TYPE = "error.task.user.story.cannot.change.type";
     public static final String USER_STORY_HAS_SUBTASKS_CANNOT_DELETE = "error.task.user.story.has.subtasks.delete";
     public static final String TASK_STATUS_CANNOT_DELETE = "error.task.status.cannot.delete";
-    
+
     // Project errors
     public static final String PRJ_WITHOUT_MEMBERS = "error.project.no.members";
     public static final String PRJ_WITHOUT_QUALIFICATION = "error.project.no.qualification";
@@ -68,15 +68,15 @@ public final class ErrorConstants {
     public static final String CANNOT_GENERATE_UNIQUE_SLUG = "error.project.slug.generation.failed";
     public static final String CANNOT_REMOVE_MEMBER_HAS_ASSIGNED_TASKS = "error.project.member.has.tasks";
     public static final String PROJECT_HAS_TASKS = "error.project.has.tasks";
-    
+
     // Subject errors
     public static final String SUBJECT_NOT_EXIST = "error.subject.not.found";
     public static final String SUBJECT_HAS_COURSES = "error.subject.has.courses";
-    
+
     // Entity errors
     public static final String CAN_NOT_BE_NULL = "error.field.null";
     public static final String ENTITY_NOT_EXIST = "error.entity.not.found";
-    
+
     // GitHub errors
     public static final String GITHUB_TOKEN_INVALID = "error.github.token.invalid";
     public static final String API_GITHUB_KO = "error.github.api.failed";
@@ -86,10 +86,10 @@ public final class ErrorConstants {
     public static final String GITHUB_WEBHOOK_CREATE_FAILED = "error.github.webhook.create.failed";
     public static final String GITHUB_WEBHOOK_DELETE_FAILED = "error.github.webhook.delete.failed";
     public static final String INVALID_GITHUB_URL = "error.github.url.invalid";
-    
+
     // Course errors
     public static final String COURSE_ALREADY_EXISTS = "error.course.already.exists";
-    
+
     // Sprint errors
     public static final String SPRINT_NOT_IN_PROJECT = "error.sprint.not.in.project";
     public static final String USER_STORY_CANNOT_BE_ASSIGNED_TO_SPRINT = "error.sprint.user.story.assignment";
@@ -100,21 +100,21 @@ public final class ErrorConstants {
     public static final String SPRINT_END_DATE_BEFORE_START = "error.sprint.end.before.start";
     public static final String SPRINT_PATTERN_ALREADY_APPLIED = "error.sprint.pattern.already.applied";
     public static final String SPRINT_PATTERN_NOT_IN_COURSE = "error.sprint.pattern.not.in.course";
-    
+
     // Workspace errors
     public static final String WORKSPACE_NOT_EXIST = "error.workspace.not.found";
     public static final String INVALID_WORKSPACE_NAME_LENGTH = "error.workspace.name.length";
     public static final String WORKSPACE_ADMIN_CANNOT_CREATE_USER_TYPE = "error.workspace.admin.user.type";
     public static final String WORKSPACE_ADMIN_CAN_ONLY_CREATE_PROFESSOR = "error.workspace.admin.professor.only";
     public static final String WORKSPACE_REQUIRED = "error.workspace.required";
-    
+
     // Admin user creation errors
     public static final String ADMIN_CAN_ONLY_CREATE_ADMIN_OR_WORKSPACE_ADMIN = "error.admin.create.user.type";
-    
+
     // Professor user creation errors
     public static final String PROFESSOR_CAN_ONLY_CREATE_STUDENTS = "error.professor.create.students.only";
     public static final String COURSE_REQUIRED = "error.course.required";
-    
+
     // Course invite errors
     public static final String INVITE_NOT_FOUND = "error.invite.not.found";
     public static final String INVITE_ALREADY_USED = "error.invite.already.used";
@@ -123,11 +123,11 @@ public final class ErrorConstants {
     public static final String INVITE_CANNOT_CANCEL = "error.invite.cannot.cancel";
     public static final String STUDENT_NOT_ENROLLED = "error.student.not.enrolled";
     public static final String STUDENT_ALREADY_ENROLLED = "error.student.already.enrolled";
-    
+
     // Profile validation errors
     public static final String PROFILE_ALREADY_APPLIED = "error.profile.already.applied";
     public static final String PROFILE_NOT_IN_COURSE = "error.profile.not.in.course";
-    
+
     // User deletion errors
     public static final String CANNOT_DELETE_USER_HAS_SUBJECTS = "error.user.delete.has.subjects";
     public static final String CANNOT_DELETE_USER_HAS_REPORTED_TASKS = "error.user.delete.has.reported.tasks";
@@ -136,11 +136,11 @@ public final class ErrorConstants {
     public static final String CANNOT_DELETE_USER_HAS_SENT_INVITES = "error.user.delete.has.invites";
     public static final String CANNOT_DELETE_USER_HAS_OWNED_COURSES = "error.user.delete.has.courses";
     public static final String CANNOT_MANAGE_SELF = "error.user.manage.self";
-    
+
     // Password reset errors
     public static final String INVALID_RESET_TOKEN = "error.password.reset.token.invalid";
     public static final String EXPIRED_RESET_TOKEN = "error.password.reset.token.expired";
-    
+
     // Profile errors
     public static final String PROFILE_NOT_EXIST = "error.profile.not.found";
     public static final String PROFILE_NAME_ALREADY_EXISTS = "error.profile.name.exists";
@@ -149,16 +149,25 @@ public final class ErrorConstants {
     public static final String PROFILE_ATTRIBUTE_NAME_ALREADY_EXISTS = "error.profile.attribute.name.exists";
     public static final String PROFILE_ENUM_REF_NOT_FOUND = "error.profile.enum.ref.not.found";
     public static final String PROFILE_ENUM_REF_REQUIRED = "error.profile.enum.ref.required";
-    
+
     // Backlog movement rules
     public static final String TASK_BEGUN_CANNOT_MOVE_TO_BACKLOG = "error.task.begun.cannot.move.to.backlog";
     public static final String USER_STORY_SUBTASKS_NOT_TODO = "error.userstory.subtasks.not.todo";
     public static final String SUBTASK_CANNOT_MOVE_TO_BACKLOG = "error.subtask.cannot.move.to.backlog";
-    
+
     // Comment errors
     public static final String COMMENT_NOT_FOUND = "error.comment.not.found";
     public static final String CANNOT_EDIT_OTHERS_COMMENT = "error.comment.edit.not.author";
     public static final String CANNOT_DELETE_COMMENT = "error.comment.delete.not.allowed";
-    
+
+    // Discord errors
+    public static final String DISCORD_OAUTH_FAILED = "error.discord.oauth.failed";
+    public static final String DISCORD_ALREADY_LINKED = "error.discord.already.linked";
+    public static final String DISCORD_NOT_LINKED = "error.discord.not.linked";
+    public static final String DISCORD_GUILD_JOIN_FAILED = "error.discord.guild.join.failed";
+    public static final String DISCORD_NICKNAME_UPDATE_FAILED = "error.discord.nickname.update.failed";
+    public static final String DISCORD_ROLE_ASSIGN_FAILED = "error.discord.role.assign.failed";
+    public static final String DISCORD_KICK_FAILED = "error.discord.kick.failed";
+
     public static final String EMPTY = "";
 }

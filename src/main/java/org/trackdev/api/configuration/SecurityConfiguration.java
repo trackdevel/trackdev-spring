@@ -49,6 +49,7 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/auth/forgot-password", "/auth/reset-password").permitAll()
                 .requestMatchers(HttpMethod.GET, "/auth/reset-password/validate").permitAll()
                 .requestMatchers(HttpMethod.GET, "/invites/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/discord/callback").permitAll()
                 .requestMatchers(HttpMethod.POST, "/invites/*/accept").permitAll()
                 .requestMatchers("/hooks/**").permitAll()  // GitHub webhooks (unauthenticated, validated via signature)
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
@@ -57,7 +58,7 @@ public class SecurityConfiguration {
                 new JWTAuthorizationFilter(authorizationConfiguration, cookieManager),
                 UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(jwtTokenRefreshFilter, JWTAuthorizationFilter.class);
-        
+
         return http.build();
     }
 

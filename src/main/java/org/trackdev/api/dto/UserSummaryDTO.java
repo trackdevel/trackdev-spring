@@ -14,4 +14,5 @@ public class UserSummaryDTO {
     private String color;
     private String capitalLetters;
     private GithubInfoDTO githubInfo;
+    private DiscordInfoDTO discordInfo;
 }

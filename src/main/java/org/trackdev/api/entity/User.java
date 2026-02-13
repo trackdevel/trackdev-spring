@@ -34,6 +34,7 @@ public class User extends BaseEntityUUID {
     this.password = password;
     this.color = randomColorGenerator();
     this.githubInfo = new GithubInfo();
+    this.discordInfo = new DiscordInfo();
     this.capitalLetters = generateCapitalLetters(fullName);
   }
 
@@ -64,9 +65,9 @@ public class User extends BaseEntityUUID {
 
   @ManyToMany()
   @JoinTable(
-      name = "users_roles",
-      joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "role_id")
+    name = "users_roles",
+    joinColumns = @JoinColumn(name = "user_id"),
+    inverseJoinColumns = @JoinColumn(name = "role_id")
   )
   private Set<Role> roles = new HashSet<>();
 
@@ -92,6 +93,10 @@ public class User extends BaseEntityUUID {
   @JoinColumn(name = "githubInfoId", referencedColumnName = "id")
   private GithubInfo githubInfo;
 
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "discordInfoId", referencedColumnName = "id")
+  private DiscordInfo discordInfo;
+
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<PointsReview> pointsReviewList = new ArrayList<>();
 
@@ -110,7 +115,7 @@ public class User extends BaseEntityUUID {
   @Transient
   private Random random = new Random();
 
- // -- GETTERS AND SETTERS
+  // -- GETTERS AND SETTERS
 
   public String getId() {
     return super.getId();
@@ -171,6 +176,10 @@ public class User extends BaseEntityUUID {
   }
 
   public GithubInfo getGithubInfo() { return githubInfo; }
+
+  public DiscordInfo getDiscordInfo() { return discordInfo; }
+
+  public void setDiscordInfo(DiscordInfo discordInfo) { this.discordInfo = discordInfo;}
 
   public List<PointsReview> getPointsReviewList() { return pointsReviewList; }
 

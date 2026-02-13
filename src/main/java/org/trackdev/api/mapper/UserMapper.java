@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {GithubInfoMapper.class})
+@Mapper(componentModel = "spring", uses = { GithubInfoMapper.class, DiscordInfoMapper.class })
 public interface UserMapper {
 
     @Named("userToBasicDTO")
@@ -27,12 +27,14 @@ public interface UserMapper {
     @Named("userToWithProjectsDTO")
     @Mapping(target = "roles", source = "roles", qualifiedByName = "rolesToStrings")
     @Mapping(target = "githubInfo", source = "githubInfo", qualifiedByName = "githubInfoToDTO")
+    @Mapping(target = "discordInfo", source = "discordInfo", qualifiedByName = "discordInfoToDTO")
     @Mapping(target = "projects", ignore = true)
     UserWithProjectsDTO toWithProjectsDTO(User user);
 
     @Named("userToWithGithubTokenDTO")
     @Mapping(target = "roles", source = "roles", qualifiedByName = "rolesToStrings")
     @Mapping(target = "githubInfo", source = "githubInfo", qualifiedByName = "githubInfoToWithTokenDTO")
+    @Mapping(target = "discordInfo", source = "discordInfo", qualifiedByName = "discordInfoToDTO")
     @Mapping(target = "projects", ignore = true)
     UserWithGithubTokenDTO toWithGithubTokenDTO(User user);
 

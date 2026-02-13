@@ -133,6 +133,14 @@ jwt.expiration=86400000
 
 # Server
 server.port=8080
+
+# Discord Integration
+trackdev.discord.client-id=your_client_id
+trackdev.discord.client-secret=your_client_secret
+trackdev.discord.bot-token=your_bot_token
+trackdev.discord.guild-id=your_guild_id
+trackdev.discord.verified-role-id=your_role_id
+trackdev.discord.redirect-uri=http://localhost:8080/api/discord/callback
 ```
 
 ### Step 3: Run the Server
