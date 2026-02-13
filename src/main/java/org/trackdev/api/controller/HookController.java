@@ -20,6 +20,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -218,12 +219,14 @@ public class HookController extends BaseController {
             byte[] hash = hmac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             
             String expectedSignature = "sha256=" + bytesToHex(hash);
-            boolean valid = expectedSignature.equals(signature);
-            
+            boolean valid = MessageDigest.isEqual(
+                    expectedSignature.getBytes(StandardCharsets.UTF_8),
+                    signature.getBytes(StandardCharsets.UTF_8));
+
             if (!valid) {
-                log.debug("Signature mismatch: expected={}, received={}", expectedSignature, signature);
+                log.debug("Signature mismatch for webhook");
             }
-            
+
             return valid;
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("Failed to verify webhook signature", e);
