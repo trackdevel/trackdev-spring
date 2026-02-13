@@ -73,7 +73,8 @@ public class WorkspaceController extends CrudController<Workspace, WorkspaceServ
 
     @Operation(summary = "Edit workspace", description = "Edit workspace details")
     @PatchMapping(path = "/{id}")
-    public WorkspaceBasicDTO editWorkspace(Principal principal, 
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN')")
+    public WorkspaceBasicDTO editWorkspace(Principal principal,
                                             @PathVariable(name = "id") Long id,
                                             @Valid @RequestBody MergePatchWorkspace request) {
         String userId = super.getUserId(principal);
