@@ -81,7 +81,9 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         
         // Auth endpoints
-        if (path.equals("/auth/login") || path.startsWith("/auth/recovery")) {
+        if (path.equals("/auth/login") || path.startsWith("/auth/recovery")
+                || path.equals("/auth/forgot-password")
+                || path.startsWith("/auth/reset-password")) {
             return true;
         }
         
