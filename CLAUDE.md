@@ -508,4 +508,64 @@ Authorization is centralized in `AccessChecker.java`.
 
 ---
 
-**This file documents the actual patterns used in TrackDev. All examples are from the real codebase.**
+# PR Review Checklist
+
+## Code Quality Checks
+When reviewing a PR, check for:
+
+### 1. Correctness
+- Logic errors and edge cases
+- Proper error handling
+- Null/undefined checks
+- Race conditions
+- Off-by-one errors
+
+### 2. Security
+- Input validation
+- SQL injection risks
+- XSS vulnerabilities
+- Authentication/authorization
+- Sensitive data exposure
+- Dependency vulnerabilities
+
+### 3. Performance
+- Inefficient algorithms (O(n²) where O(n) possible)
+- Memory leaks
+- Unnecessary re-renders (React)
+- Database N+1 queries
+- Missing indexes
+- Large bundle sizes
+
+### 4. Code Style
+- Follows project conventions
+- Meaningful variable names
+- Appropriate comments
+- No commented-out code
+- Consistent formatting
+
+### 5. Testing
+- Adequate test coverage (>80%)
+- Edge cases tested
+- Integration tests for new features
+- No flaky tests
+- Tests actually test behavior
+
+### 6. Documentation
+- Updated README if needed
+- API documentation for new endpoints
+- JSDoc/docstrings for public functions
+- Migration guides for breaking changes
+
+### 7. Architecture
+- Follows existing patterns
+- No circular dependencies
+- Proper separation of concerns
+- No duplication (DRY principle)
+- Appropriate abstractions
+
+## Review Format
+Provide feedback in this structure:
+1. **Summary**: Overall assessment
+2. **Critical Issues**: Must fix before merge
+3. **Suggestions**: Nice to have improvements
+4. **Positive Notes**: What was done well
