@@ -37,6 +37,7 @@ public class SprintPatternController extends BaseController {
 
     @Operation(summary = "Get all sprint patterns for a course", description = "Get all sprint patterns belonging to a course")
     @GetMapping(path = "/course/{courseId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
     public SprintPatternsResponseDTO getPatternsByCourse(Principal principal, @PathVariable(name = "courseId") Long courseId) {
         String userId = super.getUserId(principal);
         List<SprintPattern> patterns = service.getPatternsByCourse(courseId, userId);
@@ -45,6 +46,7 @@ public class SprintPatternController extends BaseController {
 
     @Operation(summary = "Get a specific sprint pattern", description = "Get a sprint pattern by ID")
     @GetMapping(path = "/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
     public SprintPatternDTO getPattern(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
         SprintPattern pattern = service.getPattern(id, userId);

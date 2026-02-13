@@ -188,6 +188,10 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         return user;
     }
 
+    public User findByEmail(String email) {
+        return repo().findByEmail(email);
+    }
+
     public Boolean existsEmail(String email) {
         return repo().existsByEmail(email);
     }
@@ -257,8 +261,8 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
      */
     @Transactional
     public void recoverPassword(String email, String code, String newPassword) {
-        User user = getByEmail(email);
-        if (!matchRecoveryCode(user, code)) {
+        User user = findByEmail(email);
+        if (user == null || !matchRecoveryCode(user, code)) {
             throw new ServiceException(ErrorConstants.RECOVERY_CODE_NOT_MATCH);
         }
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -276,7 +280,7 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if(email != null) email.ifPresent(user::setEmail);
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
-        if(changePassword != null) changePassword.ifPresent(user::setChangePassword);
+        if(changePassword != null && !modifier.getId().equals(user.getId())) changePassword.ifPresent(user::setChangePassword);
         if(enabled != null && modifier.isUserType(UserType.ADMIN)) enabled.ifPresent(user::setEnabled);
         if(timezone != null) timezone.ifPresent(user::setTimezone);
         

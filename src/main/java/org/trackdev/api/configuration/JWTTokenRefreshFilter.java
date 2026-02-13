@@ -107,8 +107,7 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
                 .map(roleName -> "ROLE_" + roleName)
                 .collect(Collectors.toList());
 
-        int durationInMinutes = authorizationConfiguration.getTokenLifetimeInMinutes();
-        int durationInMilliseconds = durationInMinutes * 60 * 1000;
+        long durationInMilliseconds = authorizationConfiguration.getTokenLifetimeInMinutes() * 60L * 1000L;
 
         String token = Jwts
                 .builder()

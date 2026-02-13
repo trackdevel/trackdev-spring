@@ -110,6 +110,7 @@ public class SubjectController extends CrudController<Subject, SubjectService> {
 
     @Operation(summary = "Create course enrolled to specific subject", description = "Create course enrolled to specific subject")
     @PostMapping(path = "/{subjectId}/courses")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public IdResponseDTO createCourse(Principal principal,
                                      @PathVariable(name = "subjectId") Long subjectId,
                                      @Valid @RequestBody NewCourse courseRequest,

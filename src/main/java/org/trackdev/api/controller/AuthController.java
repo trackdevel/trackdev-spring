@@ -167,26 +167,24 @@ public class AuthController extends BaseController {
         return okNoContent();
     }
 
-    @Operation(summary = "Get recovery code", description = "Get recovery code for user")
+    @Operation(summary = "Get recovery code", description = "Get recovery code for user. Always returns success for security.")
     @PostMapping(path="/recovery")
     public ResponseEntity<Void> recoveryCode(@Valid @RequestBody RecoveryPasswordR userBody) {
-        User user = userService.getByEmail(userBody.email);
-        if(user == null) {
-            throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
+        User user = userService.findByEmail(userBody.email);
+        if(user != null) {
+            String tempCode = userService.generateRecoveryCode(user);
+            emailSenderService.sendRecoveryEmail(userBody.email, tempCode, "en");
         }
-        String tempCode = userService.generateRecoveryCode(user);
-        emailSenderService.sendRecoveryEmail(userBody.email, tempCode, "en");
+        // Always return success to prevent email enumeration
         return okNoContent();
     }
 
     @Operation(summary = "Check recovery code", description = "Check recovery code for user")
     @PostMapping(path="/recovery/{email}/check")
     public ResponseEntity<Void> checkRecoveryCode(@PathVariable(name = "email") String email, @Valid @RequestBody CodeValidationR codeValidation) {
-        User user = userService.getByEmail(email);
-        if(user == null) {
-            throw new ControllerException(ErrorConstants.USER_MAIL_NOT_FOUND);
-        }
-        if(!userService.matchRecoveryCode(user, codeValidation.code)) {
+        User user = userService.findByEmail(email);
+        // Use the same error for both "user not found" and "code mismatch" to prevent email enumeration
+        if(user == null || !userService.matchRecoveryCode(user, codeValidation.code)) {
             throw new ControllerException(ErrorConstants.RECOVERY_CODE_NOT_MATCH);
         }
         return okNoContent();
@@ -270,8 +268,7 @@ public class AuthController extends BaseController {
                 .map(role -> "ROLE_" + role.getUserType().name())
                 .collect(Collectors.toList());
 
-        int durationInMinutes = authorizationConfiguration.getTokenLifetimeInMinutes();
-        int durationInMilliseconds = durationInMinutes * 60 * 1000;
+        long durationInMilliseconds = authorizationConfiguration.getTokenLifetimeInMinutes() * 60L * 1000L;
 
         String token = Jwts
                 .builder()
