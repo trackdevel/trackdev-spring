@@ -65,9 +65,9 @@ public class User extends BaseEntityUUID {
 
   @ManyToMany()
   @JoinTable(
-    name = "users_roles",
-    joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "role_id")
+      name = "users_roles",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "role_id")
   )
   private Set<Role> roles = new HashSet<>();
 
@@ -115,7 +115,7 @@ public class User extends BaseEntityUUID {
   @Transient
   private Random random = new Random();
 
-  // -- GETTERS AND SETTERS
+ // -- GETTERS AND SETTERS
 
   public String getId() {
     return super.getId();
@@ -179,7 +179,7 @@ public class User extends BaseEntityUUID {
 
   public DiscordInfo getDiscordInfo() { return discordInfo; }
 
-  public void setDiscordInfo(DiscordInfo discordInfo) { this.discordInfo = discordInfo;}
+  public void setDiscordInfo(DiscordInfo discordInfo) { this.discordInfo = discordInfo; }
 
   public List<PointsReview> getPointsReviewList() { return pointsReviewList; }
 
