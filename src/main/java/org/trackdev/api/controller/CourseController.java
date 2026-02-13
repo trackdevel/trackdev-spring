@@ -189,6 +189,10 @@ public class CourseController extends BaseController {
         if(accessChecker.canViewCourseAllProjects(course, userId)) {
             projects = course.getProjects();
         } else {
+            // Students must be enrolled in the course to see any projects
+            if (!course.isStudentEnrolled(userId)) {
+                throw new ControllerException(ErrorConstants.UNAUTHORIZED);
+            }
             projects = course.getProjects().stream()
                     .filter(group -> group.isMember(userId))
                     .collect(Collectors.toCollection(ArrayList::new));
