@@ -45,6 +45,12 @@ if (-not (Test-Path $EnvFilePath)) {
     Write-Host "  DB_URL=jdbc:mysql://localhost:3306/trackdev"
     Write-Host "  DB_USERNAME=trackdev"
     Write-Host "  DB_PASSWORD=trackdev"
+    Write-Host "  DISCORD_CLIENT_ID=your_discord_client_id"
+    Write-Host "  DISCORD_CLIENT_SECRET=your_discord_client_secret"
+    Write-Host "  DISCORD_BOT_TOKEN=your_discord_bot_token"
+    Write-Host "  DISCORD_GUILD_ID=your_discord_guild_id"
+    Write-Host "  DISCORD_VERIFIED_ROLE_ID=your_discord_verified_role_id"
+    Write-Host "  DISCORD_REDIRECT_URI=http://localhost:8080/api/discord/callback"
     exit 1
 }
 

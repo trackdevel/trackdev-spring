@@ -34,6 +34,7 @@ public class User extends BaseEntityUUID {
     this.password = password;
     this.color = randomColorGenerator();
     this.githubInfo = new GithubInfo();
+    this.discordInfo = new DiscordInfo();
     this.capitalLetters = generateCapitalLetters(fullName);
   }
 
@@ -91,6 +92,10 @@ public class User extends BaseEntityUUID {
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "githubInfoId", referencedColumnName = "id")
   private GithubInfo githubInfo;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "discordInfoId", referencedColumnName = "id")
+  private DiscordInfo discordInfo;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<PointsReview> pointsReviewList = new ArrayList<>();
@@ -171,6 +176,10 @@ public class User extends BaseEntityUUID {
   }
 
   public GithubInfo getGithubInfo() { return githubInfo; }
+
+  public DiscordInfo getDiscordInfo() { return discordInfo; }
+
+  public void setDiscordInfo(DiscordInfo discordInfo) { this.discordInfo = discordInfo; }
 
   public List<PointsReview> getPointsReviewList() { return pointsReviewList; }
 

@@ -12,6 +12,7 @@ public class TrackDevProperties {
     private final Mail mail = new Mail();
     private final Cors cors = new Cors();
     private final Frontend frontend = new Frontend();
+    private final Discord discord = new Discord();
 
     public Auth getAuth() {
         return auth;
@@ -31,6 +32,10 @@ public class TrackDevProperties {
 
     public Frontend getFrontend() {
         return frontend;
+    }
+
+    public Discord getDiscord() {
+        return discord;
     }
 
     public static class Auth {
@@ -55,8 +60,8 @@ public class TrackDevProperties {
 
         @Override
         public String toString() {
-            return "Auth{tokenLifetimeInMinutes=" + tokenLifetimeInMinutes + 
-                   ", secretKeyBase='***'}";
+            return "Auth{tokenLifetimeInMinutes=" + tokenLifetimeInMinutes +
+                    ", secretKeyBase='***'}";
         }
     }
 
@@ -144,14 +149,78 @@ public class TrackDevProperties {
         }
     }
 
+    public static class Discord {
+        private String clientId;
+        private String clientSecret;
+        private String botToken;
+        private String guildId;
+        private String verifiedRoleId;
+        private String redirectUri;
+
+        public String getClientId() {
+            return clientId;
+        }
+
+        public void setClientId(String clientId) {
+            this.clientId = clientId;
+        }
+
+        public String getClientSecret() {
+            return clientSecret;
+        }
+
+        public void setClientSecret(String clientSecret) {
+            this.clientSecret = clientSecret;
+        }
+
+        public String getBotToken() {
+            return botToken;
+        }
+
+        public void setBotToken(String botToken) {
+            this.botToken = botToken;
+        }
+
+        public String getGuildId() {
+            return guildId;
+        }
+
+        public void setGuildId(String guildId) {
+            this.guildId = guildId;
+        }
+
+        public String getVerifiedRoleId() {
+            return verifiedRoleId;
+        }
+
+        public void setVerifiedRoleId(String verifiedRoleId) {
+            this.verifiedRoleId = verifiedRoleId;
+        }
+
+        public String getRedirectUri() {
+            return redirectUri;
+        }
+
+        public void setRedirectUri(String redirectUri) {
+            this.redirectUri = redirectUri;
+        }
+
+        @Override
+        public String toString() {
+            return "Discord{clientId='" + clientId + "', guildId='" + guildId +
+                    "', verifiedRoleId='" + verifiedRoleId + "', redirectUri='" + redirectUri + "'}";
+        }
+    }
+
     @Override
     public String toString() {
         return "TrackDevProperties{" +
-               "\n  auth=" + auth +
-               ",\n  admin=" + admin +
-               ",\n  mail=" + mail +
-               ",\n  cors=" + cors +
-               ",\n  frontend=" + frontend +
-               "\n}";
+                "\n  auth=" + auth +
+                ",\n  admin=" + admin +
+                ",\n  mail=" + mail +
+                ",\n  cors=" + cors +
+                ",\n  frontend=" + frontend +
+                ",\n  discord=" + discord +
+                "\n}";
     }
 }

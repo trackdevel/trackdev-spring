@@ -52,6 +52,22 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "Usage: $0 [env-file]"
     echo "  env-file: Path to environment file (default: .env)"
     echo ""
+    echo "Please create an environment file with variables like:"
+    echo "  JWT_SECRET_KEY=your-secret-key"
+    echo "  JWT_TOKEN_LIFETIME=60"
+    echo "  MAIL_HOST=smtp.gmail.com"
+    echo "  MAIL_PORT=587"
+    echo "  MAIL_USERNAME=your-email@gmail.com"
+    echo "  MAIL_PASSWORD=your-app-password"
+    echo "  DB_URL=jdbc:mysql://localhost:3306/trackdev"
+    echo "  DB_USERNAME=trackdev"
+    echo "  DB_PASSWORD=trackdev"
+    echo "  DISCORD_CLIENT_ID=your_discord_client_id"
+    echo "  DISCORD_CLIENT_SECRET=your_discord_client_secret"
+    echo "  DISCORD_BOT_TOKEN=your_discord_bot_token"
+    echo "  DISCORD_GUILD_ID=your_discord_guild_id"
+    echo "  DISCORD_VERIFIED_ROLE_ID=your_discord_verified_role_id"
+    echo "  DISCORD_REDIRECT_URI=http://localhost:8080/api/discord/callback"
     exit 1
 fi
 

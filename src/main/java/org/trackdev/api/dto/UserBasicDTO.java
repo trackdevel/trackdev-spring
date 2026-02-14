@@ -22,5 +22,6 @@ public class UserBasicDTO {
     private Boolean changePassword;
     private Boolean enabled;
     private GithubInfoDTO githubInfo;
+    private DiscordInfoDTO discordInfo;
     private String timezone;
 }

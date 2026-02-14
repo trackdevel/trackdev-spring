@@ -159,6 +159,15 @@ public final class ErrorConstants {
     public static final String COMMENT_NOT_FOUND = "error.comment.not.found";
     public static final String CANNOT_EDIT_OTHERS_COMMENT = "error.comment.edit.not.author";
     public static final String CANNOT_DELETE_COMMENT = "error.comment.delete.not.allowed";
+
+    // Discord errors
+    public static final String DISCORD_OAUTH_FAILED = "error.discord.oauth.failed";
+    public static final String DISCORD_ALREADY_LINKED = "error.discord.already.linked";
+    public static final String DISCORD_NOT_LINKED = "error.discord.not.linked";
+    public static final String DISCORD_GUILD_JOIN_FAILED = "error.discord.guild.join.failed";
+    public static final String DISCORD_NICKNAME_UPDATE_FAILED = "error.discord.nickname.update.failed";
+    public static final String DISCORD_ROLE_ASSIGN_FAILED = "error.discord.role.assign.failed";
+    public static final String DISCORD_KICK_FAILED = "error.discord.kick.failed";
     
     public static final String EMPTY = "";
 }
