@@ -8,3 +8,5 @@ out/
 bin
 .vscode/
 claude_docs/
+CLAUDE.md
+.mcp.json
