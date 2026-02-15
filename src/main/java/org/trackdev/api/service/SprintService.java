@@ -165,6 +165,13 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     }
 
     /**
+     * Find all sprints created from a specific sprint pattern item.
+     */
+    public List<Sprint> findByPatternItemId(Long patternItemId) {
+        return repo.findByPatternItemId(patternItemId);
+    }
+
+    /**
      * Find the currently active sprint for a project.
      * Active sprint = startDate <= now < endDate
      */
