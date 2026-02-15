@@ -394,6 +394,13 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
         return fetchBranches(gitHubRepo);
     }
 
+    /**
+     * Find a GitHub repository by its URL.
+     */
+    public Optional<GitHubRepo> findByUrl(String url) {
+        return repo.findByUrl(url);
+    }
+
     // ========== PRIVATE HELPER METHODS ==========
 
     private HttpHeaders createAuthHeaders(String token) {
