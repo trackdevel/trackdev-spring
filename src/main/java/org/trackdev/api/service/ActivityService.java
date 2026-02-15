@@ -199,4 +199,12 @@ public class ActivityService extends BaseServiceLong<Activity, ActivityRepositor
     public void deleteActivitiesForProject(Project project) {
         repo().deleteByProject(project);
     }
+
+    /**
+     * Delete all activities for a specific task (used when task is deleted).
+     */
+    @Transactional
+    public void deleteByTask(Task task) {
+        repo().deleteByTask(task);
+    }
 }
