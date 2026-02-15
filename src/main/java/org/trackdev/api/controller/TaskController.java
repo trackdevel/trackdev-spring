@@ -64,6 +64,9 @@ public class TaskController extends CrudController<Task, TaskService> {
     PointsReviewService pointsReviewService;
 
     @Autowired
+    org.trackdev.api.service.PointsReviewConversationService pointsReviewConversationService;
+
+    @Autowired
     PullRequestService pullRequestService;
 
     @Autowired
@@ -109,7 +112,13 @@ public class TaskController extends CrudController<Task, TaskService> {
         dto.setCanAddSubtask(accessChecker.canAddSubtask(task, userId));
         dto.setCanFreeze(accessChecker.canFreeze(task, userId));
         dto.setCanComment(accessChecker.canComment(task, userId));
-        
+
+        // Points review flags
+        dto.setCanStartPointsReview(accessChecker.canStartPointsReview(task, userId)
+                && !pointsReviewConversationService.hasExistingConversation(id, userId));
+        dto.setCanViewPointsReviews(accessChecker.canViewPointsReviews(task, userId));
+        dto.setPointsReviewConversationCount(pointsReviewConversationService.countConversationsForTask(id));
+
         return dto;
     }
 
