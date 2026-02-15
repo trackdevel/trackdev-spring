@@ -505,6 +505,14 @@ public class ProjectAnalysisService {
     }
 
     /**
+     * Delete all analysis files for a specific task (used when task is deleted).
+     */
+    @Transactional
+    public void deleteFilesByTask(Task task) {
+        fileRepository.deleteByTask(task);
+    }
+
+    /**
      * Get the sprint for a task (first sprint if multiple)
      */
     private Sprint getTaskSprint(Task task) {
