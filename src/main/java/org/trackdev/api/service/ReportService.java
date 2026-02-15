@@ -9,11 +9,7 @@ import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.dto.ReportResultDTO;
 import org.trackdev.api.entity.*;
 import org.trackdev.api.model.MergePatchReport;
-import org.trackdev.api.repository.CourseRepository;
-import org.trackdev.api.repository.GroupRepository;
-import org.trackdev.api.repository.ProfileAttributeRepository;
 import org.trackdev.api.repository.ReportRepository;
-import org.trackdev.api.repository.TaskAttributeValueRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.util.*;
@@ -29,16 +25,16 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
     AccessChecker accessChecker;
 
     @Autowired
-    CourseRepository courseRepository;
+    CourseService courseService;
 
     @Autowired
-    GroupRepository projectRepository;
+    ProjectService projectService;
 
     @Autowired
-    ProfileAttributeRepository profileAttributeRepository;
+    ProfileService profileService;
 
     @Autowired
-    TaskAttributeValueRepository taskAttributeValueRepository;
+    TaskAttributeValueService taskAttributeValueService;
 
     @Transactional
     public Report createReport(String name, String userId) {
@@ -143,8 +139,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         if (reportRequest.profileAttributeId != null) {
             Long attrId = reportRequest.profileAttributeId.orElse(null);
             if (attrId != null) {
-                ProfileAttribute attr = profileAttributeRepository.findById(attrId)
-                    .orElseThrow(() -> new EntityNotFound("ProfileAttribute", attrId));
+                ProfileAttribute attr = profileService.getAttributeById(attrId);
                 // Validate attribute is numeric and targets TASK
                 if (attr.getType() != AttributeType.INTEGER && attr.getType() != AttributeType.FLOAT) {
                     throw new ServiceException("Profile attribute must be of type INTEGER or FLOAT");
@@ -173,8 +168,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         if (reportRequest.courseId != null) {
             Long courseId = reportRequest.courseId.orElse(null);
             if (courseId != null) {
-                Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new EntityNotFound("Course", courseId));
+                Course course = courseService.get(courseId);
                 // Verify the professor owns or has access to this course
                 if (!course.getOwnerId().equals(userId)) {
                     throw new ServiceException(ErrorConstants.UNAUTHORIZED);
@@ -216,8 +210,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
      */
     public List<Report> getReportsForCourse(Long courseId, String userId) {
         User user = userService.get(userId);
-        Course course = courseRepository.findById(courseId)
-            .orElseThrow(() -> new EntityNotFound("Course", courseId));
+        Course course = courseService.get(courseId);
         
         // Check if user is professor (owner) or student enrolled in this course
         boolean isProfessor = user.isUserType(UserType.PROFESSOR) && course.getOwnerId().equals(userId);
@@ -236,8 +229,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
      */
     public List<Report> getReportsForProject(Long projectId, String userId) {
         User user = userService.get(userId);
-        Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new EntityNotFound("Project", projectId));
+        Project project = projectService.get(projectId);
         
         // Check if user is a member of the project or course owner
         boolean isMember = project.isMember(userId);
@@ -264,8 +256,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
     @Transactional(readOnly = true)
     public ReportResultDTO computeReportForProject(Long reportId, Long projectId, String userId, List<TaskStatus> statusFilters) {
         User user = userService.get(userId);
-        Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new EntityNotFound("Project", projectId));
+        Project project = projectService.get(projectId);
         Report report = repo.findById(reportId)
             .orElseThrow(() -> new EntityNotFound("Report", reportId));
         
@@ -371,7 +362,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
             }
             
             for (Task task : filteredTasks) {
-                TaskAttributeValue attrValue = taskAttributeValueRepository
+                TaskAttributeValue attrValue = taskAttributeValueService
                     .findByTaskIdAndAttributeId(task.getId(), attrId)
                     .orElse(null);
                 if (attrValue != null && attrValue.getValue() != null) {
