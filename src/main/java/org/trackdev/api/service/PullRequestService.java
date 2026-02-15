@@ -25,10 +25,7 @@ import org.trackdev.api.entity.prchanges.PullRequestMergedChange;
 import org.trackdev.api.entity.prchanges.PullRequestOpenedChange;
 import org.trackdev.api.entity.prchanges.PullRequestReopenedChange;
 import org.trackdev.api.entity.prchanges.PullRequestSynchronizeChange;
-import org.trackdev.api.repository.GitHubRepoRepository;
-import org.trackdev.api.repository.PullRequestChangeRepository;
 import org.trackdev.api.repository.PullRequestRepository;
-import org.trackdev.api.repository.TaskRepository;
 import org.trackdev.api.dto.PRFileDetailDTO;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.GithubConstants;
@@ -55,19 +52,16 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     TaskService taskService;
 
     @Autowired
-    TaskRepository taskRepository;
-
-    @Autowired
     UserService userService;
 
     @Autowired
-    PullRequestChangeRepository pullRequestChangeRepository;
+    PullRequestChangeService pullRequestChangeService;
 
     @Autowired
     ActivityService activityService;
 
     @Autowired
-    GitHubRepoRepository gitHubRepoRepository;
+    GitHubRepoService gitHubRepoService;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -162,7 +156,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     @Transactional
     public void linkPullRequestToTask(String taskKey, PullRequest pr, String action, String senderLogin) {
         // Find the task by key
-        Task task = taskRepository.findByTaskKey(taskKey)
+        Task task = taskService.findByTaskKey(taskKey)
                 .orElseThrow(() -> new EntityNotFound("Task", taskKey));
         
         // Check if already linked to this task
@@ -205,7 +199,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
                                               String action, String senderLogin,
                                               boolean recordChange) {
         // Find the task by key
-        Task task = taskRepository.findByTaskKey(taskKey)
+        Task task = taskService.findByTaskKey(taskKey)
                 .orElseThrow(() -> new EntityNotFound("Task", taskKey));
         
         // Find or create the PR
@@ -338,7 +332,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         }
         
         if (change != null) {
-            pullRequestChangeRepository.save(change);
+            pullRequestChangeService.save(change);
         }
     }
 
@@ -347,7 +341,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
      */
     public List<PullRequestChange> getPullRequestHistory(String pullRequestId) {
         PullRequest pr = get(pullRequestId);
-        return pullRequestChangeRepository.findByPullRequestOrderByChangedAtDesc(pr);
+        return pullRequestChangeService.findByPullRequestOrderByChangedAtDesc(pr);
     }
 
     /**
@@ -356,7 +350,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     public List<PullRequestChange> getPullRequestHistoryForTask(Long taskId) {
         Task task = taskService.get(taskId);
         List<PullRequest> prs = task.getPullRequests().stream().toList();
-        return pullRequestChangeRepository.findByPullRequestInOrderByChangedAtDesc(prs);
+        return pullRequestChangeService.findByPullRequestInOrderByChangedAtDesc(prs);
     }
 
     /**
@@ -412,10 +406,10 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         String repoName = parts[1];
 
         // Find a GitHub repo with access token for this repository
-        Optional<GitHubRepo> gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName());
+        Optional<GitHubRepo> gitHubRepo = gitHubRepoService.findByUrl("https://github.com/" + pr.getRepoFullName());
         if (gitHubRepo.isEmpty()) {
             // Try alternative URL format
-            gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
+            gitHubRepo = gitHubRepoService.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
         }
 
         String accessToken = gitHubRepo.map(GitHubRepo::getAccessToken).orElse(null);
@@ -493,7 +487,7 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     @Transactional
     public List<PullRequest> fetchPRStatsForProject(Long projectId) {
         // Get all tasks in the project with status DONE
-        List<Task> doneTasks = taskRepository.findByProjectIdAndStatus(projectId, TaskStatus.DONE);
+        List<Task> doneTasks = taskService.findByProjectIdAndStatus(projectId, TaskStatus.DONE);
         
         ZonedDateTime oneHourAgo = ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1);
         
@@ -540,9 +534,9 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         String repoName = parts[1];
         
         // Find access token for this repository
-        Optional<GitHubRepo> gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName());
+        Optional<GitHubRepo> gitHubRepo = gitHubRepoService.findByUrl("https://github.com/" + pr.getRepoFullName());
         if (gitHubRepo.isEmpty()) {
-            gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
+            gitHubRepo = gitHubRepoService.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
         }
         
         String accessToken = gitHubRepo.map(GitHubRepo::getAccessToken).orElse(null);
@@ -840,9 +834,9 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         String repoName = parts[1];
         
         // Find access token for this repository
-        Optional<GitHubRepo> gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName());
+        Optional<GitHubRepo> gitHubRepo = gitHubRepoService.findByUrl("https://github.com/" + pr.getRepoFullName());
         if (gitHubRepo.isEmpty()) {
-            gitHubRepo = gitHubRepoRepository.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
+            gitHubRepo = gitHubRepoService.findByUrl("https://github.com/" + pr.getRepoFullName() + ".git");
         }
         
         String accessToken = gitHubRepo.map(GitHubRepo::getAccessToken).orElse(null);
