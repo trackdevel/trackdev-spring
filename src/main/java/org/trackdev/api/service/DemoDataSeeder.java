@@ -810,11 +810,11 @@ public class DemoDataSeeder {
     // ==========================================================================
 
     /**
-     * Create pds25a project with hardcoded, deterministic data for Alice Johnson (udg.student1@trackdev.com).
-     * This shows all possible scenarios in a project:
-     * - Sprint 1 (closed): 1 story with 2 subtasks in DONE
-     * - Sprint 2 (closed): 1 story with 2 subtasks in DONE + 1 story with 2 subtasks in DONE and 1 in INPROGRESS
-     * - Sprint 3 (active): 3 stories, each with 3 subtasks (1 INPROGRESS, 1 VERIFY, 1 DONE)
+     * Create pds25a project with hardcoded, deterministic data for all 3 students.
+     * Each sprint has 1 story per user, each story with 2 subtasks.
+     * - Sprint 1 (closed): 3 stories (Alice, Bob, Carol), all subtasks DONE with estimation points
+     * - Sprint 2 (closed): 3 stories (Alice, Bob, Carol), subtasks mix of DONE and VERIFY
+     * - Sprint 3 (active): 3 stories (Alice, Bob, Carol), subtasks mix of TODO, INPROGRESS, DONE
      * - Sprint 4 (future): no tasks
      */
     private Project createPds25aProject(List<User> students, Course course, User professor, SprintPattern sprintPattern) {
@@ -832,64 +832,87 @@ public class DemoDataSeeder {
         Sprint sprint3 = allSprints.get(2);
         // Sprint 4 is future, no tasks needed
 
-        // Get Alice Johnson (first student in list - may have custom email from STUDENT1_EMAIL)
-        User alice = students.stream()
-            .filter(s -> s.getFullName() != null && s.getFullName().equals("Alice Johnson"))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("Alice Johnson not found in students list"));
+        // All 3 students in the project
+        User alice = students.get(0); // Alice Johnson
+        User bob = students.get(1);   // Bob Smith
+        User carol = students.get(2); // Carol Williams
+        List<User> allUsers = List.of(alice, bob, carol);
 
-        logger.info("pds25a: Creating hardcoded data for Alice Johnson ({})", alice.getEmail());
+        logger.info("pds25a: Creating data for {} users across 3 sprints", allUsers.size());
 
         // Activate sprints 1, 2, 3 (not 4 - it's future)
         activateSprint(sprint1, professor.getId());
         activateSprint(sprint2, professor.getId());
         activateSprint(sprint3, professor.getId());
 
-        // ========== SPRINT 1: 1 story with 2 subtasks in DONE ==========
-        createHardcodedStory(project, sprint1, alice, professor, "User authentication flow",
-            new String[]{"Implement login form", "Add password validation"},
-            new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE},
-            new int[]{3, 2});
+        // Story names: [sprint][user]
+        String[][] storyNames = {
+            {"User authentication flow", "Database schema design", "API endpoint setup"},
+            {"Dashboard overview page", "User profile management", "Search functionality"},
+            {"Task board drag and drop", "Sprint navigation feature", "Backlog task management"}
+        };
 
-        // Close Sprint 1
+        // Subtask names: [sprint][user][subtask]
+        String[][][] subtaskNames = {
+            {
+                {"Implement login form", "Add password validation"},
+                {"Design ER diagram", "Write migration scripts"},
+                {"Setup REST controllers", "Add request validation"}
+            },
+            {
+                {"Create dashboard layout", "Add statistics widgets"},
+                {"Design profile edit form", "Implement avatar upload"},
+                {"Build search index", "Add filter components"}
+            },
+            {
+                {"Implement drag handlers", "Add drop zones"},
+                {"Add prev/next arrows", "Fetch project sprints"},
+                {"Create backlog panel", "Implement drag to sprint"}
+            }
+        };
+
+        Sprint[] sprints = {sprint1, sprint2, sprint3};
+
+        // Sprint 1 (closed): All subtasks DONE with estimation points
+        for (int u = 0; u < allUsers.size(); u++) {
+            createHardcodedStory(project, sprint1, allUsers.get(u), professor,
+                storyNames[0][u],
+                subtaskNames[0][u],
+                new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE},
+                new int[]{3, 5});
+        }
         closeSprint(sprint1, professor.getId());
 
-        // ========== SPRINT 2: 2 stories ==========
-        // Story 1: 2 subtasks in DONE
-        createHardcodedStory(project, sprint2, alice, professor, "Dashboard overview page",
-            new String[]{"Create dashboard layout", "Add statistics widgets"},
-            new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE},
-            new int[]{5, 3});
+        // Sprint 2 (closed): Mix of DONE and VERIFY with estimation points
+        for (int u = 0; u < allUsers.size(); u++) {
+            createHardcodedStory(project, sprint2, allUsers.get(u), professor,
+                storyNames[1][u],
+                subtaskNames[1][u],
+                new TaskStatus[]{TaskStatus.DONE, TaskStatus.VERIFY},
+                new int[]{5, 8});
+        }
+        closeSprint(sprint2, professor.getId());
 
-        // Story 2: 2 subtasks in DONE + 1 in INPROGRESS
-        createHardcodedStory(project, sprint2, alice, professor, "User profile management",
-            new String[]{"Design profile edit form", "Implement avatar upload", "Add email change flow"},
-            new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE, TaskStatus.INPROGRESS},
-            new int[]{2, 3, 0}); // INPROGRESS has no estimation points
-
-        // Note: Sprint 2 is NOT closed because it has an INPROGRESS task
-
-        // ========== SPRINT 3 (active): 3 stories, each with 3 subtasks (1 INPROGRESS, 1 VERIFY, 1 DONE) ==========
-        createHardcodedStory(project, sprint3, alice, professor, "Task board drag and drop",
-            new String[]{"Implement drag handlers", "Add drop zones", "Update task status on drop"},
-            new TaskStatus[]{TaskStatus.INPROGRESS, TaskStatus.VERIFY, TaskStatus.DONE},
-            new int[]{0, 5, 3}); // INPROGRESS has no estimation points
-
-        createHardcodedStory(project, sprint3, alice, professor, "Sprint navigation feature",
-            new String[]{"Add prev/next arrows", "Fetch project sprints", "Compute navigation links"},
-            new TaskStatus[]{TaskStatus.INPROGRESS, TaskStatus.VERIFY, TaskStatus.DONE},
-            new int[]{0, 2, 5});
-
-        createHardcodedStory(project, sprint3, alice, professor, "Backlog task management",
-            new String[]{"Create backlog panel", "Implement drag to sprint", "Add validation rules"},
-            new TaskStatus[]{TaskStatus.INPROGRESS, TaskStatus.VERIFY, TaskStatus.DONE},
-            new int[]{0, 3, 2});
+        // Sprint 3 (active): Mix including DONE subtasks for points review testing
+        // Alice: 1 DONE + 1 INPROGRESS, Bob: 1 DONE + 1 TODO, Carol: 1 VERIFY + 1 DONE
+        createHardcodedStory(project, sprint3, alice, professor,
+            storyNames[2][0], subtaskNames[2][0],
+            new TaskStatus[]{TaskStatus.DONE, TaskStatus.INPROGRESS},
+            new int[]{3, 0});
+        createHardcodedStory(project, sprint3, bob, professor,
+            storyNames[2][1], subtaskNames[2][1],
+            new TaskStatus[]{TaskStatus.DONE, TaskStatus.TODO},
+            new int[]{5, 0});
+        createHardcodedStory(project, sprint3, carol, professor,
+            storyNames[2][2], subtaskNames[2][2],
+            new TaskStatus[]{TaskStatus.VERIFY, TaskStatus.DONE},
+            new int[]{2, 8});
 
         // ========== BACKLOG: Add a couple of stories ==========
         taskService.createTask(project.getId(), "As a user, I want to export reports to PDF", alice.getId());
         taskService.createTask(project.getId(), "As a user, I want to receive email notifications", alice.getId());
 
-        logger.info("pds25a: Completed hardcoded data creation");
+        logger.info("pds25a: Completed data creation");
         return project;
     }
 
