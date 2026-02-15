@@ -109,6 +109,14 @@ public class CommentService extends BaseServiceLong<Comment, CommentRepository>{
     }
 
     /**
+     * Delete all comments for a specific task (used when task is deleted).
+     */
+    @Transactional
+    public void deleteByTask(Task task) {
+        repo().deleteByTask(task);
+    }
+
+    /**
      * Check if user can delete a comment.
      * - Students CANNOT delete any comment
      * - Course owner (professor) can delete any comment in their project
