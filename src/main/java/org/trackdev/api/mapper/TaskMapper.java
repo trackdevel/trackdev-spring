@@ -87,6 +87,10 @@ public interface TaskMapper {
     @Mapping(target = "canAddSubtask", ignore = true)
     @Mapping(target = "canFreeze", ignore = true)
     @Mapping(target = "canComment", ignore = true)
+    // Points review flags - computed in controller
+    @Mapping(target = "canStartPointsReview", ignore = true)
+    @Mapping(target = "canViewPointsReviews", ignore = true)
+    @Mapping(target = "pointsReviewConversationCount", ignore = true)
     TaskDetailDTO toDetailDTO(Task task);
 
     /**
