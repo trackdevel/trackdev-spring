@@ -323,22 +323,22 @@ public class AccessChecker {
 
     /**
      * Check if user can delete a task. Allowed for:
+     * - Task assignee
      * - Task reporter (creator)
-     * - Subject owner (professor)
+     * - Professor (course owner, subject owner)
      * - Admin
      */
     public void checkCanDeleteTask(org.trackdev.api.entity.Task task, String userId) {
+        // Task assignee can delete
+        if (isTaskAssignee(task, userId)) {
+            return;
+        }
         // Task reporter can delete their own task
-        if (task.getReporter() != null && task.getReporter().getId().equals(userId)) {
+        if (isTaskReporter(task, userId)) {
             return;
         }
-        // Subject owner (professor) can delete any task in their course
-        Subject subject = task.getProject().getCourse().getSubject();
-        if (isSubjectOwner(subject, userId)) {
-            return;
-        }
-        // Admin can delete any task
-        if (userService.get(userId).isUserType(UserType.ADMIN)) {
+        // Professor (course owner, subject owner) or admin can delete
+        if (isProfessorForTask(task, userId)) {
             return;
         }
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
@@ -430,74 +430,40 @@ public class AccessChecker {
 
     /**
      * Check if user can edit a task (name, description, estimation points, etc.).
-     * Students: must be the assignee OR the reporter AND be a project member
+     * Students: must be the assignee AND be a project member
      * Professors: course owner or subject owner can edit any task in their course
      * Admin: can edit any task
      */
     public void checkCanEditTask(org.trackdev.api.entity.Task task, String userId) {
+        // Professor (course owner, subject owner) or admin can edit any task
+        if (isProfessorForTask(task, userId)) {
+            return;
+        }
+
+        // For students: must be a project member AND be the assignee
         Project project = task.getProject();
-        Course course = project.getCourse();
-        
-        // Admin can edit any task
-        if (userService.get(userId).isUserType(UserType.ADMIN)) {
+        if (project.isMember(userId) && isTaskAssignee(task, userId)) {
             return;
         }
-        
-        // Course owner (professor) can edit any task in their course
-        if (course.getOwnerId().equals(userId)) {
-            return;
-        }
-        
-        // Subject owner (professor) can edit any task in their subject's courses
-        Subject subject = course.getSubject();
-        if (isSubjectOwner(subject, userId)) {
-            return;
-        }
-        
-        // For students: must be a project member AND be the assignee OR reporter
-        if (project.isMember(userId)) {
-            if (isTaskAssignee(task, userId) || isTaskReporter(task, userId)) {
-                return;
-            }
-            throw new ServiceException(ErrorConstants.ONLY_ASSIGNEE_CAN_EDIT_TASK);
-        }
-        
-        // User is not a project member - unauthorized
-        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+
+        throw new ServiceException(ErrorConstants.ONLY_ASSIGNEE_CAN_EDIT_TASK);
     }
 
     /**
      * Check if user can edit a task (returns boolean, doesn't throw).
-     * Students: must be the assignee OR the reporter AND be a project member
+     * Students: must be the assignee AND be a project member
      * Professors: course owner or subject owner can edit any task in their course
      * Admin: can edit any task
      */
     public boolean canEditTask(org.trackdev.api.entity.Task task, String userId) {
+        // Professor (course owner, subject owner) or admin can edit any task
+        if (isProfessorForTask(task, userId)) {
+            return true;
+        }
+
+        // For students: must be a project member AND be the assignee
         Project project = task.getProject();
-        Course course = project.getCourse();
-        
-        // Admin can edit any task
-        if (userService.get(userId).isUserType(UserType.ADMIN)) {
-            return true;
-        }
-        
-        // Course owner (professor) can edit any task in their course
-        if (course.getOwnerId().equals(userId)) {
-            return true;
-        }
-        
-        // Subject owner (professor) can edit any task in their subject's courses
-        Subject subject = course.getSubject();
-        if (isSubjectOwner(subject, userId)) {
-            return true;
-        }
-        
-        // For students: must be a project member AND be the assignee OR reporter
-        if (project.isMember(userId) && (isTaskAssignee(task, userId) || isTaskReporter(task, userId))) {
-            return true;
-        }
-        
-        return false;
+        return project.isMember(userId) && isTaskAssignee(task, userId);
     }
 
     /**
@@ -1021,7 +987,7 @@ public class AccessChecker {
 
     /**
      * Compute canDelete permission.
-     * Only professor or assignee can delete (NOT reporter).
+     * Professor, assignee, or reporter can delete.
      * USER_STORY can only be deleted if it has no subtasks.
      * TASK/BUG can only be deleted if status is TODO or INPROGRESS.
      */
@@ -1035,9 +1001,8 @@ public class AccessChecker {
         if (isTaskInPastSprintOnly(task) && !isProfessor) {
             return false;
         }
-        // Only professor or assignee can delete (NOT reporter)
-        // This is stricter than canEditTask which allows reporter OR assignee
-        if (!isProfessor && !isTaskAssignee(task, userId)) {
+        // Professor, assignee, or reporter can delete
+        if (!isProfessor && !isTaskAssignee(task, userId) && !isTaskReporter(task, userId)) {
             return false;
         }
         // USER_STORY: can only delete if no subtasks

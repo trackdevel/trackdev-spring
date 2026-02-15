@@ -87,6 +87,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task selfAssignTask(Long taskId, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
+
+        // Frozen tasks cannot be self-assigned
+        if (task.isFrozen()) {
+            throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
+        }
+
         accessChecker.checkCanSelfAssignTask(task, userId);
         
         String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
@@ -112,7 +118,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task unassignTask(Long taskId, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
-        
+
+        // Frozen tasks can only be unassigned by professors
+        if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
+            throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
+        }
+
         // Only the assigned user can unassign themselves (or course owner/subject owner/admin)
         if (!accessChecker.isTaskAssignee(task, userId)) {
             // Check if course owner, subject owner, or admin
@@ -155,12 +166,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task createSubTaskInternal(Long taskId, String name, String userId, Long sprintId, TaskType type, boolean allowPastSprint) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
-        
+
         // Only USER_STORY tasks can have subtasks
         if (parentTask.getTaskType() != TaskType.USER_STORY) {
             throw new ServiceException(ErrorConstants.ONLY_USER_STORY_CAN_HAVE_SUBTASKS);
         }
-        
+
+        // Frozen parent tasks can only have subtasks added by professors
+        if (parentTask.isFrozen() && !accessChecker.isProfessorForTask(parentTask, userId)) {
+            throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
+        }
+
         // Any project member (or professor/admin) can create subtasks
         accessChecker.checkCanCreateSubtask(parentTask, userId);
         // Sanitize subtask name to prevent XSS attacks
@@ -241,8 +257,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Task task = get(id);
         User user = userService.get(userId);
         
-        // Check if task is frozen - no edits allowed on frozen tasks
-        if (task.isFrozen()) {
+        // Frozen tasks can only be edited by professors
+        if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
         
@@ -654,7 +670,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Transactional
     public void deleteTask(Long id, String userId) {
         Task task = get(id);
-        // Only task reporter, subject owner (professor), or admin can delete tasks
+
+        // Frozen tasks can only be deleted by professors
+        if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
+            throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
+        }
+
+        // Only task assignee, reporter, professor, or admin can delete tasks
         accessChecker.checkCanDeleteTask(task, userId);
 
         // Validate delete constraints
