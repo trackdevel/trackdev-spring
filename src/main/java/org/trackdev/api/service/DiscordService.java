@@ -18,7 +18,6 @@ import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.entity.DiscordInfo;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.repository.DiscordInfoRepository;
-import org.trackdev.api.repository.UserRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.net.URLEncoder;
@@ -42,7 +41,7 @@ public class DiscordService extends BaseServiceUUID<DiscordInfo, DiscordInfoRepo
     private TrackDevProperties properties;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -281,7 +280,7 @@ public class DiscordService extends BaseServiceUUID<DiscordInfo, DiscordInfoRepo
         userDiscordInfo.setAccessToken(accessToken);
         userDiscordInfo.setRefreshToken(refreshToken);
 
-        userRepository.save(user);
+        userService.save(user);
         log.info("Linked Discord account {} to user {}", username, user.getUsername());
     }
 
@@ -307,7 +306,7 @@ public class DiscordService extends BaseServiceUUID<DiscordInfo, DiscordInfoRepo
         }
 
         discordInfo.clear();
-        userRepository.save(user);
+        userService.save(user);
         log.info("Unlinked Discord account from user {}", user.getUsername());
     }
 
