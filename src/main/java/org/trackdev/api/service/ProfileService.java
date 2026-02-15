@@ -48,6 +48,14 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
         return repo.findByOwnerId(userId);
     }
 
+    /**
+     * Get a profile attribute by its ID.
+     */
+    public ProfileAttribute getAttributeById(Long attributeId) {
+        return attributeRepository.findById(attributeId)
+                .orElseThrow(() -> new EntityNotFound("Attribute not found"));
+    }
+
     @Transactional
     public Profile createProfile(ProfileRequest request, String userId) {
         User owner = userService.get(userId);

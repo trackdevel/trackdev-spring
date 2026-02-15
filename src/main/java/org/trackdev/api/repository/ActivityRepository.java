@@ -9,6 +9,7 @@ import org.trackdev.api.entity.Activity;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.User;
+import org.trackdev.api.entity.Task;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -66,4 +67,9 @@ public interface ActivityRepository extends BaseRepositoryLong<Activity> {
      * Delete all activities for a specific project
      */
     void deleteByProject(Project project);
+
+    /**
+     * Delete all activities for a specific task
+     */
+    void deleteByTask(Task task);
 }

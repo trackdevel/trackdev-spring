@@ -1,6 +1,7 @@
 package org.trackdev.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,8 +13,6 @@ import org.trackdev.api.model.MergePatchTask;
 import org.trackdev.api.query.CriteriaParser;
 import org.trackdev.api.query.GenericSpecificationsBuilder;
 import org.trackdev.api.query.SearchSpecification;
-import org.trackdev.api.repository.ProfileAttributeRepository;
-import org.trackdev.api.repository.TaskAttributeValueRepository;
 import org.trackdev.api.repository.TaskRepository;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.HtmlSanitizer;
@@ -53,10 +52,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     ActivityService activityService;
 
     @Autowired
-    TaskAttributeValueRepository taskAttributeValueRepository;
+    TaskAttributeValueService taskAttributeValueService;
 
     @Autowired
-    ProfileAttributeRepository profileAttributeRepository;
+    ProfileService profileService;
+
+    @Autowired
+    @Lazy
+    ProjectAnalysisService projectAnalysisService;
 
     @Transactional
     public Task createTask(Long projectId, String name, String userId) {
@@ -651,10 +654,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Transactional
     public void deleteTask(Long id, String userId) {
         Task task = get(id);
-        User user = userService.get(userId);
         // Only task reporter, subject owner (professor), or admin can delete tasks
         accessChecker.checkCanDeleteTask(task, userId);
-        
+
         // Validate delete constraints
         if (task.getTaskType() == TaskType.USER_STORY) {
             // USER_STORY can only be deleted if it has no subtasks
@@ -667,15 +669,27 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 throw new ServiceException(ErrorConstants.TASK_STATUS_CANNOT_DELETE);
             }
         }
-        
+
+        // Delete all related entities before deleting the task (foreign key constraints)
+        commentService.deleteByTask(task);
+        taskChangeService.deleteByTask(task);
+        activityService.deleteByTask(task);
+        taskAttributeValueService.deleteByTaskId(id);
+        projectAnalysisService.deleteFilesByTask(task);
+
+        // Remove task from sprints
         task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
         task.setActiveSprints(new ArrayList<>());
+
+        // If task is a parent (USER_STORY), delete child tasks (already validated above)
         if (task.getParentTask() == null){
             Collection<Task> removeTask = task.getChildTasks();
             removeTask.stream().forEach(childTask -> childTask.setParentTask(null));
             removeTask.stream().forEach(childTask -> childTask.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(childTask)));
             repo.deleteAll(removeTask);
         }
+
+        // Finally, delete the task itself
         repo.delete(task);
     }
 
@@ -886,7 +900,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Task task = get(taskId);
         accessChecker.checkCanViewProject(task.getProject(), userId);
         
-        return taskAttributeValueRepository.findByTaskId(taskId);
+        return taskAttributeValueService.findByTaskId(taskId);
     }
 
     /**
@@ -935,8 +949,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             throw new ServiceException("No profile is applied to this course");
         }
         
-        ProfileAttribute attribute = profileAttributeRepository.findById(attributeId)
-                .orElseThrow(() -> new ServiceException("Attribute not found"));
+        ProfileAttribute attribute = profileService.getAttributeById(attributeId);
         
         // Verify attribute belongs to the course's profile
         if (!attribute.getProfileId().equals(profile.getId())) {
@@ -952,8 +965,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         validateAttributeValue(attribute, value);
         
         // Find or create the attribute value
-        Optional<TaskAttributeValue> existingValue = 
-                taskAttributeValueRepository.findByTaskIdAndAttributeId(taskId, attributeId);
+        Optional<TaskAttributeValue> existingValue =
+                taskAttributeValueService.findByTaskIdAndAttributeId(taskId, attributeId);
         
         TaskAttributeValue attributeValue;
         if (existingValue.isPresent()) {
@@ -963,7 +976,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             attributeValue = new TaskAttributeValue(task, attribute, value);
         }
         
-        return taskAttributeValueRepository.save(attributeValue);
+        return taskAttributeValueService.save(attributeValue);
     }
 
     /**
@@ -982,7 +995,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         
         accessChecker.checkCanViewProject(task.getProject(), userId);
         
-        taskAttributeValueRepository.deleteByTaskIdAndAttributeId(taskId, attributeId);
+        taskAttributeValueService.deleteByTaskIdAndAttributeId(taskId, attributeId);
     }
 
     /**
@@ -1036,6 +1049,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
      */
     public List<Task> findByProjectIdAndStatus(Long projectId, TaskStatus status) {
         return this.repo.findByProjectIdAndStatus(projectId, status);
+    }
+
+    /**
+     * Check if a project has any tasks.
+     */
+    public boolean existsByProjectId(Long projectId) {
+        return this.repo.existsByProjectId(projectId);
+    }
+
+    /**
+     * Find a task by its unique task key (e.g., "a7k-1").
+     */
+    public Optional<Task> findByTaskKey(String taskKey) {
+        return this.repo.findByTaskKey(taskKey);
     }
 
     /**

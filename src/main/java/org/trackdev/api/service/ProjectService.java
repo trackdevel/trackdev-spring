@@ -1,6 +1,7 @@
 package org.trackdev.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.ServiceException;
@@ -32,7 +33,8 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
     AccessChecker accessChecker;
 
     @Autowired
-    org.trackdev.api.repository.TaskRepository taskRepository;
+    @Lazy
+    TaskService taskService;
 
     @Transactional
     public Project createProject(String name, Collection<String> memberIds, Long courseId,
@@ -166,7 +168,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         accessChecker.checkCanManageCourse(project.getCourse(), userId);
         
         // Check if project has any tasks
-        if (taskRepository.existsByProjectId(projectId)) {
+        if (taskService.existsByProjectId(projectId)) {
             throw new ServiceException(ErrorConstants.PROJECT_HAS_TASKS);
         }
         
@@ -433,7 +435,7 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         Project project = get(projectId);
         accessChecker.checkCanViewProject(project, userId);
         
-        return taskRepository.findByProjectIdAndStatus(projectId, TaskStatus.DONE).stream()
+        return taskService.findByProjectIdAndStatus(projectId, TaskStatus.DONE).stream()
                 .filter(task -> task.getPullRequests() != null && !task.getPullRequests().isEmpty())
                 .filter(task -> {
                     // If no sprint filter, include all tasks

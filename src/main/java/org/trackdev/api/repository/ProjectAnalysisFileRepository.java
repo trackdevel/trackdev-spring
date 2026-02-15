@@ -67,4 +67,9 @@ public interface ProjectAnalysisFileRepository extends BaseRepositoryUUID<Projec
      * Find files by analysis and PR
      */
     List<ProjectAnalysisFile> findByAnalysisIdAndPullRequestId(String analysisId, String prId);
+
+    /**
+     * Delete all files associated with a specific task
+     */
+    void deleteByTask(org.trackdev.api.entity.Task task);
 }

@@ -10,7 +10,6 @@ import org.trackdev.api.entity.SprintPattern;
 import org.trackdev.api.entity.SprintPatternItem;
 import org.trackdev.api.model.SprintPatternRequest;
 import org.trackdev.api.repository.SprintPatternRepository;
-import org.trackdev.api.repository.SprintRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.util.HashSet;
@@ -30,7 +29,7 @@ public class SprintPatternService extends BaseServiceLong<SprintPattern, SprintP
     AccessChecker accessChecker;
 
     @Autowired
-    SprintRepository sprintRepository;
+    SprintService sprintService;
 
     /**
      * Get all sprint patterns for a course
@@ -143,12 +142,12 @@ public class SprintPatternService extends BaseServiceLong<SprintPattern, SprintP
      * Propagate changes from a SprintPatternItem to all associated Sprints.
      */
     private void propagateChangesToSprints(SprintPatternItem item) {
-        List<Sprint> associatedSprints = sprintRepository.findByPatternItemId(item.getId());
+        List<Sprint> associatedSprints = sprintService.findByPatternItemId(item.getId());
         for (Sprint sprint : associatedSprints) {
             sprint.setName(item.getName());
             sprint.setStartDate(item.getStartDate());
             sprint.setEndDate(item.getEndDate());
-            sprintRepository.save(sprint);
+            sprintService.save(sprint);
         }
     }
 
