@@ -51,4 +51,17 @@ public class TaskDetailDTO extends TaskWithProjectDTO {
     
     /** Whether the current user can add comments */
     private boolean canComment;
+
+    // =============================================================================
+    // POINTS REVIEW FLAGS
+    // =============================================================================
+
+    /** Whether the current user can start a points review conversation */
+    private boolean canStartPointsReview;
+
+    /** Whether the current user can view points review conversations */
+    private boolean canViewPointsReviews;
+
+    /** Number of points review conversations on this task */
+    private int pointsReviewConversationCount;
 }

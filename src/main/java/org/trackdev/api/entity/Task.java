@@ -84,6 +84,9 @@ public class Task extends BaseEntityLong {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PointsReview> pointsReviewList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Collection<PointsReviewConversation> pointsReviewConversations = new HashSet<>();
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "tasks_pull_requests",
@@ -337,6 +340,10 @@ public class Task extends BaseEntityLong {
 
     public  void addPointsReview(PointsReview pointsReview) {
         this.pointsReviewList.add(pointsReview);
+    }
+
+    public Collection<PointsReviewConversation> getPointsReviewConversations() {
+        return pointsReviewConversations;
     }
 
     public void addComment(Comment comment) {

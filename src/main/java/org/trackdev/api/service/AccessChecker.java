@@ -1110,4 +1110,172 @@ public class AccessChecker {
         return isProfessor;
     }
 
+    // =========================================================================
+    // POINTS REVIEW CONVERSATION PERMISSIONS
+    // =========================================================================
+
+    /**
+     * Check if a user can start a points review conversation on a task.
+     * Requirements: project member, not the assignee, task is DONE, no existing conversation.
+     */
+    public void checkCanStartPointsReview(org.trackdev.api.entity.Task task, String userId) {
+        // Task must be DONE
+        if (task.getStatus() != TaskStatus.DONE) {
+            throw new ServiceException(ErrorConstants.POINTS_REVIEW_TASK_NOT_DONE);
+        }
+        // Assignee can never start a points review
+        if (isTaskAssignee(task, userId)) {
+            throw new ServiceException(ErrorConstants.POINTS_REVIEW_ASSIGNEE_CANNOT_ACCESS);
+        }
+        // Must be a project member or professor
+        Project project = task.getProject();
+        if (!project.isMember(userId) && !isProfessorForTask(task, userId)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Boolean version: can user start a points review?
+     */
+    public boolean canStartPointsReview(org.trackdev.api.entity.Task task, String userId) {
+        if (task.getStatus() != TaskStatus.DONE) {
+            return false;
+        }
+        if (isTaskAssignee(task, userId)) {
+            return false;
+        }
+        Project project = task.getProject();
+        return project.isMember(userId) || isProfessorForTask(task, userId);
+    }
+
+    /**
+     * Boolean version: can user view points review conversations for a task?
+     * Professor/admin can always see them. Other members can see them if they have an own conversation
+     * or are a participant. This is a coarse check - fine-grained per-conversation filtering
+     * happens in the service layer.
+     */
+    public boolean canViewPointsReviews(org.trackdev.api.entity.Task task, String userId) {
+        // Assignee can never view
+        if (isTaskAssignee(task, userId)) {
+            return false;
+        }
+        // Task must be DONE
+        if (task.getStatus() != TaskStatus.DONE) {
+            return false;
+        }
+        // Professor/admin can always view
+        if (isProfessorForTask(task, userId)) {
+            return true;
+        }
+        // Project members can view (they'll only see their own + participated conversations)
+        return task.getProject().isMember(userId);
+    }
+
+    /**
+     * Check if a user can view a specific points review conversation.
+     * Allowed: professor/admin, initiator, or participant. Never the assignee.
+     */
+    public void checkCanViewPointsReviewConversation(
+            org.trackdev.api.entity.PointsReviewConversation conv, String userId) {
+        org.trackdev.api.entity.Task task = conv.getTask();
+        // Assignee can never view
+        if (isTaskAssignee(task, userId)) {
+            throw new ServiceException(ErrorConstants.POINTS_REVIEW_ASSIGNEE_CANNOT_ACCESS);
+        }
+        // Professor/admin can always view
+        if (isProfessorForTask(task, userId)) {
+            return;
+        }
+        // Initiator or participant can view
+        if (conv.hasAccess(userId)) {
+            return;
+        }
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    /**
+     * Check if a user can post a message in a points review conversation.
+     * Same rules as viewing.
+     */
+    public void checkCanPostInPointsReview(
+            org.trackdev.api.entity.PointsReviewConversation conv, String userId) {
+        checkCanViewPointsReviewConversation(conv, userId);
+    }
+
+    /**
+     * Check if a user can edit a points review message.
+     * Professor can edit any message. Students can only edit own messages within 10 minutes.
+     */
+    public void checkCanEditPointsReviewMessage(
+            org.trackdev.api.entity.PointsReviewMessage msg, String userId) {
+        org.trackdev.api.entity.Task task = msg.getConversation().getTask();
+        // Professor can edit any message
+        if (isProfessorForTask(task, userId)) {
+            return;
+        }
+        // Author can edit own message within 10 minutes
+        if (msg.getAuthor().getId().equals(userId)) {
+            if (!msg.isWithinEditWindow()) {
+                throw new ServiceException(ErrorConstants.POINTS_REVIEW_EDIT_TIME_EXPIRED);
+            }
+            return;
+        }
+        throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+    }
+
+    /**
+     * Boolean version: can user edit a points review message?
+     */
+    public boolean canEditPointsReviewMessage(
+            org.trackdev.api.entity.PointsReviewMessage msg, String userId) {
+        org.trackdev.api.entity.Task task = msg.getConversation().getTask();
+        if (isProfessorForTask(task, userId)) {
+            return true;
+        }
+        return msg.getAuthor().getId().equals(userId) && msg.isWithinEditWindow();
+    }
+
+    /**
+     * Check if a user can delete a points review message.
+     * Only professor/admin can delete messages.
+     */
+    public void checkCanDeletePointsReviewMessage(
+            org.trackdev.api.entity.PointsReviewMessage msg, String userId) {
+        org.trackdev.api.entity.Task task = msg.getConversation().getTask();
+        if (!isProfessorForTask(task, userId)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Boolean version: can user delete a points review message?
+     */
+    public boolean canDeletePointsReviewMessage(
+            org.trackdev.api.entity.PointsReviewMessage msg, String userId) {
+        return isProfessorForTask(msg.getConversation().getTask(), userId);
+    }
+
+    /**
+     * Check if a user can edit a conversation's proposed points and similar tasks.
+     * Only the initiator can do this.
+     */
+    public void checkCanEditPointsReviewConversation(
+            org.trackdev.api.entity.PointsReviewConversation conv, String userId) {
+        if (!conv.isInitiator(userId)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Check if a user can add/remove participants to a points review conversation.
+     * Only professor/admin can do this.
+     */
+    public void checkCanManagePointsReviewParticipants(
+            org.trackdev.api.entity.PointsReviewConversation conv, String userId) {
+        org.trackdev.api.entity.Task task = conv.getTask();
+        if (!isProfessorForTask(task, userId)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+    }
+
 }

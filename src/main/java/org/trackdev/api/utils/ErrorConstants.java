@@ -169,5 +169,15 @@ public final class ErrorConstants {
     public static final String DISCORD_ROLE_ASSIGN_FAILED = "error.discord.role.assign.failed";
     public static final String DISCORD_KICK_FAILED = "error.discord.kick.failed";
     
+    // Points Review Conversation errors
+    public static final String POINTS_REVIEW_TASK_NOT_DONE = "error.points.review.task.not.done";
+    public static final String POINTS_REVIEW_ALREADY_EXISTS = "error.points.review.already.exists";
+    public static final String POINTS_REVIEW_ASSIGNEE_CANNOT_ACCESS = "error.points.review.assignee.forbidden";
+    public static final String POINTS_REVIEW_NOT_FOUND = "error.points.review.not.found";
+    public static final String POINTS_REVIEW_MESSAGE_NOT_FOUND = "error.points.review.message.not.found";
+    public static final String POINTS_REVIEW_EDIT_TIME_EXPIRED = "error.points.review.edit.time.expired";
+    public static final String POINTS_REVIEW_CANNOT_ADD_ASSIGNEE = "error.points.review.cannot.add.assignee";
+    public static final String POINTS_REVIEW_PARTICIPANT_ALREADY_ADDED = "error.points.review.participant.exists";
+
     public static final String EMPTY = "";
 }
