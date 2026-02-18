@@ -56,6 +56,7 @@ public final class ErrorConstants {
     public static final String TASK_IS_FROZEN = "error.task.frozen";
     public static final String ONLY_PROFESSOR_CAN_FREEZE_TASK = "error.task.freeze.professor.only";
     public static final String TASK_STATUS_CHANGE_IN_FUTURE_SPRINT = "error.task.status.future.sprint";
+    public static final String INVALID_STATUS_TRANSITION = "error.task.invalid.status.transition";
     public static final String BUG_CANNOT_CHANGE_TYPE = "error.task.bug.cannot.change.type";
     public static final String USER_STORY_CANNOT_CHANGE_TYPE = "error.task.user.story.cannot.change.type";
     public static final String USER_STORY_HAS_SUBTASKS_CANNOT_DELETE = "error.task.user.story.has.subtasks.delete";

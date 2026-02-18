@@ -3,7 +3,9 @@ package org.trackdev.api.entity;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.springframework.lang.NonNull;
+import org.trackdev.api.controller.exceptions.EntityException;
 import org.trackdev.api.entity.taskchanges.TaskChange;
+import org.trackdev.api.utils.ErrorConstants;
 
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
@@ -183,6 +185,14 @@ public class Task extends BaseEntityLong {
 
     public void setStatus(TaskStatus status) {
         checkCanMoveToStatus(status);
+        this.status = status;
+    }
+
+    /**
+     * Force-set status bypassing transition validation.
+     * For use by data seeders and internal operations only.
+     */
+    public void forceSetStatus(TaskStatus status) {
         this.status = status;
     }
 
@@ -389,11 +399,34 @@ public class Task extends BaseEntityLong {
     }
 
     private void checkCanMoveToStatus(TaskStatus status) {
-        /**if(this.status == TaskStatus.BACKLOG && status != TaskStatus.TODO) {
-            throw new EntityException(String.format("Cannot change status from BACKLOG to new status <%s>", status));
+        // Same status is always allowed (no-op)
+        if (this.status == status) {
+            return;
         }
-        if(status == TaskStatus.BACKLOG) {
-            throw new EntityException("Cannot set status to BACKLOG");
-        }**/
+
+        if (this.type == TaskType.USER_STORY) {
+            // USER_STORY transitions: BACKLOG→TODO, TODO→DONE (auto), DONE→TODO (auto)
+            boolean valid = switch (this.status) {
+                case BACKLOG -> status == TaskStatus.TODO;
+                case TODO -> status == TaskStatus.DONE;
+                case DONE -> status == TaskStatus.TODO;
+                default -> false;
+            };
+            if (!valid) {
+                throw new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
+            }
+        } else {
+            // TASK/BUG transitions: BACKLOG→TODO, TODO→INPROGRESS, INPROGRESS→TODO/VERIFY, VERIFY→DONE
+            boolean valid = switch (this.status) {
+                case BACKLOG -> status == TaskStatus.TODO;
+                case TODO -> status == TaskStatus.INPROGRESS;
+                case INPROGRESS -> status == TaskStatus.TODO || status == TaskStatus.VERIFY;
+                case VERIFY -> status == TaskStatus.DONE;
+                default -> false;
+            };
+            if (!valid) {
+                throw new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
+            }
+        }
     }
 }
