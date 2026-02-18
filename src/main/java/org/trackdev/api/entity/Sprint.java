@@ -176,8 +176,10 @@ public class Sprint extends BaseEntityLong {
 
     public void addTask(Task task, User modifier) {
         this.activeTasks.add(task);
-        // When adding task to an active sprint, change from BACKLOG to TODO
-        if(this.getEffectiveStatus() == SprintStatus.ACTIVE && task.getStatus() == TaskStatus.BACKLOG) {
+        // When adding task to a sprint (active or future), change from BACKLOG to TODO
+        SprintStatus effectiveStatus = this.getEffectiveStatus();
+        if((effectiveStatus == SprintStatus.ACTIVE || effectiveStatus == SprintStatus.DRAFT)
+                && task.getStatus() == TaskStatus.BACKLOG) {
             task.setStatus(TaskStatus.TODO);
         }
     }
