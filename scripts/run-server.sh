@@ -2,20 +2,16 @@
 # TrackDev Spring Boot Server Startup Script
 # Loads environment variables from .env and starts the server
 #
-# Usage: ./run-server.sh [root-dir] [env-file]
-#   root-dir: Path to Spring Boot project root (default: parent of script directory)
-#   env-file: Path to environment file (default: .env in script directory)
-#
 # Examples:
 #   ./run-server.sh                                    # Uses defaults
 #   ./run-server.sh env-file spring-profile            # Custom env file
 
 set -e
 
-# Get project root from first parameter or default to parent of script directory
+# Get env file from first parameter or default to parent of script directory
 if [ -n "$1" ]; then
-    PROJECT_ROOT="$(cd "$(dirname "$1")" && pwd)"
-    ENV_FILE="$1"
+    ENV_FILE=$(realpath "$1")
+    PROJECT_ROOT="$(dirname "$ENV_FILE")"
 else
     PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     ENV_FILE="$PROJECT_ROOT/.env"
@@ -72,16 +68,19 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Load environment variables from .env file
-echo "Loading environment variables from .env..."
-while IFS='=' read -r key value; do
-    # Skip comments and empty lines
-    if [[ -z "$key" || "$key" =~ ^# ]]; then
-        continue
-    fi
-    # Remove any leading/trailing whitespace and quotes
-    key=$(echo "$key" | xargs)
-    value=$(echo "$value" | xargs)
+echo "Loading environment variables from $ENV_FILE"
+while IFS= read -r line || [ -n "$line" ]; do
+    # Skip blank lines and comments
+    echo "Line: $line"
+    [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+    # Split on first '=' only
+    key="${line%%=*}"
+    value="${line#*=}"
+    # Strip leading/trailing whitespace from key only
+    key="${key#"${key%%[![:space:]]*}"}"
+    key="${key%"${key##*[![:space:]]}"}"
     # Export the variable
+    echo "Key: $key, Value: $value"
     export "$key=$value"
     echo "  Loaded: $key"
 done < "$ENV_FILE"
