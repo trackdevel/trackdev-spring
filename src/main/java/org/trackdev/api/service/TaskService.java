@@ -246,6 +246,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
 
+        // If parent USER_STORY was DONE, revert to TODO since it now has a non-DONE subtask
+        if (parentTask.getStatus() == TaskStatus.DONE) {
+            parentTask.setStatus(TaskStatus.TODO);
+            repo.save(parentTask);
+        }
+
         // Record activity for subtask creation
         activityService.recordActivity(ActivityType.TASK_CREATED, user, subtask);
 
@@ -408,10 +414,21 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     TaskStatus parentOldStatus = parentTask.getStatus();
                     if (parentOldStatus != TaskStatus.DONE) {
                         parentTask.setStatus(TaskStatus.DONE);
-                        changes.add(new TaskStatusChange(user, parentTask, 
+                        changes.add(new TaskStatusChange(user, parentTask,
                                 parentOldStatus.toString(), TaskStatus.DONE.toString()));
                         repo.save(parentTask);
                     }
+                }
+            }
+
+            // If this is a subtask moving AWAY from DONE, revert parent USER_STORY from DONE to TODO
+            if (oldStatus == TaskStatus.DONE && status != TaskStatus.DONE && task.getParentTask() != null) {
+                Task parentTask = task.getParentTask();
+                if (parentTask.getTaskType() == TaskType.USER_STORY && parentTask.getStatus() == TaskStatus.DONE) {
+                    parentTask.setStatus(TaskStatus.TODO);
+                    changes.add(new TaskStatusChange(user, parentTask,
+                            TaskStatus.DONE.toString(), TaskStatus.TODO.toString()));
+                    repo.save(parentTask);
                 }
             }
         }
@@ -649,7 +666,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.status != null) {
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
-            task.setStatus(status);
+            task.forceSetStatus(status);
         }
         if(editTask.rank != null) {
             Integer rank = editTask.rank.orElse(null);
