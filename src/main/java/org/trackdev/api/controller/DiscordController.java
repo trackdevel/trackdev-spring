@@ -1,5 +1,6 @@
 package org.trackdev.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -9,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.configuration.TrackDevProperties;
@@ -20,9 +22,12 @@ import org.trackdev.api.utils.ErrorConstants;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.Principal;
+import java.security.*;
+import java.security.spec.EdECPoint;
+import java.security.spec.EdECPublicKeySpec;
+import java.security.spec.NamedParameterSpec;
 import java.util.Base64;
 import java.util.Map;
 
@@ -129,6 +134,133 @@ public class DiscordController extends BaseController {
 
         discordService.unlinkDiscordAccount(user);
         return okNoContent();
+    }
+
+    /**
+     * Handles Discord Interactions Endpoint URL callbacks.
+     * Public endpoint — verifies Ed25519 signature on every request,
+     * responds to PING (type 1) with PONG, and handles other interaction types.
+     */
+    @Operation(summary = "Discord Interactions Endpoint", description = "Handle Discord interaction callbacks (slash commands, buttons, etc.)")
+    @PostMapping("/interactions")
+    public ResponseEntity<?> handleInteraction(
+            @RequestHeader(value = "X-Signature-Ed25519", required = false) String signatureHex,
+            @RequestHeader(value = "X-Signature-Timestamp", required = false) String timestamp,
+            @RequestBody String rawPayload) {
+
+        // Verify Ed25519 signature
+        if (signatureHex == null || timestamp == null
+                || !verifyDiscordSignature(signatureHex, timestamp, rawPayload)) {
+            log.warn("Discord interaction: invalid signature");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid request signature");
+        }
+
+        // Parse the interaction payload
+        Map<String, Object> body;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> parsed = objectMapper.readValue(rawPayload, Map.class);
+            body = parsed;
+        } catch (Exception e) {
+            log.error("Discord interaction: failed to parse payload", e);
+            return ResponseEntity.badRequest().body("Invalid payload");
+        }
+
+        int type = body.get("type") instanceof Number n ? n.intValue() : 0;
+
+        // Type 1 = PING — respond with PONG
+        if (type == 1) {
+            log.info("Discord interaction: PING received, responding with PONG");
+            return ResponseEntity.ok(Map.of("type", 1));
+        }
+
+        // Type 2 = APPLICATION_COMMAND (slash commands)
+        if (type == 2) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) body.get("data");
+            String commandName = data != null ? (String) data.get("name") : "unknown";
+            log.info("Discord interaction: APPLICATION_COMMAND received: {}", commandName);
+            return ResponseEntity.ok(Map.of(
+                    "type", 4,
+                    "data", Map.of("content", "Command received: " + commandName)));
+        }
+
+        // Type 3 = MESSAGE_COMPONENT, Type 4 = AUTOCOMPLETE, Type 5 = MODAL_SUBMIT
+        log.info("Discord interaction: type {} received, acknowledging", type);
+        return ResponseEntity.ok(Map.of("type", 1));
+    }
+
+    /**
+     * Verifies the Ed25519 signature on a Discord interaction request.
+     * The message to verify is: timestamp + rawBody.
+     */
+    private boolean verifyDiscordSignature(String signatureHex, String timestamp, String rawBody) {
+        String publicKeyHex = properties.getDiscord().getPublicKey();
+        if (publicKeyHex == null || publicKeyHex.isBlank()) {
+            log.error("Discord public key not configured");
+            return false;
+        }
+
+        try {
+            byte[] publicKeyBytes = hexToBytes(publicKeyHex);
+            byte[] signatureBytes = hexToBytes(signatureHex);
+
+            // Build the message: timestamp + body
+            byte[] timestampBytes = timestamp.getBytes(StandardCharsets.UTF_8);
+            byte[] bodyBytes = rawBody.getBytes(StandardCharsets.UTF_8);
+            byte[] message = new byte[timestampBytes.length + bodyBytes.length];
+            System.arraycopy(timestampBytes, 0, message, 0, timestampBytes.length);
+            System.arraycopy(bodyBytes, 0, message, timestampBytes.length, bodyBytes.length);
+
+            // Decode raw 32-byte Ed25519 public key into Java PublicKey
+            PublicKey pubKey = decodeEd25519PublicKey(publicKeyBytes);
+
+            Signature sig = Signature.getInstance("Ed25519");
+            sig.initVerify(pubKey);
+            sig.update(message);
+            return sig.verify(signatureBytes);
+        } catch (Exception e) {
+            log.error("Discord signature verification failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Decodes a raw 32-byte Ed25519 public key into a Java PublicKey.
+     * Ed25519 keys are encoded as the y-coordinate in little-endian,
+     * with the high bit of the last byte indicating the sign of x.
+     */
+    private PublicKey decodeEd25519PublicKey(byte[] rawKey) throws Exception {
+        // Extract x-coordinate sign from the high bit of the last byte
+        boolean xOdd = (rawKey[rawKey.length - 1] & 0x80) != 0;
+
+        // Clear the sign bit to get pure y-coordinate bytes
+        byte[] yBytes = rawKey.clone();
+        yBytes[yBytes.length - 1] &= 0x7F;
+
+        // Reverse from little-endian to big-endian for BigInteger
+        byte[] reversed = new byte[yBytes.length];
+        for (int i = 0; i < yBytes.length; i++) {
+            reversed[i] = yBytes[yBytes.length - 1 - i];
+        }
+        BigInteger y = new BigInteger(1, reversed);
+
+        EdECPublicKeySpec spec = new EdECPublicKeySpec(
+                NamedParameterSpec.ED25519,
+                new EdECPoint(xOdd, y));
+        KeyFactory kf = KeyFactory.getInstance("EdDSA");
+        return kf.generatePublic(spec);
+    }
+
+    private static byte[] hexToBytes(String hex) {
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i + 1), 16));
+        }
+        return data;
     }
 
     private boolean isValidStateSignature(String userId, long timestamp, String receivedSignature) {
