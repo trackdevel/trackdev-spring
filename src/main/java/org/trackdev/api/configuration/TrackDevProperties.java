@@ -156,6 +156,7 @@ public class TrackDevProperties {
         private String guildId;
         private String verifiedRoleId;
         private String redirectUri;
+        private String publicKey;
 
         public String getClientId() {
             return clientId;
@@ -203,6 +204,14 @@ public class TrackDevProperties {
 
         public void setRedirectUri(String redirectUri) {
             this.redirectUri = redirectUri;
+        }
+
+        public String getPublicKey() {
+            return publicKey;
+        }
+
+        public void setPublicKey(String publicKey) {
+            this.publicKey = publicKey;
         }
 
         @Override

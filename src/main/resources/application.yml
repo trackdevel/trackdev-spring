@@ -82,6 +82,7 @@ trackdev:
     guild-id: ${DISCORD_GUILD_ID:}
     verified-role-id: ${DISCORD_VERIFIED_ROLE_ID:}
     redirect-uri: ${DISCORD_REDIRECT_URI:http://localhost:8080/api/discord/callback}
+    public-key: ${DISCORD_PUBLIC_KEY:}
 
 ---
 # Profile: mysqldb
