@@ -17,6 +17,6 @@ public class TaskAttributeValueDTO {
     private AttributeAppliedBy attributeAppliedBy;
     private String value;
 
-    // For ENUM type, include the possible values
-    private String[] enumValues;
+    // For ENUM type, include the possible values with descriptions
+    private EnumValueEntryDTO[] enumValues;
 }
