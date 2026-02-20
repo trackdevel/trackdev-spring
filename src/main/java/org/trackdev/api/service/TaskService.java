@@ -1036,7 +1036,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     /**
      * Check if the user is authorized to set/delete a value based on the attribute's appliedBy field.
      * PROFESSOR appliedBy: only professors (and admins) can set values.
-     * STUDENT appliedBy: the task assignee or professors can set values.
+     * STUDENT appliedBy: the task assignee or professors can set values, but students cannot if the task is frozen.
      */
     private void checkAttributeValueAuthorization(ProfileAttribute attribute, User user, Task task) {
         if (attribute.getAppliedBy() == AttributeAppliedBy.PROFESSOR) {
@@ -1048,6 +1048,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if (user.isUserType(UserType.STUDENT)) {
                 if (task.getAssignee() == null || !task.getAssignee().getId().equals(user.getId())) {
                     throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+                }
+                if (task.isFrozen()) {
+                    throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
                 }
             } else if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
                 throw new ServiceException(ErrorConstants.UNAUTHORIZED);
