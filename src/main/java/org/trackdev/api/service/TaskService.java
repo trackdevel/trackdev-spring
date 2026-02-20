@@ -966,47 +966,45 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     /**
      * Set or update an attribute value for a task.
-     * Only professors can set attribute values.
+     * Authorization depends on the attribute's appliedBy field.
      */
     @Transactional
     public TaskAttributeValue setTaskAttributeValue(Long taskId, Long attributeId, String value, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
-        
-        // Only professors can set attribute values
-        if (!user.isUserType(UserType.PROFESSOR)) {
-            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
-        }
-        
+
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
+
         // Verify the attribute belongs to the task's course profile
         Course course = task.getProject().getCourse();
         Profile profile = course.getProfile();
-        
+
         if (profile == null) {
             throw new ServiceException("No profile is applied to this course");
         }
-        
+
         ProfileAttribute attribute = profileService.getAttributeById(attributeId);
-        
+
         // Verify attribute belongs to the course's profile
         if (!attribute.getProfileId().equals(profile.getId())) {
             throw new ServiceException("Attribute does not belong to the course profile");
         }
-        
+
         // Verify attribute target is TASK
         if (attribute.getTarget() != AttributeTarget.TASK) {
             throw new ServiceException("Attribute is not applicable to tasks");
         }
-        
+
+        // Authorization based on appliedBy
+        checkAttributeValueAuthorization(attribute, user, task);
+
         // Validate value based on type
         validateAttributeValue(attribute, value);
-        
+
         // Find or create the attribute value
         Optional<TaskAttributeValue> existingValue =
                 taskAttributeValueService.findByTaskIdAndAttributeId(taskId, attributeId);
-        
+
         TaskAttributeValue attributeValue;
         if (existingValue.isPresent()) {
             attributeValue = existingValue.get();
@@ -1014,55 +1012,99 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         } else {
             attributeValue = new TaskAttributeValue(task, attribute, value);
         }
-        
+
         return taskAttributeValueService.save(attributeValue);
     }
 
     /**
      * Delete an attribute value from a task.
-     * Only professors can delete attribute values.
+     * Authorization depends on the attribute's appliedBy field.
      */
     @Transactional
     public void deleteTaskAttributeValue(Long taskId, Long attributeId, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
-        
-        // Only professors can delete attribute values
-        if (!user.isUserType(UserType.PROFESSOR)) {
-            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
-        }
-        
+
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
+
+        ProfileAttribute attribute = profileService.getAttributeById(attributeId);
+        checkAttributeValueAuthorization(attribute, user, task);
+
         taskAttributeValueService.deleteByTaskIdAndAttributeId(taskId, attributeId);
     }
 
     /**
-     * Validate the value based on attribute type
+     * Check if the user is authorized to set/delete a value based on the attribute's appliedBy field.
+     * PROFESSOR appliedBy: only professors (and admins) can set values.
+     * STUDENT appliedBy: the task assignee or professors can set values.
+     */
+    private void checkAttributeValueAuthorization(ProfileAttribute attribute, User user, Task task) {
+        if (attribute.getAppliedBy() == AttributeAppliedBy.PROFESSOR) {
+            if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+        } else {
+            // STUDENT: assignee or professor can set values
+            if (user.isUserType(UserType.STUDENT)) {
+                if (task.getAssignee() == null || !task.getAssignee().getId().equals(user.getId())) {
+                    throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+                }
+            } else if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+        }
+    }
+
+    /**
+     * Validate the value based on attribute type, including min/max for numeric types.
      */
     private void validateAttributeValue(ProfileAttribute attribute, String value) {
         if (value == null || value.isBlank()) {
             return; // Allow empty values
         }
-        
+
         switch (attribute.getType()) {
             case INTEGER:
                 try {
-                    Integer.parseInt(value);
+                    int intVal = Integer.parseInt(value);
+                    if (attribute.getMinValue() != null && !attribute.getMinValue().isBlank()) {
+                        int min = Integer.parseInt(attribute.getMinValue());
+                        if (intVal < min) {
+                            throw new ServiceException(ErrorConstants.ATTRIBUTE_VALUE_BELOW_MIN);
+                        }
+                    }
+                    if (attribute.getMaxValue() != null && !attribute.getMaxValue().isBlank()) {
+                        int max = Integer.parseInt(attribute.getMaxValue());
+                        if (intVal > max) {
+                            throw new ServiceException(ErrorConstants.ATTRIBUTE_VALUE_ABOVE_MAX);
+                        }
+                    }
                 } catch (NumberFormatException e) {
                     throw new ServiceException("Invalid integer value");
                 }
                 break;
             case FLOAT:
                 try {
-                    Double.parseDouble(value);
+                    double floatVal = Double.parseDouble(value);
+                    if (attribute.getMinValue() != null && !attribute.getMinValue().isBlank()) {
+                        double min = Double.parseDouble(attribute.getMinValue());
+                        if (floatVal < min) {
+                            throw new ServiceException(ErrorConstants.ATTRIBUTE_VALUE_BELOW_MIN);
+                        }
+                    }
+                    if (attribute.getMaxValue() != null && !attribute.getMaxValue().isBlank()) {
+                        double max = Double.parseDouble(attribute.getMaxValue());
+                        if (floatVal > max) {
+                            throw new ServiceException(ErrorConstants.ATTRIBUTE_VALUE_ABOVE_MAX);
+                        }
+                    }
                 } catch (NumberFormatException e) {
                     throw new ServiceException("Invalid decimal value");
                 }
                 break;
             case ENUM:
                 if (attribute.getEnumRef() != null) {
-                    List<String> allowedValues = attribute.getEnumRef().getValues();
+                    List<String> allowedValues = attribute.getEnumRef().getValueStrings();
                     if (!allowedValues.contains(value)) {
                         throw new ServiceException("Invalid enum value. Allowed values: " + String.join(", ", allowedValues));
                     }

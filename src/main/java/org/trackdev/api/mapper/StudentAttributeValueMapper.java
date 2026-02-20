@@ -4,26 +4,26 @@ import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.trackdev.api.dto.TaskAttributeValueDTO;
+import org.trackdev.api.dto.StudentAttributeValueDTO;
 import org.trackdev.api.entity.EnumValueEntry;
-import org.trackdev.api.entity.TaskAttributeValue;
+import org.trackdev.api.entity.StudentAttributeValue;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface TaskAttributeValueMapper {
+public interface StudentAttributeValueMapper {
 
     @Named("toDTO")
     @Mapping(target = "attributeName", source = "attribute.name")
     @Mapping(target = "attributeType", source = "attribute.type")
     @Mapping(target = "attributeAppliedBy", source = "attribute.appliedBy")
     @Mapping(target = "enumValues", expression = "java(getEnumValues(entity))")
-    TaskAttributeValueDTO toDTO(TaskAttributeValue entity);
+    StudentAttributeValueDTO toDTO(StudentAttributeValue entity);
 
     @IterableMapping(qualifiedByName = "toDTO")
-    List<TaskAttributeValueDTO> toDTOList(List<TaskAttributeValue> entities);
+    List<StudentAttributeValueDTO> toDTOList(List<StudentAttributeValue> entities);
 
-    default String[] getEnumValues(TaskAttributeValue entity) {
+    default String[] getEnumValues(StudentAttributeValue entity) {
         if (entity.getAttribute() != null &&
             entity.getAttribute().getEnumRef() != null) {
             return entity.getAttribute().getEnumRef().getValues().stream()

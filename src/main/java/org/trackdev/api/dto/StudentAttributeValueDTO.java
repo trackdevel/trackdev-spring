@@ -5,18 +5,16 @@ import org.trackdev.api.entity.AttributeAppliedBy;
 import org.trackdev.api.entity.AttributeType;
 
 /**
- * DTO for TaskAttributeValue - represents the value of a profile attribute for a task
+ * DTO for StudentAttributeValue
  */
 @Data
-public class TaskAttributeValueDTO {
+public class StudentAttributeValueDTO {
     private Long id;
-    private Long taskId;
+    private String userId;
     private Long attributeId;
     private String attributeName;
     private AttributeType attributeType;
     private AttributeAppliedBy attributeAppliedBy;
     private String value;
-
-    // For ENUM type, include the possible values
     private String[] enumValues;
 }

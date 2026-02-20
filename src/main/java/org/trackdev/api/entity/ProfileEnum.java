@@ -5,10 +5,11 @@ import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Enum definition within a profile.
- * Contains a list of possible values.
+ * Contains a list of possible values, each with an optional description.
  */
 @Entity
 @Table(name = "profile_enums", uniqueConstraints = {
@@ -32,9 +33,8 @@ public class ProfileEnum extends BaseEntityLong {
 
     @ElementCollection
     @CollectionTable(name = "profile_enum_values", joinColumns = @JoinColumn(name = "enum_id"))
-    @Column(name = "value", length = 100)
     @OrderColumn(name = "order_index")
-    private List<String> values = new ArrayList<>();
+    private List<EnumValueEntry> values = new ArrayList<>();
 
     public ProfileEnum() {}
 
@@ -63,21 +63,30 @@ public class ProfileEnum extends BaseEntityLong {
         return profileId;
     }
 
-    public List<String> getValues() {
+    public List<EnumValueEntry> getValues() {
         return values;
     }
 
-    public void setValues(List<String> values) {
+    public void setValues(List<EnumValueEntry> values) {
         this.values = values;
     }
 
-    public void addValue(String value) {
-        if (!values.contains(value)) {
-            values.add(value);
+    /**
+     * Returns the value strings only, for validation and backward compatibility.
+     */
+    public List<String> getValueStrings() {
+        return values.stream()
+                .map(EnumValueEntry::getValue)
+                .collect(Collectors.toList());
+    }
+
+    public void addValue(EnumValueEntry entry) {
+        if (values.stream().noneMatch(e -> e.getValue().equals(entry.getValue()))) {
+            values.add(entry);
         }
     }
 
     public void removeValue(String value) {
-        values.remove(value);
+        values.removeIf(e -> e.getValue().equals(value));
     }
 }

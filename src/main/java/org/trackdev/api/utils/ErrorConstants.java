@@ -150,7 +150,14 @@ public final class ErrorConstants {
     public static final String PROFILE_ATTRIBUTE_NAME_ALREADY_EXISTS = "error.profile.attribute.name.exists";
     public static final String PROFILE_ENUM_REF_NOT_FOUND = "error.profile.enum.ref.not.found";
     public static final String PROFILE_ENUM_REF_REQUIRED = "error.profile.enum.ref.required";
-    
+    public static final String PROFILE_ENUM_VALUE_NO_SPACES = "error.profile.enum.value.no.spaces";
+    public static final String PROFILE_ATTRIBUTE_IMMUTABLE_TYPE = "error.profile.attribute.immutable.type";
+    public static final String PROFILE_ATTRIBUTE_IMMUTABLE_TARGET = "error.profile.attribute.immutable.target";
+    public static final String PROFILE_ATTRIBUTE_IMMUTABLE_APPLIED_BY = "error.profile.attribute.immutable.applied.by";
+    public static final String PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF = "error.profile.attribute.immutable.enum.ref";
+    public static final String ATTRIBUTE_VALUE_BELOW_MIN = "error.attribute.value.below.min";
+    public static final String ATTRIBUTE_VALUE_ABOVE_MAX = "error.attribute.value.above.max";
+
     // Backlog movement rules
     public static final String TASK_BEGUN_CANNOT_MOVE_TO_BACKLOG = "error.task.begun.cannot.move.to.backlog";
     public static final String USER_STORY_SUBTASKS_NOT_TODO = "error.userstory.subtasks.not.todo";
