@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.trackdev.api.entity.AttributeAppliedBy;
 import org.trackdev.api.entity.AttributeTarget;
 import org.trackdev.api.entity.AttributeType;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * Request model for creating or updating a profile
  */
 public class ProfileRequest {
-    
+
     @NotBlank(message = "Name is required")
     @Size(min = 1, max = 100, message = "Name must be between 1 and 100 characters")
     public String name;
@@ -27,6 +28,13 @@ public class ProfileRequest {
     @Valid
     public List<AttributeRequest> attributes;
 
+    public static class EnumValueRequest {
+        @NotBlank(message = "Enum value is required")
+        public String value;
+
+        public String description;
+    }
+
     public static class EnumRequest {
         /**
          * ID of existing enum (null for new enums)
@@ -37,7 +45,8 @@ public class ProfileRequest {
         @Size(min = 1, max = 50, message = "Enum name must be between 1 and 50 characters")
         public String name;
 
-        public List<String> values;
+        @Valid
+        public List<EnumValueRequest> values;
     }
 
     public static class AttributeRequest {
@@ -57,6 +66,12 @@ public class ProfileRequest {
         public AttributeTarget target;
 
         /**
+         * Who can give values for this attribute (STUDENT or PROFESSOR).
+         * Defaults to PROFESSOR if not specified.
+         */
+        public AttributeAppliedBy appliedBy;
+
+        /**
          * Reference to enum by name (required when type is ENUM)
          */
         public String enumRefName;
@@ -66,5 +81,15 @@ public class ProfileRequest {
          * For INTEGER/FLOAT types, this is used as fallback in reports.
          */
         public String defaultValue;
+
+        /**
+         * Minimum value for INTEGER/FLOAT types.
+         */
+        public String minValue;
+
+        /**
+         * Maximum value for INTEGER/FLOAT types.
+         */
+        public String maxValue;
     }
 }
