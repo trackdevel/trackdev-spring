@@ -333,7 +333,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return profileMapper.attributesToDTO(attributes);
     }
 
-    @Operation(summary = "Set attribute value for a task", description = "Set or update an attribute value for a task (PROFESSOR only)")
+    @Operation(summary = "Set attribute value for a task", description = "Set or update an attribute value for a task. Authorization depends on the attribute's appliedBy field.")
     @PutMapping(path = "/{taskId}/attributes/{attributeId}")
     public TaskAttributeValueDTO setTaskAttributeValue(
             Principal principal,
@@ -345,7 +345,7 @@ public class TaskController extends CrudController<Task, TaskService> {
         return taskAttributeValueMapper.toDTO(value);
     }
 
-    @Operation(summary = "Delete attribute value from a task", description = "Remove an attribute value from a task (PROFESSOR only)")
+    @Operation(summary = "Delete attribute value from a task", description = "Remove an attribute value from a task. Authorization depends on the attribute's appliedBy field.")
     @DeleteMapping(path = "/{taskId}/attributes/{attributeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTaskAttributeValue(
