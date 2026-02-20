@@ -19,7 +19,7 @@ public class ProfileAttributeDTO {
     private AttributeAppliedBy appliedBy;
     private Long enumRefId;
     private String enumRefName;
-    private List<String> enumValues;
+    private List<EnumValueEntryDTO> enumValues;
     private String defaultValue;
     private String minValue;
     private String maxValue;
