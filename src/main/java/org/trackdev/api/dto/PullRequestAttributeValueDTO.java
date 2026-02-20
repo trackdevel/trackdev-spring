@@ -16,5 +16,5 @@ public class PullRequestAttributeValueDTO {
     private AttributeType attributeType;
     private AttributeAppliedBy attributeAppliedBy;
     private String value;
-    private String[] enumValues;
+    private EnumValueEntryDTO[] enumValues;
 }
