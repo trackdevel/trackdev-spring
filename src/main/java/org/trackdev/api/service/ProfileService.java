@@ -7,12 +7,11 @@ import org.trackdev.api.controller.exceptions.EntityNotFound;
 import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.entity.*;
 import org.trackdev.api.model.ProfileRequest;
-import org.trackdev.api.repository.ProfileAttributeRepository;
-import org.trackdev.api.repository.ProfileEnumRepository;
-import org.trackdev.api.repository.ProfileRepository;
+import org.trackdev.api.repository.*;
 import org.trackdev.api.utils.ErrorConstants;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> {
@@ -28,6 +27,15 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
     @Autowired
     private ProfileAttributeRepository attributeRepository;
+
+    @Autowired
+    private TaskAttributeValueRepository taskAttributeValueRepository;
+
+    @Autowired
+    private StudentAttributeValueRepository studentAttributeValueRepository;
+
+    @Autowired
+    private PullRequestAttributeValueRepository pullRequestAttributeValueRepository;
 
     public Profile getProfile(Long id) {
         return repo.findById(id)
@@ -116,15 +124,41 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
         repo.delete(profile);
     }
 
+    /**
+     * Check if a profile attribute has any instantiated values across all value types.
+     */
+    private boolean attributeHasValues(Long attributeId) {
+        return taskAttributeValueRepository.existsByAttributeId(attributeId)
+                || studentAttributeValueRepository.existsByAttributeId(attributeId)
+                || pullRequestAttributeValueRepository.existsByAttributeId(attributeId);
+    }
+
+    /**
+     * Validate that enum values contain no spaces.
+     */
+    private void validateEnumValues(List<ProfileRequest.EnumValueRequest> values) {
+        if (values == null) return;
+        for (ProfileRequest.EnumValueRequest entry : values) {
+            if (entry.value != null && entry.value.contains(" ")) {
+                throw new ServiceException(ErrorConstants.PROFILE_ENUM_VALUE_NO_SPACES);
+            }
+        }
+    }
+
     private void addEnumToProfile(Profile profile, ProfileRequest.EnumRequest enumRequest) {
         // Check for duplicate enum name
         if (enumRepository.existsByNameAndProfileId(enumRequest.name, profile.getId())) {
             throw new ServiceException(ErrorConstants.PROFILE_ENUM_NAME_ALREADY_EXISTS);
         }
 
+        // Validate no spaces in enum values
+        validateEnumValues(enumRequest.values);
+
         ProfileEnum profileEnum = new ProfileEnum(enumRequest.name, profile);
         if (enumRequest.values != null) {
-            profileEnum.setValues(new ArrayList<>(enumRequest.values));
+            profileEnum.setValues(enumRequest.values.stream()
+                    .map(v -> new EnumValueEntry(v.value, v.description))
+                    .collect(Collectors.toCollection(ArrayList::new)));
         }
         profile.addEnum(profileEnum);
     }
@@ -151,8 +185,15 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             attribute.setEnumRef(enumRef);
         }
 
+        // Set applied by
+        attribute.setAppliedBy(attrRequest.appliedBy != null ? attrRequest.appliedBy : AttributeAppliedBy.PROFESSOR);
+
         // Set default value if provided
         attribute.setDefaultValue(attrRequest.defaultValue);
+
+        // Set min/max values
+        attribute.setMinValue(attrRequest.minValue);
+        attribute.setMaxValue(attrRequest.maxValue);
 
         profile.addAttribute(attribute);
     }
@@ -173,6 +214,9 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
         Set<Long> requestedIds = new HashSet<>();
         for (ProfileRequest.EnumRequest enumRequest : enumRequests) {
+            // Validate no spaces in enum values
+            validateEnumValues(enumRequest.values);
+
             if (enumRequest.id != null) {
                 requestedIds.add(enumRequest.id);
                 // Update existing enum
@@ -181,7 +225,11 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         .findFirst()
                         .orElseThrow(() -> new EntityNotFound(ErrorConstants.PROFILE_ENUM_REF_NOT_FOUND));
                 existing.setName(enumRequest.name);
-                existing.setValues(enumRequest.values != null ? new ArrayList<>(enumRequest.values) : new ArrayList<>());
+                existing.setValues(enumRequest.values != null
+                        ? enumRequest.values.stream()
+                            .map(v -> new EnumValueEntry(v.value, v.description))
+                            .collect(Collectors.toCollection(ArrayList::new))
+                        : new ArrayList<>());
             } else {
                 // Add new enum
                 addEnumToProfile(profile, enumRequest);
@@ -208,22 +256,52 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         .filter(a -> a.getId().equals(attrRequest.id))
                         .findFirst()
                         .orElseThrow(() -> new EntityNotFound(ErrorConstants.ENTITY_NOT_EXIST));
-                existing.setName(attrRequest.name);
-                existing.setType(attrRequest.type);
-                existing.setTarget(attrRequest.target);
-                
-                if (attrRequest.type == AttributeType.ENUM) {
-                    if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
-                        throw new ServiceException(ErrorConstants.PROFILE_ENUM_REF_REQUIRED);
+
+                // Check immutability: if attribute has values, type/target/appliedBy/enumRef cannot change
+                boolean hasValues = attributeHasValues(attrRequest.id);
+                if (hasValues) {
+                    if (existing.getType() != attrRequest.type) {
+                        throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_TYPE);
                     }
-                    ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
-                    existing.setEnumRef(enumRef);
-                } else {
-                    existing.setEnumRef(null);
+                    if (existing.getTarget() != attrRequest.target) {
+                        throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_TARGET);
+                    }
+                    AttributeAppliedBy requestedAppliedBy = attrRequest.appliedBy != null ? attrRequest.appliedBy : existing.getAppliedBy();
+                    if (existing.getAppliedBy() != requestedAppliedBy) {
+                        throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_APPLIED_BY);
+                    }
+                    if (existing.getType() == AttributeType.ENUM) {
+                        String existingEnumName = existing.getEnumRef() != null ? existing.getEnumRef().getName() : null;
+                        if (!Objects.equals(existingEnumName, attrRequest.enumRefName)) {
+                            throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF);
+                        }
+                    }
                 }
-                
-                // Update default value
+
+                // Update allowed fields (always allowed)
+                existing.setName(attrRequest.name);
                 existing.setDefaultValue(attrRequest.defaultValue);
+                existing.setMinValue(attrRequest.minValue);
+                existing.setMaxValue(attrRequest.maxValue);
+
+                // Update immutable fields only if no values exist
+                if (!hasValues) {
+                    existing.setType(attrRequest.type);
+                    existing.setTarget(attrRequest.target);
+                    if (attrRequest.appliedBy != null) {
+                        existing.setAppliedBy(attrRequest.appliedBy);
+                    }
+
+                    if (attrRequest.type == AttributeType.ENUM) {
+                        if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
+                            throw new ServiceException(ErrorConstants.PROFILE_ENUM_REF_REQUIRED);
+                        }
+                        ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
+                        existing.setEnumRef(enumRef);
+                    } else {
+                        existing.setEnumRef(null);
+                    }
+                }
             } else {
                 // Add new attribute
                 addAttributeToProfile(profile, attrRequest);
