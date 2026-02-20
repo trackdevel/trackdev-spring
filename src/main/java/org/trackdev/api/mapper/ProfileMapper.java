@@ -4,10 +4,12 @@ import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.trackdev.api.dto.EnumValueEntryDTO;
 import org.trackdev.api.dto.ProfileAttributeDTO;
 import org.trackdev.api.dto.ProfileBasicDTO;
 import org.trackdev.api.dto.ProfileCompleteDTO;
 import org.trackdev.api.dto.ProfileEnumDTO;
+import org.trackdev.api.entity.EnumValueEntry;
 import org.trackdev.api.entity.Profile;
 import org.trackdev.api.entity.ProfileAttribute;
 import org.trackdev.api.entity.ProfileEnum;
@@ -30,11 +32,19 @@ public interface ProfileMapper {
     List<ProfileBasicDTO> toBasicDTOList(List<Profile> profiles);
 
     @Named("enumToDTO")
+    @Mapping(target = "values", source = "values", qualifiedByName = "enumValuesToDTO")
     ProfileEnumDTO enumToDTO(ProfileEnum profileEnum);
 
     @Named("enumsToDTO")
     @IterableMapping(qualifiedByName = "enumToDTO")
     List<ProfileEnumDTO> enumsToDTO(List<ProfileEnum> enums);
+
+    @Named("enumValueEntryToDTO")
+    EnumValueEntryDTO enumValueEntryToDTO(EnumValueEntry entry);
+
+    @Named("enumValuesToDTO")
+    @IterableMapping(qualifiedByName = "enumValueEntryToDTO")
+    List<EnumValueEntryDTO> enumValuesToDTO(List<EnumValueEntry> entries);
 
     @Named("attributeToDTO")
     @Mapping(target = "enumRefName", source = "enumRef.name")
@@ -48,7 +58,7 @@ public interface ProfileMapper {
     @Named("getEnumValuesFromAttribute")
     default List<String> getEnumValuesFromAttribute(ProfileAttribute attribute) {
         if (attribute.getEnumRef() != null) {
-            return attribute.getEnumRef().getValues();
+            return attribute.getEnumRef().getValueStrings();
         }
         return Collections.emptyList();
     }
