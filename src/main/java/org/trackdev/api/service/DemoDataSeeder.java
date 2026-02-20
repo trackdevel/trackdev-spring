@@ -507,7 +507,8 @@ public class DemoDataSeeder {
         // ============================================
         
         Profile demoProfile = createDemoProfile(professorPDS);
-        logger.info("Created demo profile '{}' for professor {}", demoProfile.getName(), professorPDS.getEmail());
+        courseService.applyProfile(coursePDS.getId(), demoProfile.getId(), professorPDS.getId());
+        logger.info("Created demo profile '{}' and applied to course '{}'", demoProfile.getName(), coursePDS.getSubject().getName());
 
         // ============================================
         // 14. CREATE PERMISSION TEST DATA
@@ -1099,15 +1100,31 @@ public class DemoDataSeeder {
 
         // Create enums
         ProfileEnum skillLevelEnum = new ProfileEnum("Skill Level", profile);
-        skillLevelEnum.setValues(Arrays.asList(new EnumValueEntry("Beginner"), new EnumValueEntry("Intermediate"), new EnumValueEntry("Advanced"), new EnumValueEntry("Expert")));
+        skillLevelEnum.setValues(Arrays.asList(
+            new EnumValueEntry("Beginner", "Little or no prior experience with the technology"),
+            new EnumValueEntry("Intermediate", "Can work independently on standard tasks"),
+            new EnumValueEntry("Advanced", "Deep understanding, can solve complex problems"),
+            new EnumValueEntry("Expert", "Mastery level, can mentor others and design architectures")
+        ));
         profile.addEnum(skillLevelEnum);
 
         ProfileEnum priorityEnum = new ProfileEnum("Priority", profile);
-        priorityEnum.setValues(Arrays.asList(new EnumValueEntry("Low"), new EnumValueEntry("Medium"), new EnumValueEntry("High"), new EnumValueEntry("Critical")));
+        priorityEnum.setValues(Arrays.asList(
+            new EnumValueEntry("Low", "Nice to have, can be deferred to a future sprint"),
+            new EnumValueEntry("Medium", "Should be completed within the current iteration"),
+            new EnumValueEntry("High", "Important for the sprint goal, prioritize accordingly"),
+            new EnumValueEntry("Critical", "Blocking other work, must be resolved immediately")
+        ));
         profile.addEnum(priorityEnum);
 
         ProfileEnum reviewStatusEnum = new ProfileEnum("Review Status", profile);
-        reviewStatusEnum.setValues(Arrays.asList(new EnumValueEntry("Pending"), new EnumValueEntry("InReview"), new EnumValueEntry("Approved"), new EnumValueEntry("Rejected"), new EnumValueEntry("NeedsChanges")));
+        reviewStatusEnum.setValues(Arrays.asList(
+            new EnumValueEntry("Pending", "Awaiting initial review from a reviewer"),
+            new EnumValueEntry("InReview", "Currently being reviewed by a team member"),
+            new EnumValueEntry("Approved", "Review passed, ready to merge"),
+            new EnumValueEntry("Rejected", "Does not meet requirements, needs significant rework"),
+            new EnumValueEntry("NeedsChanges", "Minor issues found, requires small fixes before approval")
+        ));
         profile.addEnum(reviewStatusEnum);
 
         // Save to persist the enums

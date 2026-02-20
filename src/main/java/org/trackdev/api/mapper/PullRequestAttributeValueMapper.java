@@ -4,6 +4,7 @@ import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.trackdev.api.dto.EnumValueEntryDTO;
 import org.trackdev.api.dto.PullRequestAttributeValueDTO;
 import org.trackdev.api.entity.EnumValueEntry;
 import org.trackdev.api.entity.PullRequestAttributeValue;
@@ -23,13 +24,20 @@ public interface PullRequestAttributeValueMapper {
     @IterableMapping(qualifiedByName = "toDTO")
     List<PullRequestAttributeValueDTO> toDTOList(List<PullRequestAttributeValue> entities);
 
-    default String[] getEnumValues(PullRequestAttributeValue entity) {
+    default EnumValueEntryDTO[] getEnumValues(PullRequestAttributeValue entity) {
         if (entity.getAttribute() != null &&
             entity.getAttribute().getEnumRef() != null) {
             return entity.getAttribute().getEnumRef().getValues().stream()
-                    .map(EnumValueEntry::getValue)
-                    .toArray(String[]::new);
+                    .map(this::toEnumValueEntryDTO)
+                    .toArray(EnumValueEntryDTO[]::new);
         }
         return null;
+    }
+
+    default EnumValueEntryDTO toEnumValueEntryDTO(EnumValueEntry entry) {
+        EnumValueEntryDTO dto = new EnumValueEntryDTO();
+        dto.setValue(entry.getValue());
+        dto.setDescription(entry.getDescription());
+        return dto;
     }
 }

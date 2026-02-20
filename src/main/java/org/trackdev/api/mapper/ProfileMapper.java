@@ -56,9 +56,11 @@ public interface ProfileMapper {
     List<ProfileAttributeDTO> attributesToDTO(List<ProfileAttribute> attributes);
 
     @Named("getEnumValuesFromAttribute")
-    default List<String> getEnumValuesFromAttribute(ProfileAttribute attribute) {
+    default List<EnumValueEntryDTO> getEnumValuesFromAttribute(ProfileAttribute attribute) {
         if (attribute.getEnumRef() != null) {
-            return attribute.getEnumRef().getValueStrings();
+            return attribute.getEnumRef().getValues().stream()
+                    .map(this::enumValueEntryToDTO)
+                    .toList();
         }
         return Collections.emptyList();
     }
