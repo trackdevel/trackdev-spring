@@ -1099,15 +1099,15 @@ public class DemoDataSeeder {
 
         // Create enums
         ProfileEnum skillLevelEnum = new ProfileEnum("Skill Level", profile);
-        skillLevelEnum.setValues(Arrays.asList("Beginner", "Intermediate", "Advanced", "Expert"));
+        skillLevelEnum.setValues(Arrays.asList(new EnumValueEntry("Beginner"), new EnumValueEntry("Intermediate"), new EnumValueEntry("Advanced"), new EnumValueEntry("Expert")));
         profile.addEnum(skillLevelEnum);
 
         ProfileEnum priorityEnum = new ProfileEnum("Priority", profile);
-        priorityEnum.setValues(Arrays.asList("Low", "Medium", "High", "Critical"));
+        priorityEnum.setValues(Arrays.asList(new EnumValueEntry("Low"), new EnumValueEntry("Medium"), new EnumValueEntry("High"), new EnumValueEntry("Critical")));
         profile.addEnum(priorityEnum);
 
         ProfileEnum reviewStatusEnum = new ProfileEnum("Review Status", profile);
-        reviewStatusEnum.setValues(Arrays.asList("Pending", "In Review", "Approved", "Rejected", "Needs Changes"));
+        reviewStatusEnum.setValues(Arrays.asList(new EnumValueEntry("Pending"), new EnumValueEntry("InReview"), new EnumValueEntry("Approved"), new EnumValueEntry("Rejected"), new EnumValueEntry("NeedsChanges")));
         profile.addEnum(reviewStatusEnum);
 
         // Save to persist the enums
