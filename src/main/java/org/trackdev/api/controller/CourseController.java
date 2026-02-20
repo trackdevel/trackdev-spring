@@ -16,10 +16,14 @@ import org.trackdev.api.entity.CourseInvite;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Report;
 import org.trackdev.api.entity.User;
+import org.trackdev.api.entity.ProfileAttribute;
+import org.trackdev.api.entity.StudentAttributeValue;
 import org.trackdev.api.mapper.CourseInviteMapper;
 import org.trackdev.api.mapper.CourseMapper;
+import org.trackdev.api.mapper.ProfileMapper;
 import org.trackdev.api.mapper.ProjectMapper;
 import org.trackdev.api.mapper.ReportMapper;
+import org.trackdev.api.mapper.StudentAttributeValueMapper;
 import org.trackdev.api.mapper.UserMapper;
 import org.trackdev.api.service.*;
 import org.trackdev.api.utils.ErrorConstants;
@@ -77,6 +81,15 @@ public class CourseController extends BaseController {
 
     @Autowired
     ReportService reportService;
+
+    @Autowired
+    StudentAttributeValueService studentAttributeValueService;
+
+    @Autowired
+    StudentAttributeValueMapper studentAttributeValueMapper;
+
+    @Autowired
+    ProfileMapper profileMapper;
 
     @Operation(summary = "Get courses", description = "Get all courses for admin/workspace admin, own courses for professor, or enrolled courses for student")
     @GetMapping
@@ -249,6 +262,58 @@ public class CourseController extends BaseController {
         return courseMapper.toCompleteDTO(course);
     }
 
+
+    // ==================== Student Attribute Values ====================
+
+    @Operation(summary = "Get attribute values for a student in a course", description = "Get all attribute values set for a student in this course")
+    @GetMapping(path = "/{courseId}/students/{userId}/attributes")
+    public List<StudentAttributeValueDTO> getStudentAttributeValues(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "userId") String userId) {
+        String requestingUserId = super.getUserId(principal);
+        List<StudentAttributeValue> values = studentAttributeValueService.getStudentAttributeValues(courseId, userId, requestingUserId);
+        return studentAttributeValueMapper.toDTOList(values);
+    }
+
+    @Operation(summary = "Get available student attributes for a course", description = "Get attributes from course profile that can be applied to students")
+    @GetMapping(path = "/{courseId}/student-attributes")
+    public List<ProfileAttributeDTO> getAvailableStudentAttributes(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId) {
+        String requestingUserId = super.getUserId(principal);
+        List<ProfileAttribute> attributes = studentAttributeValueService.getAvailableStudentAttributes(courseId, requestingUserId);
+        return profileMapper.attributesToDTO(attributes);
+    }
+
+    @Operation(summary = "Set attribute value for a student", description = "Set or update an attribute value for a student. Authorization depends on the attribute's appliedBy field.")
+    @PutMapping(path = "/{courseId}/students/{userId}/attributes/{attributeId}")
+    public StudentAttributeValueDTO setStudentAttributeValue(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "userId") String userId,
+            @PathVariable(name = "attributeId") Long attributeId,
+            @RequestBody SetAttributeValueRequest request) {
+        String requestingUserId = super.getUserId(principal);
+        StudentAttributeValue value = studentAttributeValueService.setStudentAttributeValue(courseId, userId, attributeId, request.value, requestingUserId);
+        return studentAttributeValueMapper.toDTO(value);
+    }
+
+    @Operation(summary = "Delete attribute value from a student", description = "Remove an attribute value from a student. Authorization depends on the attribute's appliedBy field.")
+    @DeleteMapping(path = "/{courseId}/students/{userId}/attributes/{attributeId}")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void deleteStudentAttributeValue(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "userId") String userId,
+            @PathVariable(name = "attributeId") Long attributeId) {
+        String requestingUserId = super.getUserId(principal);
+        studentAttributeValueService.deleteStudentAttributeValue(courseId, userId, attributeId, requestingUserId);
+    }
+
+    static class SetAttributeValueRequest {
+        public String value;
+    }
 
     static class NewProject {
         @NotBlank
