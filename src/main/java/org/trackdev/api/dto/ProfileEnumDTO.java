@@ -11,5 +11,5 @@ import java.util.List;
 public class ProfileEnumDTO {
     private Long id;
     private String name;
-    private List<String> values;
+    private List<EnumValueEntryDTO> values;
 }
