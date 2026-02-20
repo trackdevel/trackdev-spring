@@ -1,6 +1,7 @@
 package org.trackdev.api.dto;
 
 import lombok.Data;
+import org.trackdev.api.entity.AttributeAppliedBy;
 import org.trackdev.api.entity.AttributeTarget;
 import org.trackdev.api.entity.AttributeType;
 
@@ -15,8 +16,11 @@ public class ProfileAttributeDTO {
     private String name;
     private AttributeType type;
     private AttributeTarget target;
+    private AttributeAppliedBy appliedBy;
     private Long enumRefId;
     private String enumRefName;
     private List<String> enumValues;
     private String defaultValue;
+    private String minValue;
+    private String maxValue;
 }
