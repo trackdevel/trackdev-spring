@@ -1140,41 +1140,55 @@ public class DemoDataSeeder {
 
         // Create attributes for STUDENT target (one per type)
         ProfileAttribute studentNotes = new ProfileAttribute("Notes", AttributeType.STRING, AttributeTarget.STUDENT, profile);
+        studentNotes.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
         profile.addAttribute(studentNotes);
 
         ProfileAttribute studentSkill = new ProfileAttribute("Technical Skill", AttributeType.ENUM, AttributeTarget.STUDENT, profile);
         studentSkill.setEnumRef(savedSkillLevelEnum);
+        studentSkill.setVisibility(AttributeVisibility.ASSIGNED_STUDENT);
         profile.addAttribute(studentSkill);
 
         ProfileAttribute studentAttendance = new ProfileAttribute("Attendance Count", AttributeType.INTEGER, AttributeTarget.STUDENT, profile);
+        studentAttendance.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
         profile.addAttribute(studentAttendance);
 
         ProfileAttribute studentGrade = new ProfileAttribute("Participation Grade", AttributeType.FLOAT, AttributeTarget.STUDENT, profile);
+        studentGrade.setVisibility(AttributeVisibility.PROJECT_STUDENTS);
         profile.addAttribute(studentGrade);
 
         // Create attributes for TASK target (one per type)
         ProfileAttribute taskDescription = new ProfileAttribute("Technical Notes", AttributeType.STRING, AttributeTarget.TASK, profile);
+        taskDescription.setVisibility(AttributeVisibility.PROJECT_STUDENTS);
+        taskDescription.setAppliedBy(AttributeAppliedBy.STUDENT);
         profile.addAttribute(taskDescription);
 
         ProfileAttribute taskPriority = new ProfileAttribute("Business Priority", AttributeType.ENUM, AttributeTarget.TASK, profile);
         taskPriority.setEnumRef(savedPriorityEnum);
+        taskPriority.setVisibility(AttributeVisibility.PROJECT_STUDENTS);
+        taskPriority.setAppliedBy(AttributeAppliedBy.STUDENT);
         profile.addAttribute(taskPriority);
 
         ProfileAttribute taskComplexity = new ProfileAttribute("Complexity Score", AttributeType.INTEGER, AttributeTarget.TASK, profile);
+        taskComplexity.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
         profile.addAttribute(taskComplexity);
 
         ProfileAttribute taskCodeCoverage = new ProfileAttribute("Code Coverage", AttributeType.FLOAT, AttributeTarget.TASK, profile);
+        taskCodeCoverage.setVisibility(AttributeVisibility.ASSIGNED_STUDENT);
+        taskCodeCoverage.setAppliedBy(AttributeAppliedBy.STUDENT);
         profile.addAttribute(taskCodeCoverage);
 
         // Create attributes for PULL_REQUEST target (one per type)
         ProfileAttribute prReviewNotes = new ProfileAttribute("Review Notes", AttributeType.STRING, AttributeTarget.PULL_REQUEST, profile);
+        prReviewNotes.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
         profile.addAttribute(prReviewNotes);
 
         ProfileAttribute prStatus = new ProfileAttribute("Review Outcome", AttributeType.ENUM, AttributeTarget.PULL_REQUEST, profile);
         prStatus.setEnumRef(savedReviewStatusEnum);
+        prStatus.setVisibility(AttributeVisibility.PROJECT_STUDENTS);
         profile.addAttribute(prStatus);
 
         ProfileAttribute prChangesRequested = new ProfileAttribute("Changes Requested", AttributeType.INTEGER, AttributeTarget.PULL_REQUEST, profile);
+        prChangesRequested.setVisibility(AttributeVisibility.ASSIGNED_STUDENT);
         profile.addAttribute(prChangesRequested);
 
         ProfileAttribute prQualityScore = new ProfileAttribute("Quality Score", AttributeType.FLOAT, AttributeTarget.PULL_REQUEST, profile);
