@@ -7,5 +7,6 @@ public enum AttributeType {
     STRING,
     ENUM,
     INTEGER,
-    FLOAT
+    FLOAT,
+    LIST
 }
