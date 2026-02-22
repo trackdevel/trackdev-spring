@@ -5,11 +5,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.trackdev.api.dto.EnumValueEntryDTO;
+import org.trackdev.api.dto.ListItemDTO;
+import org.trackdev.api.dto.StudentAttributeListValueDTO;
 import org.trackdev.api.dto.StudentAttributeValueDTO;
 import org.trackdev.api.entity.EnumValueEntry;
+import org.trackdev.api.entity.ProfileAttribute;
+import org.trackdev.api.entity.StudentAttributeListValue;
 import org.trackdev.api.entity.StudentAttributeValue;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface StudentAttributeValueMapper {
@@ -38,6 +43,30 @@ public interface StudentAttributeValueMapper {
         EnumValueEntryDTO dto = new EnumValueEntryDTO();
         dto.setValue(entry.getValue());
         dto.setDescription(entry.getDescription());
+        return dto;
+    }
+
+    // ==================== LIST value mapping ====================
+
+    default ListItemDTO toListItemDTO(StudentAttributeListValue entity) {
+        ListItemDTO dto = new ListItemDTO();
+        dto.setOrderIndex(entity.getOrderIndex());
+        dto.setEnumValue(entity.getEnumValue());
+        dto.setStringValue(entity.getStringValue());
+        return dto;
+    }
+
+    default StudentAttributeListValueDTO toListValueDTO(ProfileAttribute attribute, List<StudentAttributeListValue> items) {
+        StudentAttributeListValueDTO dto = new StudentAttributeListValueDTO();
+        dto.setAttributeId(attribute.getId());
+        dto.setAttributeName(attribute.getName());
+        dto.setAttributeType("LIST");
+        dto.setItems(items.stream().map(this::toListItemDTO).collect(Collectors.toList()));
+        if (attribute.getEnumRef() != null) {
+            dto.setEnumValues(attribute.getEnumRef().getValues().stream()
+                    .map(this::toEnumValueEntryDTO)
+                    .toArray(EnumValueEntryDTO[]::new));
+        }
         return dto;
     }
 }
