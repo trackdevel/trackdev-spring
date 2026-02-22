@@ -61,6 +61,7 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
 
     /**
      * Get all attribute values for a pull request.
+     * Filters by attribute visibility based on user role.
      */
     public List<PullRequestAttributeValue> getPullRequestAttributeValues(String prId, String userId) {
         PullRequest pr = pullRequestService.get(prId);
@@ -72,13 +73,23 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
             return Collections.emptyList();
         }
 
+        User user = userService.get(userId);
+        boolean isAuthor = pr.getAuthor() != null && pr.getAuthor().getId().equals(userId);
+
         return repo().findByPullRequestId(prId).stream()
                 .filter(v -> v.getAttribute().getProfileId().equals(profile.getId()))
+                .filter(v -> {
+                    if (user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN)) {
+                        return true;
+                    }
+                    return isAttributeVisibleToStudent(v.getAttribute(), isAuthor);
+                })
                 .collect(Collectors.toList());
     }
 
     /**
      * Get available PR-targeted attributes from the course profile.
+     * Filters by visibility based on user role.
      */
     public List<ProfileAttribute> getAvailablePullRequestAttributes(String prId, String userId) {
         PullRequest pr = pullRequestService.get(prId);
@@ -90,9 +101,26 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
             return Collections.emptyList();
         }
 
+        User user = userService.get(userId);
+        boolean isAuthor = pr.getAuthor() != null && pr.getAuthor().getId().equals(userId);
+
         return profile.getAttributes().stream()
                 .filter(attr -> attr.getTarget() == AttributeTarget.PULL_REQUEST)
+                .filter(attr -> {
+                    if (user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN)) {
+                        return true;
+                    }
+                    return isAttributeVisibleToStudent(attr, isAuthor);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private boolean isAttributeVisibleToStudent(ProfileAttribute attr, boolean isAuthor) {
+        return switch (attr.getVisibility()) {
+            case PROFESSOR_ONLY -> false;
+            case PROJECT_STUDENTS -> true;
+            case ASSIGNED_STUDENT -> isAuthor;
+        };
     }
 
     /**
@@ -152,19 +180,9 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
     }
 
     private void checkAuthorization(ProfileAttribute attribute, User user, PullRequest pr) {
-        if (attribute.getAppliedBy() == AttributeAppliedBy.PROFESSOR) {
-            if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
-                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
-            }
-        } else {
-            // STUDENT: the PR author or professor/admin
-            if (user.isUserType(UserType.STUDENT)) {
-                if (pr.getAuthor() == null || !pr.getAuthor().getId().equals(user.getId())) {
-                    throw new ServiceException(ErrorConstants.UNAUTHORIZED);
-                }
-            } else if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
-                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
-            }
+        // Pull request attributes can only be edited by PROFESSOR or ADMIN
+        if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
         }
     }
 

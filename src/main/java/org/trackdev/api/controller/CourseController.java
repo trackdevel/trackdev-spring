@@ -17,6 +17,7 @@ import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Report;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.entity.ProfileAttribute;
+import org.trackdev.api.entity.StudentAttributeListValue;
 import org.trackdev.api.entity.StudentAttributeValue;
 import org.trackdev.api.mapper.CourseInviteMapper;
 import org.trackdev.api.mapper.CourseMapper;
@@ -286,8 +287,9 @@ public class CourseController extends BaseController {
         return profileMapper.attributesToDTO(attributes);
     }
 
-    @Operation(summary = "Set attribute value for a student", description = "Set or update an attribute value for a student. Authorization depends on the attribute's appliedBy field.")
+    @Operation(summary = "Set attribute value for a student", description = "Set or update an attribute value for a student (professors only).")
     @PutMapping(path = "/{courseId}/students/{userId}/attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public StudentAttributeValueDTO setStudentAttributeValue(
             Principal principal,
             @PathVariable(name = "courseId") Long courseId,
@@ -299,8 +301,9 @@ public class CourseController extends BaseController {
         return studentAttributeValueMapper.toDTO(value);
     }
 
-    @Operation(summary = "Delete attribute value from a student", description = "Remove an attribute value from a student. Authorization depends on the attribute's appliedBy field.")
+    @Operation(summary = "Delete attribute value from a student", description = "Remove an attribute value from a student (professors only).")
     @DeleteMapping(path = "/{courseId}/students/{userId}/attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
     public void deleteStudentAttributeValue(
             Principal principal,
@@ -311,8 +314,70 @@ public class CourseController extends BaseController {
         studentAttributeValueService.deleteStudentAttributeValue(courseId, userId, attributeId, requestingUserId);
     }
 
+    // ==================== Student LIST Attribute Values ====================
+
+    @Operation(summary = "Get list attribute values for a student", description = "Get all items for a LIST-type attribute for a student (professors only)")
+    @GetMapping(path = "/{courseId}/students/{userId}/list-attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public StudentAttributeListValueDTO getStudentListAttributeValues(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "userId") String userId,
+            @PathVariable(name = "attributeId") Long attributeId) {
+        String requestingUserId = super.getUserId(principal);
+        ProfileAttribute attribute = studentAttributeValueService.getListAttribute(courseId, attributeId, requestingUserId);
+        List<StudentAttributeListValue> items = studentAttributeValueService.getStudentListAttributeValues(courseId, userId, attributeId, requestingUserId);
+        return studentAttributeValueMapper.toListValueDTO(attribute, items);
+    }
+
+    @Operation(summary = "Set list attribute values for a student", description = "Replace all items for a LIST-type attribute for a student (professors only)")
+    @PutMapping(path = "/{courseId}/students/{userId}/list-attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public StudentAttributeListValueDTO setStudentListAttributeValues(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "userId") String userId,
+            @PathVariable(name = "attributeId") Long attributeId,
+            @RequestBody SetListAttributeValuesRequest request) {
+        String requestingUserId = super.getUserId(principal);
+        List<StudentAttributeValueService.ListItemRequest> items = null;
+        if (request.items != null) {
+            items = request.items.stream().map(item -> {
+                StudentAttributeValueService.ListItemRequest r = new StudentAttributeValueService.ListItemRequest();
+                r.enumValue = item.enumValue;
+                r.stringValue = item.stringValue;
+                return r;
+            }).collect(Collectors.toList());
+        }
+        List<StudentAttributeListValue> savedItems = studentAttributeValueService.setStudentListAttributeValues(courseId, userId, attributeId, items, requestingUserId);
+        ProfileAttribute attribute = studentAttributeValueService.getListAttribute(courseId, attributeId, requestingUserId);
+        return studentAttributeValueMapper.toListValueDTO(attribute, savedItems);
+    }
+
+    @Operation(summary = "Delete list attribute values for a student", description = "Remove all items for a LIST-type attribute from a student (professors only)")
+    @DeleteMapping(path = "/{courseId}/students/{userId}/list-attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void deleteStudentListAttributeValues(
+            Principal principal,
+            @PathVariable(name = "courseId") Long courseId,
+            @PathVariable(name = "userId") String userId,
+            @PathVariable(name = "attributeId") Long attributeId) {
+        String requestingUserId = super.getUserId(principal);
+        studentAttributeValueService.deleteStudentListAttributeValues(courseId, userId, attributeId, requestingUserId);
+    }
+
     static class SetAttributeValueRequest {
         public String value;
+    }
+
+    static class SetListAttributeValuesRequest {
+        public List<ListItemInput> items;
+
+        static class ListItemInput {
+            public String enumValue;
+            public String stringValue;
+        }
     }
 
     static class NewProject {

@@ -933,35 +933,61 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
     /**
      * Get all attribute values for a task.
-     * Also returns attributes from the course profile that don't have values yet.
+     * Filters by attribute visibility based on user role.
      */
     public List<TaskAttributeValue> getTaskAttributeValues(Long taskId, String userId) {
         Task task = get(taskId);
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
-        return taskAttributeValueService.findByTaskId(taskId);
+
+        User user = userService.get(userId);
+        List<TaskAttributeValue> values = taskAttributeValueService.findByTaskId(taskId);
+
+        // Professors and admins see all
+        if (user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN)) {
+            return values;
+        }
+
+        boolean isAssignee = task.getAssignee() != null && task.getAssignee().getId().equals(userId);
+        return values.stream()
+                .filter(v -> isAttributeVisibleToStudent(v.getAttribute(), isAssignee))
+                .collect(Collectors.toList());
     }
 
     /**
      * Get available attributes for a task from the course profile.
-     * Only returns attributes with target = TASK.
+     * Only returns attributes with target = TASK, filtered by visibility.
      */
     public List<ProfileAttribute> getAvailableTaskAttributes(Long taskId, String userId) {
         Task task = get(taskId);
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
-        // Get the course profile
+
         Course course = task.getProject().getCourse();
         Profile profile = course.getProfile();
-        
+
         if (profile == null) {
             return Collections.emptyList();
         }
-        
-        // Return only attributes with target = TASK
+
+        User user = userService.get(userId);
+        boolean isAssignee = task.getAssignee() != null && task.getAssignee().getId().equals(userId);
+
         return profile.getAttributes().stream()
                 .filter(attr -> attr.getTarget() == AttributeTarget.TASK)
+                .filter(attr -> {
+                    if (user.isUserType(UserType.PROFESSOR) || user.isUserType(UserType.ADMIN)) {
+                        return true;
+                    }
+                    return isAttributeVisibleToStudent(attr, isAssignee);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private boolean isAttributeVisibleToStudent(ProfileAttribute attr, boolean isAssignee) {
+        return switch (attr.getVisibility()) {
+            case PROFESSOR_ONLY -> false;
+            case PROJECT_STUDENTS -> true;
+            case ASSIGNED_STUDENT -> isAssignee;
+        };
     }
 
     /**

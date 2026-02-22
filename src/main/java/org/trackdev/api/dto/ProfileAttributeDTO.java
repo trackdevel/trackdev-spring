@@ -4,6 +4,7 @@ import lombok.Data;
 import org.trackdev.api.entity.AttributeAppliedBy;
 import org.trackdev.api.entity.AttributeTarget;
 import org.trackdev.api.entity.AttributeType;
+import org.trackdev.api.entity.AttributeVisibility;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class ProfileAttributeDTO {
     private AttributeType type;
     private AttributeTarget target;
     private AttributeAppliedBy appliedBy;
+    private AttributeVisibility visibility;
     private Long enumRefId;
     private String enumRefName;
     private List<EnumValueEntryDTO> enumValues;

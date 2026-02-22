@@ -35,6 +35,11 @@ public class ProfileAttribute extends BaseEntityLong {
     private AttributeAppliedBy appliedBy = AttributeAppliedBy.PROFESSOR;
 
     @NonNull
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private AttributeVisibility visibility = AttributeVisibility.PROFESSOR_ONLY;
+
+    @NonNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id")
     private Profile profile;
@@ -111,6 +116,14 @@ public class ProfileAttribute extends BaseEntityLong {
 
     public void setAppliedBy(AttributeAppliedBy appliedBy) {
         this.appliedBy = appliedBy;
+    }
+
+    public AttributeVisibility getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(AttributeVisibility visibility) {
+        this.visibility = visibility;
     }
 
     public Profile getProfile() {
