@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.dto.PRDetailedAnalysisDTO;
 import org.trackdev.api.dto.PRFileDetailDTO;
@@ -124,9 +125,10 @@ public class PullRequestController extends BaseController {
         return profileMapper.attributesToDTO(attributes);
     }
 
-    @Operation(summary = "Set attribute value for a pull request", description = "Set or update an attribute value for a pull request. Authorization depends on the attribute's appliedBy field.",
+    @Operation(summary = "Set attribute value for a pull request", description = "Set or update an attribute value for a pull request (professors only).",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @PutMapping("/{prId}/attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public PullRequestAttributeValueDTO setPullRequestAttributeValue(
             @PathVariable(name = "prId") String prId,
             @PathVariable(name = "attributeId") Long attributeId,
@@ -137,9 +139,10 @@ public class PullRequestController extends BaseController {
         return pullRequestAttributeValueMapper.toDTO(value);
     }
 
-    @Operation(summary = "Delete attribute value from a pull request", description = "Remove an attribute value from a pull request. Authorization depends on the attribute's appliedBy field.",
+    @Operation(summary = "Delete attribute value from a pull request", description = "Remove an attribute value from a pull request (professors only).",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @DeleteMapping("/{prId}/attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePullRequestAttributeValue(
             @PathVariable(name = "prId") String prId,
