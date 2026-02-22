@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import org.trackdev.api.entity.AttributeAppliedBy;
 import org.trackdev.api.entity.AttributeTarget;
 import org.trackdev.api.entity.AttributeType;
+import org.trackdev.api.entity.AttributeVisibility;
 
 import java.util.List;
 
@@ -70,6 +71,12 @@ public class ProfileRequest {
          * Defaults to PROFESSOR if not specified.
          */
         public AttributeAppliedBy appliedBy;
+
+        /**
+         * Who can view/read values of this attribute.
+         * Defaults to PROFESSOR_ONLY if not specified.
+         */
+        public AttributeVisibility visibility;
 
         /**
          * Reference to enum by name (required when type is ENUM)
