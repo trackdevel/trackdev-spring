@@ -37,6 +37,9 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
     @Autowired
     private PullRequestAttributeValueRepository pullRequestAttributeValueRepository;
 
+    @Autowired
+    private StudentAttributeListValueRepository studentAttributeListValueRepository;
+
     public Profile getProfile(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new EntityNotFound(ErrorConstants.PROFILE_NOT_EXIST));
@@ -130,7 +133,8 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
     private boolean attributeHasValues(Long attributeId) {
         return taskAttributeValueRepository.existsByAttributeId(attributeId)
                 || studentAttributeValueRepository.existsByAttributeId(attributeId)
-                || pullRequestAttributeValueRepository.existsByAttributeId(attributeId);
+                || pullRequestAttributeValueRepository.existsByAttributeId(attributeId)
+                || studentAttributeListValueRepository.existsByAttributeId(attributeId);
     }
 
     /**
@@ -176,6 +180,25 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                 profile
         );
 
+        // Handle LIST type constraints
+        if (attrRequest.type == AttributeType.LIST) {
+            if (attrRequest.target != AttributeTarget.STUDENT) {
+                throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_MUST_TARGET_STUDENT);
+            }
+            attribute.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+            attribute.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
+            // LIST can optionally have an enumRef for ENUM+STRING pairs
+            if (attrRequest.enumRefName != null && !attrRequest.enumRefName.isBlank()) {
+                ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
+                attribute.setEnumRef(enumRef);
+            }
+            attribute.setDefaultValue(null);
+            attribute.setMinValue(null);
+            attribute.setMaxValue(null);
+            profile.addAttribute(attribute);
+            return;
+        }
+
         // Handle enum reference
         if (attrRequest.type == AttributeType.ENUM) {
             if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
@@ -185,8 +208,15 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             attribute.setEnumRef(enumRef);
         }
 
-        // Set applied by
-        attribute.setAppliedBy(attrRequest.appliedBy != null ? attrRequest.appliedBy : AttributeAppliedBy.PROFESSOR);
+        // Set applied by: only TASK-targeted attributes can have STUDENT appliedBy
+        if (attrRequest.target != AttributeTarget.TASK) {
+            attribute.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+        } else {
+            attribute.setAppliedBy(attrRequest.appliedBy != null ? attrRequest.appliedBy : AttributeAppliedBy.PROFESSOR);
+        }
+
+        // Set visibility
+        attribute.setVisibility(attrRequest.visibility != null ? attrRequest.visibility : AttributeVisibility.PROFESSOR_ONLY);
 
         // Set default value if provided
         attribute.setDefaultValue(attrRequest.defaultValue);
@@ -270,7 +300,7 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                     if (existing.getAppliedBy() != requestedAppliedBy) {
                         throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_APPLIED_BY);
                     }
-                    if (existing.getType() == AttributeType.ENUM) {
+                    if (existing.getType() == AttributeType.ENUM || existing.getType() == AttributeType.LIST) {
                         String existingEnumName = existing.getEnumRef() != null ? existing.getEnumRef().getName() : null;
                         if (!Objects.equals(existingEnumName, attrRequest.enumRefName)) {
                             throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF);
@@ -280,26 +310,59 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
                 // Update allowed fields (always allowed)
                 existing.setName(attrRequest.name);
-                existing.setDefaultValue(attrRequest.defaultValue);
-                existing.setMinValue(attrRequest.minValue);
-                existing.setMaxValue(attrRequest.maxValue);
+                // LIST attributes: force PROFESSOR_ONLY visibility, ignore other mutable fields
+                if (existing.getType() == AttributeType.LIST || attrRequest.type == AttributeType.LIST) {
+                    existing.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
+                    existing.setDefaultValue(null);
+                    existing.setMinValue(null);
+                    existing.setMaxValue(null);
+                } else {
+                    existing.setDefaultValue(attrRequest.defaultValue);
+                    existing.setMinValue(attrRequest.minValue);
+                    existing.setMaxValue(attrRequest.maxValue);
+                    if (attrRequest.visibility != null) {
+                        existing.setVisibility(attrRequest.visibility);
+                    }
+                }
 
                 // Update immutable fields only if no values exist
                 if (!hasValues) {
                     existing.setType(attrRequest.type);
                     existing.setTarget(attrRequest.target);
-                    if (attrRequest.appliedBy != null) {
-                        existing.setAppliedBy(attrRequest.appliedBy);
-                    }
 
-                    if (attrRequest.type == AttributeType.ENUM) {
-                        if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
-                            throw new ServiceException(ErrorConstants.PROFILE_ENUM_REF_REQUIRED);
+                    // LIST type enforcement
+                    if (attrRequest.type == AttributeType.LIST) {
+                        if (attrRequest.target != AttributeTarget.STUDENT) {
+                            throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_MUST_TARGET_STUDENT);
                         }
-                        ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
-                        existing.setEnumRef(enumRef);
+                        existing.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+                        existing.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
+                        if (attrRequest.enumRefName != null && !attrRequest.enumRefName.isBlank()) {
+                            ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
+                            existing.setEnumRef(enumRef);
+                        } else {
+                            existing.setEnumRef(null);
+                        }
+                        existing.setDefaultValue(null);
+                        existing.setMinValue(null);
+                        existing.setMaxValue(null);
                     } else {
-                        existing.setEnumRef(null);
+                        // Only TASK-targeted attributes can have STUDENT appliedBy
+                        if (attrRequest.target != AttributeTarget.TASK) {
+                            existing.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+                        } else if (attrRequest.appliedBy != null) {
+                            existing.setAppliedBy(attrRequest.appliedBy);
+                        }
+
+                        if (attrRequest.type == AttributeType.ENUM) {
+                            if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
+                                throw new ServiceException(ErrorConstants.PROFILE_ENUM_REF_REQUIRED);
+                            }
+                            ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
+                            existing.setEnumRef(enumRef);
+                        } else {
+                            existing.setEnumRef(null);
+                        }
                     }
                 }
             } else {
