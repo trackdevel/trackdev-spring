@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
-import org.trackdev.api.configuration.DateFormattingConfiguration;
 import org.trackdev.api.model.ErrorEntity;
 
 import jakarta.servlet.FilterChain;
@@ -78,7 +77,6 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
      */
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String path = request.getServletPath();
-        String method = request.getMethod();
         
         // Auth endpoints
         if (path.equals("/auth/login") || path.startsWith("/auth/recovery")
