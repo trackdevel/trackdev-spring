@@ -12,7 +12,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
 import org.trackdev.api.dto.IdResponseDTO;
-import org.trackdev.api.dto.ProfileBasicDTO;
 import org.trackdev.api.dto.ProfileCompleteDTO;
 import org.trackdev.api.dto.ProfilesResponseDTO;
 import org.trackdev.api.entity.Profile;
