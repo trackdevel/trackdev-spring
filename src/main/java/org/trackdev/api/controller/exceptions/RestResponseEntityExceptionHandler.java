@@ -656,12 +656,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     // ========== Helper methods ==========
 
-    private ResponseEntity<Object> createErrorResponse(String errorName, HttpStatus status, 
-                                                        String message, String code, WebRequest request) {
-        ErrorEntity error = createErrorEntity(errorName, status, message, code, request);
-        return new ResponseEntity<>(error, status);
-    }
-    
     private ErrorEntity createErrorEntity(String errorName, HttpStatus status, 
                                            String message, String code, WebRequest request) {
         String path = null;

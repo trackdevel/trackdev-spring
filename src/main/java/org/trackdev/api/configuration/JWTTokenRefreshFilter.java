@@ -5,7 +5,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.trackdev.api.entity.User;
 import org.trackdev.api.service.UserService;
 
 import jakarta.servlet.FilterChain;
@@ -111,11 +110,11 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
 
         String token = Jwts
                 .builder()
-                .setId(java.util.UUID.randomUUID().toString())  // Unique JTI for each token
-                .setSubject(userId)  // User UUID as subject
+                .id(java.util.UUID.randomUUID().toString())  // Unique JTI for each token
+                .subject(userId)  // User UUID as subject
                 .claim("authorities", userRoles)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
                 .signWith(authorizationConfiguration.getKey())
                 .compact();
 

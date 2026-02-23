@@ -5,13 +5,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
 import org.trackdev.api.dto.HistoryResponseDTO;
 import org.trackdev.api.dto.SprintBasicDTO;
 import org.trackdev.api.dto.SprintBoardDTO;
-import org.trackdev.api.dto.SprintsResponseDTO;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.sprintchanges.SprintChange;
 import org.trackdev.api.mapper.SprintMapper;
@@ -42,14 +40,6 @@ public class SprintController extends CrudController<Sprint, SprintService> {
 
     @Autowired
     TaskMapper taskMapper;
-
-    @Operation(summary = "Get all sprints", description = "Get all sprints")
-    @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public SprintsResponseDTO getSprints(Principal principal) {
-        String userId = super.getUserId(principal);
-        return new SprintsResponseDTO(sprintMapper.toBasicDTOList(service.findAll()));
-    }
 
     @Operation(summary = "Get specific sprint", description = "Get specific sprint")
     @GetMapping(path = "/{id}")

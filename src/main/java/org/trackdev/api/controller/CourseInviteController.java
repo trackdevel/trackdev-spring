@@ -9,16 +9,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
-import org.trackdev.api.dto.CourseInviteDTO;
 import org.trackdev.api.dto.CourseInvitesResponseDTO;
-import org.trackdev.api.dto.InviteAcceptedResponseDTO;
 import org.trackdev.api.entity.CourseInvite;
 import org.trackdev.api.mapper.CourseInviteMapper;
 import org.trackdev.api.service.CourseInviteService;
 import org.trackdev.api.utils.ErrorConstants;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import java.security.Principal;
