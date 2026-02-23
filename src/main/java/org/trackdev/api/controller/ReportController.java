@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
@@ -13,8 +12,6 @@ import org.trackdev.api.entity.Report;
 import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.model.MergePatchReport;
 import org.trackdev.api.service.ReportService;
-import org.trackdev.api.utils.ErrorConstants;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
