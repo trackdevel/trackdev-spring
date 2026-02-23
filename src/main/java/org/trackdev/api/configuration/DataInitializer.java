@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.service.DemoDataSeeder;
 import org.trackdev.api.service.UserService;
@@ -38,9 +37,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private TrackDevProperties trackDevProperties;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -80,7 +76,7 @@ public class DataInitializer implements CommandLineRunner {
                 throw new IllegalStateException("Admin credentials must be configured in production");
             }
             
-            User adminUser = userService.addUserInternal(
+            userService.addUserInternal(
                 username,
                 "System Administrator",
                 email,
