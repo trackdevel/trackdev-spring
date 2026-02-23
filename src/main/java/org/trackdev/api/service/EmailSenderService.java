@@ -59,9 +59,7 @@ public class EmailSenderService extends BaseServiceUUID<Email, EmailRepository> 
     /**
      * Send password recovery email with recovery code.
      * Runs asynchronously - caller will not wait for email to be sent.
-     * @deprecated Use sendPasswordResetEmail instead for token-based reset
      */
-    @Deprecated
     @Async
     public void sendRecoveryEmail(String email, String tempCode, String language) {
         Locale locale = Locale.forLanguageTag(language != null ? language : "en");
