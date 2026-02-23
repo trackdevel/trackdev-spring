@@ -187,10 +187,4 @@ public class Sprint extends BaseEntityLong {
     public void removeTask(Task task) {
         this.activeTasks.remove(task);
     }
-
-    private boolean areAllTasksClosed() {
-        boolean allClosed = this.activeTasks.stream().allMatch(
-                t -> t.getStatus() == TaskStatus.DONE);
-        return allClosed;
-    }
 }
