@@ -272,11 +272,11 @@ public class AuthController extends BaseController {
 
         String token = Jwts
                 .builder()
-                .setId(java.util.UUID.randomUUID().toString())  // Unique JTI for each token
-                .setSubject(user.getId())  // User UUID as subject
+                .id(java.util.UUID.randomUUID().toString())  // Unique JTI for each token
+                .subject(user.getId())  // User UUID as subject
                 .claim("authorities", userRoles)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + durationInMilliseconds))
                 .signWith(authorizationConfiguration.getKey())
                 .compact();
 
