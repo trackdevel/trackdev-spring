@@ -85,29 +85,6 @@ public class GitHubRepoController extends BaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Create a webhook for the repository", 
-               description = "Creates a webhook on the GitHub repository to receive events")
-    @PostMapping("/{repoId}/webhook")
-    public GitHubRepoResponse createWebhook(Principal principal,
-                                            @PathVariable(name = "projectId") Long projectId,
-                                            @PathVariable(name = "repoId") Long repoId,
-                                            @Valid @RequestBody CreateWebhookRequest request) {
-        String userId = getUserId(principal);
-        GitHubRepo repo = gitHubRepoService.createWebhook(projectId, repoId, request.webhookUrl, userId);
-        return new GitHubRepoResponse(repo);
-    }
-
-    @Operation(summary = "Delete the webhook from the repository", 
-               description = "Removes the webhook from the GitHub repository")
-    @DeleteMapping("/{repoId}/webhook")
-    public GitHubRepoResponse deleteWebhook(Principal principal,
-                                            @PathVariable(name = "projectId") Long projectId,
-                                            @PathVariable(name = "repoId") Long repoId) {
-        String userId = getUserId(principal);
-        GitHubRepo repo = gitHubRepoService.deleteWebhook(projectId, repoId, userId);
-        return new GitHubRepoResponse(repo);
-    }
-
     @Operation(summary = "Get repository information from GitHub", 
                description = "Fetches current repository information from the GitHub API")
     @GetMapping("/{repoId}/info")
@@ -161,12 +138,6 @@ public class GitHubRepoController extends BaseController {
 
         @Size(min = 1, max = GitHubRepo.MAX_TOKEN_LENGTH)
         public String accessToken;
-    }
-
-    static class CreateWebhookRequest {
-        @NotBlank
-        @Size(min = 1, max = GitHubRepo.MAX_URL_LENGTH)
-        public String webhookUrl;
     }
 
     static class GitHubRepoResponse {
