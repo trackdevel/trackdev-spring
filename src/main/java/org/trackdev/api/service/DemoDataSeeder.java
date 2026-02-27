@@ -1127,6 +1127,16 @@ public class DemoDataSeeder {
         ));
         profile.addEnum(reviewStatusEnum);
 
+        ProfileEnum listGradeEnum = new ProfileEnum("Grade", profile);
+        listGradeEnum.setValues(Arrays.asList(
+            new EnumValueEntry("A", "Excellent performance"),
+            new EnumValueEntry("B", "Good performance"),
+            new EnumValueEntry("C", "Satisfactory performance"),
+            new EnumValueEntry("D", "Below average performance"),
+            new EnumValueEntry("E", "Needs significant improvement")
+        ));
+        profile.addEnum(listGradeEnum);
+
         // Save to persist the enums
         profile = profileRepository.save(profile);
         
@@ -1137,6 +1147,8 @@ public class DemoDataSeeder {
             .filter(e -> e.getName().equals("Priority")).findFirst().orElseThrow();
         ProfileEnum savedReviewStatusEnum = profile.getEnums().stream()
             .filter(e -> e.getName().equals("Review Status")).findFirst().orElseThrow();
+        ProfileEnum savedListGradeEnum = profile.getEnums().stream()
+            .filter(e -> e.getName().equals("Grade")).findFirst().orElseThrow();
 
         // Create attributes for STUDENT target (one per type)
         ProfileAttribute studentNotes = new ProfileAttribute("Notes", AttributeType.STRING, AttributeTarget.STUDENT, profile);
@@ -1155,6 +1167,12 @@ public class DemoDataSeeder {
         ProfileAttribute studentGrade = new ProfileAttribute("Participation Grade", AttributeType.FLOAT, AttributeTarget.STUDENT, profile);
         studentGrade.setVisibility(AttributeVisibility.PROJECT_STUDENTS);
         profile.addAttribute(studentGrade);
+
+        ProfileAttribute studentEvaluations = new ProfileAttribute("Sprint Evaluations", AttributeType.LIST, AttributeTarget.STUDENT, profile);
+        studentEvaluations.setEnumRef(savedListGradeEnum);
+        studentEvaluations.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
+        studentEvaluations.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+        profile.addAttribute(studentEvaluations);
 
         // Create attributes for TASK target (one per type)
         ProfileAttribute taskDescription = new ProfileAttribute("Technical Notes", AttributeType.STRING, AttributeTarget.TASK, profile);
