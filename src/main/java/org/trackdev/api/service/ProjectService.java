@@ -2,6 +2,8 @@ package org.trackdev.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.ServiceException;
@@ -197,6 +199,26 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
         }
         
         return allProjects;
+    }
+
+    /**
+     * Get projects paginated and sorted by name.
+     * Admin/workspace admin sees all projects; other users see only their projects.
+     * Optionally filters by courseId.
+     */
+    @Transactional(readOnly = true)
+    public Page<Project> getProjectsPaginated(String userId, Long courseId, Pageable pageable) {
+        if (accessChecker.checkCanViewAllProjects(userId)) {
+            if (courseId != null) {
+                return repo.findByCourseIdOrderByNameAsc(courseId, pageable);
+            }
+            return repo.findAllByOrderByNameAsc(pageable);
+        } else {
+            if (courseId != null) {
+                return repo.findProjectsForUserByCourse(userId, courseId, pageable);
+            }
+            return repo.findProjectsForUser(userId, pageable);
+        }
     }
 
     /**

@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -84,6 +87,28 @@ public class ProjectController extends BaseController {
         else{
             return new ProjectsResponseDTO(projectMapper.toWithMembersDTOList(service.getProjectsForUser(userId)));
         }
+    }
+
+    @Operation(summary = "Get projects paginated", description = "Get projects paginated and sorted alphabetically")
+    @GetMapping(path = "/paged")
+    public PagedProjectsResponseDTO getProjectsPaged(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "15") int size,
+            @RequestParam(name = "courseId", required = false) Long courseId,
+            Principal principal) {
+        String userId = super.getUserId(principal);
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        Page<Project> projectPage = service.getProjectsPaginated(userId, courseId, pageable);
+        List<ProjectWithMembersDTO> projectDTOs = new ArrayList<>(projectMapper.toWithMembersDTOList(projectPage.getContent()));
+        return new PagedProjectsResponseDTO(
+                projectDTOs,
+                projectPage.getNumber(),
+                projectPage.getSize(),
+                projectPage.getTotalElements(),
+                projectPage.getTotalPages(),
+                projectPage.hasNext(),
+                projectPage.hasPrevious()
+        );
     }
 
     @Operation(summary = "Get specific project", description = "Get specific project")
