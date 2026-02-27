@@ -14,6 +14,8 @@ import org.trackdev.api.repository.GitHubRepoRepository;
 import org.trackdev.api.utils.ErrorConstants;
 import org.trackdev.api.utils.GithubConstants;
 
+import org.trackdev.api.configuration.WebhookProperties;
+
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -31,8 +33,13 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
     @Autowired
     private AccessChecker accessChecker;
 
+    @Autowired
+    private WebhookProperties webhookProperties;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GitHubRepoService.class);
 
     public GitHubRepoService() {
         this.restTemplate = new RestTemplate();
@@ -41,11 +48,16 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
 
     /**
      * Get all GitHub repositories for a project.
+     * Syncs webhook status from GitHub API for each repo.
      */
     public Collection<GitHubRepo> getProjectRepos(Long projectId, String userId) {
         Project project = projectService.get(projectId);
         accessChecker.checkCanViewProject(project, userId);
-        return repo.findByProjectId(projectId);
+        Collection<GitHubRepo> repos = repo.findByProjectId(projectId);
+        for (GitHubRepo gitHubRepo : repos) {
+            syncWebhookStatus(gitHubRepo);
+        }
+        return repos;
     }
 
     /**
@@ -54,8 +66,10 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
     public GitHubRepo getRepo(Long projectId, Long repoId, String userId) {
         Project project = projectService.get(projectId);
         accessChecker.checkCanViewProject(project, userId);
-        return repo.findByProjectIdAndId(projectId, repoId)
+        GitHubRepo gitHubRepo = repo.findByProjectIdAndId(projectId, repoId)
                 .orElseThrow(() -> new ServiceException(ErrorConstants.GITHUB_REPO_NOT_FOUND));
+        syncWebhookStatus(gitHubRepo);
+        return gitHubRepo;
     }
 
     /**
@@ -172,6 +186,68 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
     }
 
     // ========== PRIVATE HELPER METHODS ==========
+
+    /**
+     * Check GitHub API for existing webhooks and update the webhookActive flag.
+     * Matches webhooks whose config URL contains the app's webhook base URL.
+     * Errors are logged and swallowed so they don't break the repo listing.
+     */
+    @SuppressWarnings("unchecked")
+    private void syncWebhookStatus(GitHubRepo gitHubRepo) {
+        if (gitHubRepo.isWebhookActive()) {
+            return;
+        }
+
+        String owner = gitHubRepo.getOwner();
+        String repoName = gitHubRepo.getRepoName();
+        if (owner == null || repoName == null) {
+            return;
+        }
+
+        try {
+            HttpHeaders headers = createAuthHeaders(gitHubRepo.getAccessToken());
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            String hooksUrl = GithubConstants.getWebhooksUrl(owner, repoName);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    hooksUrl, HttpMethod.GET, request, String.class);
+
+            List<Map<String, Object>> hooks = objectMapper.readValue(response.getBody(), List.class);
+
+            String expectedUrl = webhookProperties.getUrl();
+            boolean found = false;
+            Long foundId = null;
+            String foundUrl = null;
+
+            for (Map<String, Object> hook : hooks) {
+                Map<String, Object> config = (Map<String, Object>) hook.get("config");
+                if (config != null) {
+                    String hookUrl = (String) config.get("url");
+                    if (hookUrl != null && expectedUrl != null && hookUrl.contains(expectedUrl)) {
+                        found = true;
+                        foundId = hook.get("id") instanceof Number ? ((Number) hook.get("id")).longValue() : null;
+                        foundUrl = hookUrl;
+                        break;
+                    }
+                }
+            }
+
+            boolean changed = gitHubRepo.isWebhookActive() != found;
+            if (changed || (found && !Objects.equals(gitHubRepo.getWebhookId(), foundId))) {
+                gitHubRepo.setWebhookActive(found);
+                gitHubRepo.setWebhookId(foundId);
+                gitHubRepo.setWebhookUrl(foundUrl);
+                repo.save(gitHubRepo);
+                log.info("Webhook status synced for {}: active={}", gitHubRepo.getFullName(), found);
+            }
+        } catch (HttpClientErrorException e) {
+            // Token may lack admin:repo_hook scope - just log and keep existing status
+            log.warn("Could not check webhook status for {}: {} {}",
+                    gitHubRepo.getFullName(), e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.warn("Error syncing webhook status for {}: {}", gitHubRepo.getFullName(), e.getMessage());
+        }
+    }
 
     private HttpHeaders createAuthHeaders(String token) {
         HttpHeaders headers = new HttpHeaders();
