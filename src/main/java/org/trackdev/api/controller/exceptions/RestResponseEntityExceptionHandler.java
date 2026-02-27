@@ -436,7 +436,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler(ServiceException.class)
     protected ResponseEntity<Object> handleServiceException(ServiceException ex, WebRequest request) {
         // Translate the message key to localized message
-        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage(), ex.getMessageArgs());
         log.info("Service exception: {} -> {}", ex.getMessage(), translatedMessage);
         
         ErrorEntity error = createErrorEntity("Service error", HttpStatus.BAD_REQUEST, translatedMessage, 
@@ -455,7 +455,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(ControllerException.class)
     protected ResponseEntity<Object> handleControllerException(ControllerException ex, WebRequest request) {
-        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage(), ex.getMessageArgs());
         log.info("Controller exception: {} -> {}", ex.getMessage(), translatedMessage);
         
         ErrorEntity error = createErrorEntity("Controller error", HttpStatus.BAD_REQUEST, translatedMessage, 
@@ -473,7 +473,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(EntityException.class)
     protected ResponseEntity<Object> handleEntityException(EntityException ex, WebRequest request) {
-        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage(), ex.getMessageArgs());
         log.info("Entity exception: {} -> {}", ex.getMessage(), translatedMessage);
         
         ErrorEntity error = createErrorEntity("Entity error", HttpStatus.BAD_REQUEST, translatedMessage, 
@@ -491,7 +491,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(EntityNotFound.class)
     protected ResponseEntity<Object> handleEntityNotFound(EntityNotFound ex, WebRequest request) {
-        String translatedMessage = messageResolver.getMessage(ex.getMessage());
+        String translatedMessage = messageResolver.getMessage(ex.getMessage(), ex.getMessageArgs());
         log.info("Entity not found: {} -> {}", ex.getMessage(), translatedMessage);
         
         ErrorEntity error = createErrorEntity("Not found", HttpStatus.NOT_FOUND, translatedMessage, 
