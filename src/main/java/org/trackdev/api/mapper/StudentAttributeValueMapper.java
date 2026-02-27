@@ -52,7 +52,8 @@ public interface StudentAttributeValueMapper {
         ListItemDTO dto = new ListItemDTO();
         dto.setOrderIndex(entity.getOrderIndex());
         dto.setEnumValue(entity.getEnumValue());
-        dto.setStringValue(entity.getStringValue());
+        dto.setTitle(entity.getTitle());
+        dto.setDescription(entity.getDescription());
         return dto;
     }
 
