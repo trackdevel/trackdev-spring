@@ -6,9 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.entity.*;
+import org.trackdev.api.repository.PullRequestAttributeListValueRepository;
 import org.trackdev.api.repository.PullRequestAttributeValueRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +30,9 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
 
     @Autowired
     private AccessChecker accessChecker;
+
+    @Autowired
+    private PullRequestAttributeListValueRepository listValueRepository;
 
     public List<PullRequestAttributeValue> findByPullRequestId(String pullRequestId) {
         return repo().findByPullRequestId(pullRequestId);
@@ -184,6 +189,148 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
         if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
             throw new ServiceException(ErrorConstants.UNAUTHORIZED);
         }
+    }
+
+    // ==================== LIST Attribute Values ====================
+
+    /**
+     * Get a LIST-type attribute with access validation.
+     */
+    public ProfileAttribute getListAttribute(String prId, Long attributeId, String userId) {
+        PullRequest pr = pullRequestService.get(prId);
+        accessChecker.checkCanViewPullRequest(pr, userId);
+        Course course = getCourseForPullRequest(pr);
+        ProfileAttribute attribute = profileService.getAttributeById(attributeId);
+        validateListAttributeAccess(attribute, course);
+        return attribute;
+    }
+
+    /**
+     * Get list items for a LIST-type attribute for a pull request.
+     */
+    public List<PullRequestAttributeListValue> getPullRequestListAttributeValues(String prId, Long attributeId, String userId) {
+        PullRequest pr = pullRequestService.get(prId);
+        User user = userService.get(userId);
+        accessChecker.checkCanViewPullRequest(pr, userId);
+
+        // LIST attributes are PROFESSOR_ONLY visible
+        if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+
+        Course course = getCourseForPullRequest(pr);
+        ProfileAttribute attribute = profileService.getAttributeById(attributeId);
+        validateListAttributeAccess(attribute, course);
+
+        return listValueRepository.findByPullRequestIdAndAttributeIdOrderByOrderIndex(prId, attributeId);
+    }
+
+    /**
+     * Replace all list items for a LIST-type attribute for a pull request.
+     */
+    @Transactional
+    public List<PullRequestAttributeListValue> setPullRequestListAttributeValues(String prId, Long attributeId,
+                                                                                  List<ListItemRequest> items, String userId) {
+        PullRequest pr = pullRequestService.get(prId);
+        User user = userService.get(userId);
+        accessChecker.checkCanViewPullRequest(pr, userId);
+
+        if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+
+        Course course = getCourseForPullRequest(pr);
+        ProfileAttribute attribute = profileService.getAttributeById(attributeId);
+        validateListAttributeAccess(attribute, course);
+
+        // Validate list items
+        boolean hasEnumRef = attribute.getEnumRef() != null;
+        List<String> allowedEnumValues = hasEnumRef ? attribute.getEnumRef().getValueStrings() : null;
+
+        if (items != null) {
+            for (ListItemRequest item : items) {
+                if (hasEnumRef) {
+                    if (item.enumValue == null || item.enumValue.isBlank()) {
+                        throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_INVALID_ENUM_VALUE);
+                    }
+                    if (!allowedEnumValues.contains(item.enumValue)) {
+                        throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_ENUM_VALUE_NOT_ALLOWED);
+                    }
+                } else {
+                    if (item.enumValue != null && !item.enumValue.isBlank()) {
+                        throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_ENUM_VALUE_NOT_ALLOWED);
+                    }
+                }
+            }
+        }
+
+        // Delete existing items and flush to avoid unique constraint violation
+        listValueRepository.deleteByPullRequestIdAndAttributeId(prId, attributeId);
+        listValueRepository.flush();
+
+        if (items == null || items.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Insert new items
+        List<PullRequestAttributeListValue> savedItems = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            ListItemRequest item = items.get(i);
+            PullRequestAttributeListValue listValue = new PullRequestAttributeListValue(
+                    pr, attribute, i,
+                    hasEnumRef ? item.enumValue : null,
+                    item.title,
+                    item.description
+            );
+            savedItems.add(listValueRepository.save(listValue));
+        }
+
+        return savedItems;
+    }
+
+    /**
+     * Delete all list items for a LIST-type attribute from a pull request.
+     */
+    @Transactional
+    public void deletePullRequestListAttributeValues(String prId, Long attributeId, String userId) {
+        PullRequest pr = pullRequestService.get(prId);
+        User user = userService.get(userId);
+        accessChecker.checkCanViewPullRequest(pr, userId);
+
+        if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
+            throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+        }
+
+        Course course = getCourseForPullRequest(pr);
+        ProfileAttribute attribute = profileService.getAttributeById(attributeId);
+        validateListAttributeAccess(attribute, course);
+
+        listValueRepository.deleteByPullRequestIdAndAttributeId(prId, attributeId);
+    }
+
+    private void validateListAttributeAccess(ProfileAttribute attribute, Course course) {
+        Profile profile = course.getProfile();
+        if (profile == null) {
+            throw new ServiceException("No profile is applied to this course");
+        }
+        if (!attribute.getProfileId().equals(profile.getId())) {
+            throw new ServiceException("Attribute does not belong to the course profile");
+        }
+        if (attribute.getType() != AttributeType.LIST) {
+            throw new ServiceException(ErrorConstants.ATTRIBUTE_NOT_LIST_TYPE);
+        }
+        if (attribute.getTarget() != AttributeTarget.PULL_REQUEST) {
+            throw new ServiceException("Attribute is not applicable to pull requests");
+        }
+    }
+
+    /**
+     * Request object for individual list items.
+     */
+    public static class ListItemRequest {
+        public String enumValue;
+        public String title;
+        public String description;
     }
 
     private void validateAttributeValue(ProfileAttribute attribute, String value) {
