@@ -161,6 +161,7 @@ public final class ErrorConstants {
     public static final String LIST_ATTRIBUTE_INVALID_ENUM_VALUE = "error.profile.attribute.list.invalid.enum.value";
     public static final String LIST_ATTRIBUTE_ENUM_VALUE_NOT_ALLOWED = "error.profile.attribute.list.enum.value.not.allowed";
     public static final String ATTRIBUTE_NOT_LIST_TYPE = "error.attribute.not.list.type";
+    public static final String PROFILE_ENUM_VALUE_IN_USE = "error.profile.enum.value.in.use";
 
     // Backlog movement rules
     public static final String TASK_BEGUN_CANNOT_MOVE_TO_BACKLOG = "error.task.begun.cannot.move.to.backlog";
