@@ -14,6 +14,7 @@ public abstract class BaseException extends RuntimeException {
     private final HttpStatus httpStatus;
     private final String errorCode;
     private Map<String, Object> details;
+    private Object[] messageArgs;
 
     protected BaseException(String message, HttpStatus httpStatus, String errorCode) {
         super(message);
@@ -61,5 +62,13 @@ public abstract class BaseException extends RuntimeException {
         }
         this.details.put(key, value);
         return this;
+    }
+
+    public Object[] getMessageArgs() {
+        return messageArgs;
+    }
+
+    public void setMessageArgs(Object... args) {
+        this.messageArgs = args;
     }
 }
