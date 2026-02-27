@@ -158,6 +158,7 @@ public final class ErrorConstants {
     public static final String ATTRIBUTE_VALUE_BELOW_MIN = "error.attribute.value.below.min";
     public static final String ATTRIBUTE_VALUE_ABOVE_MAX = "error.attribute.value.above.max";
     public static final String LIST_ATTRIBUTE_MUST_TARGET_STUDENT = "error.profile.attribute.list.must.target.student";
+    public static final String LIST_ATTRIBUTE_MUST_TARGET_STUDENT_OR_PR = "error.profile.attribute.list.must.target.student.or.pr";
     public static final String LIST_ATTRIBUTE_INVALID_ENUM_VALUE = "error.profile.attribute.list.invalid.enum.value";
     public static final String LIST_ATTRIBUTE_ENUM_VALUE_NOT_ALLOWED = "error.profile.attribute.list.enum.value.not.allowed";
     public static final String ATTRIBUTE_NOT_LIST_TYPE = "error.attribute.not.list.type";

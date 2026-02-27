@@ -7,13 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.trackdev.api.dto.PRDetailedAnalysisDTO;
-import org.trackdev.api.dto.PRFileDetailDTO;
-import org.trackdev.api.dto.ProfileAttributeDTO;
-import org.trackdev.api.dto.PullRequestAttributeValueDTO;
+import org.trackdev.api.dto.*;
 import org.trackdev.api.entity.ProfileAttribute;
 import org.trackdev.api.entity.PullRequest;
+import org.trackdev.api.entity.PullRequestAttributeListValue;
 import org.trackdev.api.entity.PullRequestAttributeValue;
+import org.trackdev.api.entity.prchanges.PullRequestChange;
 import org.trackdev.api.mapper.ProfileMapper;
 import org.trackdev.api.mapper.PullRequestAttributeValueMapper;
 import org.trackdev.api.mapper.UserMapper;
@@ -152,7 +151,86 @@ public class PullRequestController extends BaseController {
         pullRequestAttributeValueService.deletePullRequestAttributeValue(prId, attributeId, userId);
     }
 
+    // ==================== Pull Request LIST Attribute Values ====================
+
+    @Operation(summary = "Get list attribute values for a pull request", description = "Get all items for a LIST-type attribute for a pull request (professors only)",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/{prId}/list-attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public PullRequestAttributeListValueDTO getPullRequestListAttributeValues(
+            @PathVariable(name = "prId") String prId,
+            @PathVariable(name = "attributeId") Long attributeId,
+            Principal principal) {
+        String userId = getUserId(principal);
+        ProfileAttribute attribute = pullRequestAttributeValueService.getListAttribute(prId, attributeId, userId);
+        List<PullRequestAttributeListValue> items = pullRequestAttributeValueService.getPullRequestListAttributeValues(prId, attributeId, userId);
+        return pullRequestAttributeValueMapper.toListValueDTO(attribute, items);
+    }
+
+    @Operation(summary = "Set list attribute values for a pull request", description = "Replace all items for a LIST-type attribute for a pull request (professors only)",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @PutMapping("/{prId}/list-attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    public PullRequestAttributeListValueDTO setPullRequestListAttributeValues(
+            @PathVariable(name = "prId") String prId,
+            @PathVariable(name = "attributeId") Long attributeId,
+            @RequestBody SetListAttributeValuesRequest request,
+            Principal principal) {
+        String userId = getUserId(principal);
+        List<PullRequestAttributeValueService.ListItemRequest> items = null;
+        if (request.items != null) {
+            items = request.items.stream().map(item -> {
+                PullRequestAttributeValueService.ListItemRequest r = new PullRequestAttributeValueService.ListItemRequest();
+                r.enumValue = item.enumValue;
+                r.title = item.title;
+                r.description = item.description;
+                return r;
+            }).collect(java.util.stream.Collectors.toList());
+        }
+        List<PullRequestAttributeListValue> savedItems = pullRequestAttributeValueService.setPullRequestListAttributeValues(prId, attributeId, items, userId);
+        ProfileAttribute attribute = pullRequestAttributeValueService.getListAttribute(prId, attributeId, userId);
+        return pullRequestAttributeValueMapper.toListValueDTO(attribute, savedItems);
+    }
+
+    @Operation(summary = "Delete list attribute values from a pull request", description = "Remove all items for a LIST-type attribute from a pull request (professors only)",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @DeleteMapping("/{prId}/list-attributes/{attributeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePullRequestListAttributeValues(
+            @PathVariable(name = "prId") String prId,
+            @PathVariable(name = "attributeId") Long attributeId,
+            Principal principal) {
+        String userId = getUserId(principal);
+        pullRequestAttributeValueService.deletePullRequestListAttributeValues(prId, attributeId, userId);
+    }
+
+    // ==================== Pull Request History ====================
+
+    @Operation(summary = "Get PR change history", description = "Get the history of all changes for a pull request",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/{prId}/history")
+    public HistoryResponseDTO<PullRequestChange> getPullRequestHistory(
+            @PathVariable(name = "prId") String prId,
+            Principal principal) {
+        String userId = getUserId(principal);
+        PullRequest pr = pullRequestService.get(prId);
+        accessChecker.checkCanViewPullRequest(pr, userId);
+        List<PullRequestChange> history = pullRequestService.getPullRequestHistory(prId);
+        return new HistoryResponseDTO<>(history, null);
+    }
+
     static class SetAttributeValueRequest {
         public String value;
+    }
+
+    static class SetListAttributeValuesRequest {
+        public List<ListItemInput> items;
+
+        static class ListItemInput {
+            public String enumValue;
+            public String title;
+            public String description;
+        }
     }
 }
