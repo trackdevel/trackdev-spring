@@ -345,7 +345,8 @@ public class CourseController extends BaseController {
             items = request.items.stream().map(item -> {
                 StudentAttributeValueService.ListItemRequest r = new StudentAttributeValueService.ListItemRequest();
                 r.enumValue = item.enumValue;
-                r.stringValue = item.stringValue;
+                r.title = item.title;
+                r.description = item.description;
                 return r;
             }).collect(Collectors.toList());
         }
@@ -376,7 +377,8 @@ public class CourseController extends BaseController {
 
         static class ListItemInput {
             public String enumValue;
-            public String stringValue;
+            public String title;
+            public String description;
         }
     }
 

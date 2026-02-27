@@ -289,8 +289,9 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
             }
         }
 
-        // Delete existing items
+        // Delete existing items and flush to avoid unique constraint violation on (user_id, attribute_id, order_index)
         listValueRepository.deleteByUserIdAndAttributeId(targetUserId, attributeId);
+        listValueRepository.flush();
 
         if (items == null || items.isEmpty()) {
             return Collections.emptyList();
@@ -304,7 +305,8 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
             StudentAttributeListValue listValue = new StudentAttributeListValue(
                     targetUser, attribute, i,
                     hasEnumRef ? item.enumValue : null,
-                    item.stringValue
+                    item.title,
+                    item.description
             );
             savedItems.add(listValueRepository.save(listValue));
         }
@@ -415,6 +417,7 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
      */
     public static class ListItemRequest {
         public String enumValue;
-        public String stringValue;
+        public String title;
+        public String description;
     }
 }

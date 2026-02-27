@@ -9,5 +9,6 @@ import lombok.Data;
 public class ListItemDTO {
     private int orderIndex;
     private String enumValue;
-    private String stringValue;
+    private String title;
+    private String description;
 }
