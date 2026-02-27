@@ -16,4 +16,6 @@ public interface TaskAttributeValueRepository extends BaseRepositoryLong<TaskAtt
     void deleteByTaskId(Long taskId);
 
     boolean existsByAttributeId(Long attributeId);
+
+    boolean existsByAttributeIdAndValue(Long attributeId, String value);
 }
