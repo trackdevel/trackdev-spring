@@ -16,4 +16,6 @@ public interface PullRequestAttributeValueRepository extends BaseRepositoryLong<
     void deleteByPullRequestId(String pullRequestId);
 
     boolean existsByAttributeId(Long attributeId);
+
+    boolean existsByAttributeIdAndValue(Long attributeId, String value);
 }
