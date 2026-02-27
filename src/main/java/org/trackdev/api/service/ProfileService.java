@@ -138,6 +138,32 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
     }
 
     /**
+     * Check if an enum value string is referenced by any attribute value
+     * across all attribute value tables for attributes that use the given enum.
+     */
+    private boolean enumValueIsInUse(Profile profile, Long enumId, String value) {
+        List<ProfileAttribute> referencingAttrs = profile.getAttributes().stream()
+                .filter(a -> a.getEnumRef() != null && a.getEnumRef().getId().equals(enumId))
+                .toList();
+
+        for (ProfileAttribute attr : referencingAttrs) {
+            Long attrId = attr.getId();
+            if (attr.getType() == AttributeType.LIST) {
+                if (studentAttributeListValueRepository.existsByAttributeIdAndEnumValue(attrId, value)) {
+                    return true;
+                }
+            } else {
+                if (studentAttributeValueRepository.existsByAttributeIdAndValue(attrId, value)
+                        || taskAttributeValueRepository.existsByAttributeIdAndValue(attrId, value)
+                        || pullRequestAttributeValueRepository.existsByAttributeIdAndValue(attrId, value)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Validate that enum values contain no spaces.
      */
     private void validateEnumValues(List<ProfileRequest.EnumValueRequest> values) {
@@ -237,7 +263,16 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
     private void updateEnums(Profile profile, List<ProfileRequest.EnumRequest> enumRequests) {
         if (enumRequests == null) {
-            // Remove all enums
+            // Validate no enum values are in use before removing all enums
+            for (ProfileEnum existingEnum : profile.getEnums()) {
+                for (String val : existingEnum.getValueStrings()) {
+                    if (enumValueIsInUse(profile, existingEnum.getId(), val)) {
+                        ServiceException ex = new ServiceException(ErrorConstants.PROFILE_ENUM_VALUE_IN_USE);
+                        ex.setMessageArgs(val);
+                        throw ex;
+                    }
+                }
+            }
             profile.getEnums().clear();
             return;
         }
@@ -254,6 +289,22 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         .filter(e -> e.getId().equals(enumRequest.id))
                         .findFirst()
                         .orElseThrow(() -> new EntityNotFound(ErrorConstants.PROFILE_ENUM_REF_NOT_FOUND));
+
+                // Detect removed values and validate they are not in use
+                Set<String> oldValues = new HashSet<>(existing.getValueStrings());
+                Set<String> newValues = enumRequest.values != null
+                        ? enumRequest.values.stream().map(v -> v.value).collect(Collectors.toSet())
+                        : Collections.emptySet();
+                for (String removedValue : oldValues) {
+                    if (!newValues.contains(removedValue)) {
+                        if (enumValueIsInUse(profile, existing.getId(), removedValue)) {
+                            ServiceException ex = new ServiceException(ErrorConstants.PROFILE_ENUM_VALUE_IN_USE);
+                            ex.setMessageArgs(removedValue);
+                            throw ex;
+                        }
+                    }
+                }
+
                 existing.setName(enumRequest.name);
                 existing.setValues(enumRequest.values != null
                         ? enumRequest.values.stream()
@@ -263,6 +314,19 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             } else {
                 // Add new enum
                 addEnumToProfile(profile, enumRequest);
+            }
+        }
+
+        // Before removing, validate no enum values are in use
+        for (ProfileEnum existingEnum : profile.getEnums()) {
+            if (existingEnum.getId() != null && !requestedIds.contains(existingEnum.getId())) {
+                for (String val : existingEnum.getValueStrings()) {
+                    if (enumValueIsInUse(profile, existingEnum.getId(), val)) {
+                        ServiceException ex = new ServiceException(ErrorConstants.PROFILE_ENUM_VALUE_IN_USE);
+                        ex.setMessageArgs(val);
+                        throw ex;
+                    }
+                }
             }
         }
 
