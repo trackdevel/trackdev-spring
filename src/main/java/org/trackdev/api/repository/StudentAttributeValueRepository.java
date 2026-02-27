@@ -16,4 +16,6 @@ public interface StudentAttributeValueRepository extends BaseRepositoryLong<Stud
     void deleteByUserId(String userId);
 
     boolean existsByAttributeId(Long attributeId);
+
+    boolean existsByAttributeIdAndValue(Long attributeId, String value);
 }
