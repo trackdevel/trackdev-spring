@@ -40,19 +40,26 @@ public class StudentAttributeListValue extends BaseEntityLong {
     private String enumValue;
 
     /**
-     * The string value for this list item.
+     * Short title for this list item.
      */
-    @Column(name = "string_value", length = 500)
-    private String stringValue;
+    @Column(name = "title", length = 255)
+    private String title;
+
+    /**
+     * Extended description for this list item. Supports Markdown formatting.
+     */
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     public StudentAttributeListValue() {}
 
-    public StudentAttributeListValue(User user, ProfileAttribute attribute, int orderIndex, String enumValue, String stringValue) {
+    public StudentAttributeListValue(User user, ProfileAttribute attribute, int orderIndex, String enumValue, String title, String description) {
         this.user = user;
         this.attribute = attribute;
         this.orderIndex = orderIndex;
         this.enumValue = enumValue;
-        this.stringValue = stringValue;
+        this.title = title;
+        this.description = description;
     }
 
     public User getUser() {
@@ -95,11 +102,19 @@ public class StudentAttributeListValue extends BaseEntityLong {
         this.enumValue = enumValue;
     }
 
-    public String getStringValue() {
-        return stringValue;
+    public String getTitle() {
+        return title;
     }
 
-    public void setStringValue(String stringValue) {
-        this.stringValue = stringValue;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
