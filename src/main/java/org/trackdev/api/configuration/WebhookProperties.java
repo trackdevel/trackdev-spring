@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "app.webhook")
+@ConfigurationProperties(prefix = "trackdev.webhook")
 public class WebhookProperties {
 
     private String url;
