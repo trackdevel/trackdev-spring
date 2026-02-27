@@ -208,8 +208,8 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
         // Handle LIST type constraints
         if (attrRequest.type == AttributeType.LIST) {
-            if (attrRequest.target != AttributeTarget.STUDENT) {
-                throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_MUST_TARGET_STUDENT);
+            if (attrRequest.target != AttributeTarget.STUDENT && attrRequest.target != AttributeTarget.PULL_REQUEST) {
+                throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_MUST_TARGET_STUDENT_OR_PR);
             }
             attribute.setAppliedBy(AttributeAppliedBy.PROFESSOR);
             attribute.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
