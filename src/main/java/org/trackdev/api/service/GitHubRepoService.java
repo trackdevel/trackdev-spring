@@ -189,6 +189,21 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
         return repo.findByUrl(url);
     }
 
+    /**
+     * Find GitHub repositories by their full name (owner/repo).
+     * Only accessible by PROFESSOR or ADMIN.
+     */
+    public List<GitHubRepo> findByFullName(String fullName, String userId) {
+        accessChecker.checkIsProfessorOrAdmin(userId);
+
+        String[] parts = fullName.split("/", 2);
+        if (parts.length != 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+            throw new ServiceException(ErrorConstants.INVALID_GITHUB_URL);
+        }
+
+        return repo.findByOwnerAndRepoName(parts[0], parts[1]);
+    }
+
     // ========== PRIVATE HELPER METHODS ==========
 
     /**
