@@ -15,7 +15,6 @@ import org.trackdev.api.entity.PullRequest;
 import org.trackdev.api.mapper.PullRequestMapper;
 import org.trackdev.api.repository.GitHubRepoRepository;
 import org.trackdev.api.service.PullRequestService;
-import org.trackdev.api.service.WebhookSecretVerifier;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -57,9 +56,6 @@ public class HookController extends BaseController {
     @Autowired
     PullRequestMapper pullRequestMapper;
 
-    @Autowired
-    WebhookSecretVerifier webhookSecretVerifier;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -77,11 +73,6 @@ public class HookController extends BaseController {
         
         log.info("Received GitHub webhook: event={}, delivery={}", event, deliveryId);
         
-        // Handle ping events for webhook secret verification
-        if ("ping".equals(event)) {
-            return handlePingEvent(rawPayload, signature);
-        }
-
         // Only process pull_request events
         if (!"pull_request".equals(event)) {
             log.debug("Ignoring non-pull_request event: {}", event);
@@ -281,39 +272,6 @@ public class HookController extends BaseController {
         return taskKeys;
     }
 
-    /**
-     * Handle GitHub ping events for webhook secret verification.
-     * When a ping arrives, checks if there's a pending secret verification
-     * for the repository and validates the signature against the candidate secret.
-     */
-    private ResponseEntity<WebhookResponse> handlePingEvent(String rawPayload, String signature) {
-        try {
-            GithubPingEvent pingEvent = objectMapper.readValue(rawPayload, GithubPingEvent.class);
-            String repoFullName = pingEvent.repository != null ? pingEvent.repository.full_name : null;
-
-            if (repoFullName == null) {
-                log.debug("Ping event missing repository info");
-                return ResponseEntity.ok(new WebhookResponse("ok", "Ping received"));
-            }
-
-            String[] parts = repoFullName.split("/");
-            if (parts.length != 2) {
-                return ResponseEntity.ok(new WebhookResponse("ok", "Ping received"));
-            }
-
-            List<GitHubRepo> repos = gitHubRepoRepository.findByOwnerAndRepoName(parts[0], parts[1]);
-            for (GitHubRepo repo : repos) {
-                webhookSecretVerifier.handlePing(repo.getId(), rawPayload, signature);
-            }
-
-            log.info("Ping event processed for {}", repoFullName);
-            return ResponseEntity.ok(new WebhookResponse("ok", "Ping received"));
-        } catch (Exception e) {
-            log.warn("Failed to process ping event: {}", e.getMessage());
-            return ResponseEntity.ok(new WebhookResponse("ok", "Ping received"));
-        }
-    }
-
     // ========== REQUEST/RESPONSE DTOs ==========
 
     static class WebhookResponse {
@@ -364,10 +322,4 @@ public class HookController extends BaseController {
         public String full_name;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class GithubPingEvent {
-        public Long hook_id;
-        public String zen;
-        public GithubRepo repository;
-    }
 }
