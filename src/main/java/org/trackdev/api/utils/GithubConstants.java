@@ -28,6 +28,11 @@ public final class GithubConstants {
     public static final String getWebhookUrl(String owner, String repo, Long hookId) {
         return getWebhooksUrl(owner, repo) + "/" + hookId;
     }
+
+    // Webhook ping endpoint - format: /repos/{owner}/{repo}/hooks/{hookId}/pings
+    public static String getWebhookPingUrl(String owner, String repo, Long hookId) {
+        return getWebhookUrl(owner, repo, hookId) + "/pings";
+    }
     
     // Commits endpoint - format: /repos/{owner}/{repo}/commits
     public static final String getCommitsUrl(String owner, String repo) {
