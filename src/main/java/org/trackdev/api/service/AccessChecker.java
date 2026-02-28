@@ -322,6 +322,14 @@ public class AccessChecker {
     }
 
     /**
+     * Check if user (by ID) is a professor or admin. Throws exception if not.
+     */
+    public void checkIsProfessorOrAdmin(String userId) {
+        User user = userService.get(userId);
+        checkIsProfessorOrAdmin(user);
+    }
+
+    /**
      * Check if user can delete a task. Allowed for:
      * - Task assignee
      * - Task reporter (creator)
