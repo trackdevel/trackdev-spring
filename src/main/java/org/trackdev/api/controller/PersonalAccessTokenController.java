@@ -15,6 +15,7 @@ import org.trackdev.api.service.PersonalAccessTokenService;
 import org.trackdev.api.service.PersonalAccessTokenService.PersonalAccessTokenWithPlaintext;
 
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Tag(name = "1. Authentication")
 @RestController
 @RequestMapping(path = "/auth/tokens")
+@PreAuthorize("hasAnyRole('ADMIN', 'WORKSPACE_ADMIN', 'PROFESSOR')")
 public class PersonalAccessTokenController extends BaseController {
 
     @Autowired
