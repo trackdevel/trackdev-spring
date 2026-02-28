@@ -19,9 +19,6 @@ import org.trackdev.api.configuration.WebhookProperties;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Service for managing GitHub repositories linked to projects.
@@ -38,9 +35,6 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
 
     @Autowired
     private WebhookProperties webhookProperties;
-
-    @Autowired
-    private WebhookSecretVerifier webhookSecretVerifier;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -127,7 +121,8 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
         }
 
         if (webhookSecret != null && !webhookSecret.isEmpty()) {
-            verifyAndSetWebhookSecret(gitHubRepo, webhookSecret);
+            gitHubRepo.setWebhookSecret(webhookSecret);
+            gitHubRepo.setWebhookActive(true);
         }
 
         repo.save(gitHubRepo);
@@ -208,56 +203,6 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
         }
 
         return repo.findByOwnerAndRepoName(parts[0], parts[1]);
-    }
-
-    /**
-     * Verify a webhook secret by triggering a GitHub ping and checking the signature.
-     * Only saves the secret if the ping signature matches.
-     */
-    private void verifyAndSetWebhookSecret(GitHubRepo gitHubRepo, String secret) {
-        syncWebhookStatus(gitHubRepo);
-
-        if (gitHubRepo.getWebhookId() == null) {
-            throw new ServiceException(ErrorConstants.WEBHOOK_NOT_FOUND);
-        }
-
-        String owner = gitHubRepo.getOwner();
-        String repoName = gitHubRepo.getRepoName();
-        Long webhookId = gitHubRepo.getWebhookId();
-        Long repoId = gitHubRepo.getId();
-
-        CompletableFuture<Boolean> future = webhookSecretVerifier.startVerification(repoId, secret);
-
-        try {
-            // Trigger a ping from GitHub
-            HttpHeaders headers = createAuthHeaders(gitHubRepo.getAccessToken());
-            HttpEntity<String> request = new HttpEntity<>(headers);
-            String pingUrl = GithubConstants.getWebhookPingUrl(owner, repoName, webhookId);
-
-            restTemplate.exchange(pingUrl, HttpMethod.POST, request, String.class);
-
-            // Wait for the ping to arrive and be verified
-            boolean verified = future.get(10, TimeUnit.SECONDS);
-
-            if (verified) {
-                gitHubRepo.setWebhookSecret(secret);
-                log.info("Webhook secret verified and set for {}", gitHubRepo.getFullName());
-            } else {
-                throw new ServiceException(ErrorConstants.WEBHOOK_SECRET_INVALID);
-            }
-        } catch (TimeoutException e) {
-            throw new ServiceException(ErrorConstants.WEBHOOK_SECRET_VERIFICATION_TIMEOUT);
-        } catch (ServiceException e) {
-            throw e;
-        } catch (HttpClientErrorException e) {
-            log.warn("Failed to trigger ping for {}: {}", gitHubRepo.getFullName(), e.getMessage());
-            throw new ServiceException(ErrorConstants.API_GITHUB_KO, e);
-        } catch (Exception e) {
-            log.warn("Webhook secret verification failed for {}: {}", gitHubRepo.getFullName(), e.getMessage());
-            throw new ServiceException(ErrorConstants.WEBHOOK_SECRET_INVALID);
-        } finally {
-            webhookSecretVerifier.cancelVerification(repoId);
-        }
     }
 
     // ========== PRIVATE HELPER METHODS ==========
