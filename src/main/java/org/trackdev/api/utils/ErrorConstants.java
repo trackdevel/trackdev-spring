@@ -193,6 +193,11 @@ public final class ErrorConstants {
     public static final String POINTS_REVIEW_CANNOT_ADD_ASSIGNEE = "error.points.review.cannot.add.assignee";
     public static final String POINTS_REVIEW_PARTICIPANT_ALREADY_ADDED = "error.points.review.participant.exists";
 
+    // Webhook verification errors
+    public static final String WEBHOOK_NOT_FOUND = "error.webhook.not.found";
+    public static final String WEBHOOK_SECRET_INVALID = "error.webhook.secret.invalid";
+    public static final String WEBHOOK_SECRET_VERIFICATION_TIMEOUT = "error.webhook.secret.verification.timeout";
+
     // PAT errors
     public static final String PAT_EXPIRATION_IN_PAST = "error.pat.expiration.past";
     public static final String PAT_ALREADY_REVOKED = "error.pat.already.revoked";
