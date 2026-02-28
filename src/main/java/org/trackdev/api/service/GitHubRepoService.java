@@ -104,7 +104,7 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
      * Update a GitHub repository.
      */
     @Transactional
-    public GitHubRepo updateRepository(Long projectId, Long repoId, String name, String accessToken, String userId) {
+    public GitHubRepo updateRepository(Long projectId, Long repoId, String name, String accessToken, String webhookSecret, String userId) {
         Project project = projectService.get(projectId);
         accessChecker.checkCanManageGitHubRepos(project, userId);
 
@@ -118,6 +118,10 @@ public class GitHubRepoService extends BaseServiceLong<GitHubRepo, GitHubRepoRep
         if (accessToken != null && !accessToken.isEmpty()) {
             gitHubRepo.setAccessToken(accessToken);
             validateRepositoryAccess(gitHubRepo);
+        }
+
+        if (webhookSecret != null && !webhookSecret.isEmpty()) {
+            gitHubRepo.setWebhookSecret(webhookSecret);
         }
 
         repo.save(gitHubRepo);
