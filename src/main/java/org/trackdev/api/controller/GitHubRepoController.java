@@ -61,8 +61,8 @@ public class GitHubRepoController extends BaseController {
         return new GitHubRepoResponse(repo);
     }
 
-    @Operation(summary = "Update a GitHub repository", 
-               description = "Updates the name or access token of a GitHub repository")
+    @Operation(summary = "Update a GitHub repository",
+               description = "Updates the name, access token, or webhook secret of a GitHub repository")
     @PatchMapping("/{repoId}")
     public GitHubRepoResponse updateRepository(Principal principal,
                                                @PathVariable(name = "projectId") Long projectId,
@@ -70,7 +70,7 @@ public class GitHubRepoController extends BaseController {
                                                @Valid @RequestBody UpdateRepoRequest request) {
         String userId = getUserId(principal);
         GitHubRepo repo = gitHubRepoService.updateRepository(
-                projectId, repoId, request.name, request.accessToken, userId);
+                projectId, repoId, request.name, request.accessToken, request.webhookSecret, userId);
         return new GitHubRepoResponse(repo);
     }
 
@@ -138,6 +138,9 @@ public class GitHubRepoController extends BaseController {
 
         @Size(min = 1, max = GitHubRepo.MAX_TOKEN_LENGTH)
         public String accessToken;
+
+        @Size(min = 1, max = GitHubRepo.MAX_TOKEN_LENGTH)
+        public String webhookSecret;
     }
 
     static class GitHubRepoResponse {

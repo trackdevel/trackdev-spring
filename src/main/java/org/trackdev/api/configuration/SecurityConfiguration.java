@@ -36,6 +36,9 @@ public class SecurityConfiguration {
     @Autowired
     private JWTTokenRefreshFilter jwtTokenRefreshFilter;
 
+    @Autowired
+    private PATAuthorizationFilter patAuthorizationFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
@@ -58,6 +61,7 @@ public class SecurityConfiguration {
             .addFilterBefore(
                 new JWTAuthorizationFilter(authorizationConfiguration, cookieManager),
                 UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(patAuthorizationFilter, JWTAuthorizationFilter.class)
             .addFilterAfter(jwtTokenRefreshFilter, JWTAuthorizationFilter.class);
 
         return http.build();

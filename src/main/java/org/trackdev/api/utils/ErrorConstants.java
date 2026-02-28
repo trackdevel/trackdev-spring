@@ -193,5 +193,9 @@ public final class ErrorConstants {
     public static final String POINTS_REVIEW_CANNOT_ADD_ASSIGNEE = "error.points.review.cannot.add.assignee";
     public static final String POINTS_REVIEW_PARTICIPANT_ALREADY_ADDED = "error.points.review.participant.exists";
 
+    // PAT errors
+    public static final String PAT_EXPIRATION_IN_PAST = "error.pat.expiration.past";
+    public static final String PAT_ALREADY_REVOKED = "error.pat.already.revoked";
+
     public static final String EMPTY = "";
 }
