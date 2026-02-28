@@ -56,11 +56,18 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             
-            if (authentication != null && authentication.isAuthenticated() 
+            if (authentication != null && authentication.isAuthenticated()
                     && authentication.getPrincipal() instanceof String) {
-                
+
+                // Skip token refresh for PAT-authenticated requests
+                Boolean isPATAuth = (Boolean) request.getAttribute(
+                    PATAuthorizationFilter.PAT_AUTH_ATTRIBUTE);
+                if (Boolean.TRUE.equals(isPATAuth)) {
+                    return;
+                }
+
                 String userId = (String) authentication.getPrincipal();
-                
+
                 // Skip token refresh for certain endpoints
                 String requestPath = request.getRequestURI();
                 if (shouldSkipRefresh(requestPath)) {
