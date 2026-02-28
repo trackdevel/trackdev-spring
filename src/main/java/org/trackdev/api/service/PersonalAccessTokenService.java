@@ -100,6 +100,10 @@ public class PersonalAccessTokenService
             return null;
         }
 
+        // Force initialization of lazy roles collection so it's available
+        // outside the transaction boundary (in the PAT filter)
+        user.getRoles().size();
+
         pat.setLastUsedAt(ZonedDateTime.now(ZoneId.of("UTC")));
         repo().save(pat);
 
