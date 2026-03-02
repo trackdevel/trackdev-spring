@@ -1,0 +1,422 @@
+{
+	"name": "10. Course Management Tests",
+	"item": [
+		{
+			"name": "Happy Path",
+			"item": [
+				{
+					"name": "10.1.1 Get Courses - Admin (all courses)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains courses array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('courses');",
+									"    pm.expect(jsonData.courses).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Admin can see courses from all workspaces', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.courses.length).to.be.greaterThan(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.1.2 Get Courses - Professor (own courses)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains courses array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('courses');",
+									"    pm.expect(jsonData.courses).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.1.3 Get Course by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains course data', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('startYear');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.1.4 Get Course Details with Students",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains students and invites', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('students');",
+									"    pm.expect(jsonData).to.have.property('pendingInvites');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}/details",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}",
+								"details"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.1.5 Get Course Students",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains students array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('students');",
+									"    pm.expect(jsonData.students).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}/students",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}",
+								"students"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.1.6 Get Course Projects",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains projects array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('projects');",
+									"    pm.expect(jsonData.projects).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}",
+								"projects"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "10.2.1 Get Course - Non-existent ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"999999"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.2.2 Get Course Details - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot access course details', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}/details",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}",
+								"details"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.2.3 Get Course Students - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot see students list', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}/students",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}",
+								"students"
+							]
+						}
+					}
+				},
+				{
+					"name": "10.2.4 Delete Course - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot delete course', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"    pm.expect(pm.response.code).to.not.equal(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{udgCourseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{udgCourseId}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
