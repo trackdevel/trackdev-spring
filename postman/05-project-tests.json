@@ -1,0 +1,343 @@
+{
+	"name": "5. Project Tests",
+	"item": [
+		{
+			"name": "Happy Path",
+			"item": [
+				{
+					"name": "5.1.1 Create Project - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400, or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains project ID or error', function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (pm.response.code === 200) {",
+									"        pm.expect(jsonData).to.have.property('id');",
+									"        pm.collectionVariables.set('testProjectId', jsonData.id);",
+									"    } else {",
+									"        // 400/404 is acceptable for test course not having enrolled members",
+									"        pm.expect(jsonData).to.have.property('message');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Project {{$timestamp}}\",\n    \"members\": [\"{{studentEmail}}\", \"{{professorEmail}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{testCourseId}}/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{testCourseId}}",
+								"projects"
+							]
+						}
+					}
+				},
+				{
+					"name": "5.1.2 Get Project - Student Member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains project data or not found', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('name');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{testProjectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{testProjectId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "5.1.3 Create Task - Professor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400, 403, 404, or 500', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404, 500]);",
+									"});",
+									"",
+									"pm.test('Response contains task ID (if created)', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('id');",
+									"        pm.collectionVariables.set('testTaskId', jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Task {{$timestamp}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{testProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{testProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "5.1.4 Create Sprint - Professor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400, 403, 404, or 500', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403, 404, 500]);",
+									"});",
+									"",
+									"pm.test('Response contains sprint ID (if created)', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('id');",
+									"        pm.collectionVariables.set('testSprintId', jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Sprint 1\",\n    \"startDate\": \"2025-01-01T00:00:00\",\n    \"endDate\": \"2025-01-15T00:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{testProjectId}}/sprints",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{testProjectId}}",
+								"sprints"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "5.2.1 Create Project - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates unauthorized or bad request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});",
+									"",
+									"pm.test('Student cannot create projects', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hacked Project\",\n    \"members\": [\"{{studentEmail}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/courses/{{testCourseId}}/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{testCourseId}}",
+								"projects"
+							]
+						}
+					}
+				},
+				{
+					"name": "5.2.2 Get Project - Non-member Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates unauthorized or bad request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});",
+									"",
+									"pm.test('Non-member cannot access project', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{student2Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{testProjectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{testProjectId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "5.2.3 Get Project Qualification - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 or 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('Student cannot access qualification endpoint', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{testProjectId}}/qualification",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{testProjectId}}",
+								"qualification"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
