@@ -52,8 +52,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
 						}
 					}
 				},
@@ -100,8 +105,100 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "1.2.1 Get Professor Course ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Found at least one subject with courses', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('subjects');",
+									"    pm.expect(jsonData.subjects.length).to.be.above(0);",
+									"    var firstSubject = jsonData.subjects[0];",
+									"    pm.expect(firstSubject.courses.length).to.be.above(0);",
+									"    var courseId = firstSubject.courses[0].id;",
+									"    pm.collectionVariables.set('setupCourseId', courseId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subjects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subjects"
+							]
+						}
+					}
+				},
+				{
+					"name": "1.2.2 Create Student User (if missing)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Student created or already exists', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 409]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"udg-student1\",\n    \"fullName\": \"UdG Student 1\",\n    \"email\": \"{{studentEmail}}\",\n    \"password\": \"{{studentPassword}}\",\n    \"userType\": \"STUDENT\",\n    \"courseId\": {{setupCourseId}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"register"
+							]
 						}
 					}
 				},
@@ -148,8 +245,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
 						}
 					}
 				}
@@ -186,8 +288,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/auth/check",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "check"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"check"
+									]
 								}
 							}
 						},
@@ -221,8 +328,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/auth/self",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "self"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"self"
+									]
 								}
 							}
 						}
@@ -260,8 +372,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -294,8 +411,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -321,8 +443,13 @@
 								"header": [],
 								"url": {
 									"raw": "{{baseUrl}}/auth/check",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "check"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"check"
+									]
 								}
 							}
 						},
@@ -352,8 +479,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/auth/check",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "check"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"check"
+									]
 								}
 							}
 						}
@@ -398,8 +530,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -433,8 +569,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/checker/admin",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "checker", "admin"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"checker",
+										"admin"
+									]
 								}
 							}
 						},
@@ -468,8 +610,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/checker/admin",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "checker", "admin"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"checker",
+										"admin"
+									]
 								}
 							}
 						}
@@ -508,8 +656,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -538,8 +690,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/nonexistent@email.com",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "nonexistent@email.com"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"nonexistent@email.com"
+									]
 								}
 							}
 						},
@@ -580,8 +737,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/users/{{adminId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "{{adminId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"{{adminId}}"
+									]
 								}
 							}
 						}
@@ -634,8 +796,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						},
@@ -670,8 +836,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{testSubjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{testSubjectId}}"
+									]
 								}
 							}
 						},
@@ -714,8 +885,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}/courses",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{testSubjectId}}", "courses"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{testSubjectId}}",
+										"courses"
+									]
 								}
 							}
 						}
@@ -761,8 +938,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						},
@@ -791,8 +972,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/subjects/99999",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "99999"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"99999"
+									]
 								}
 							}
 						},
@@ -825,8 +1011,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{testSubjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{testSubjectId}}"
+									]
 								}
 							}
 						}
@@ -884,8 +1075,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{testCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{testCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{testCourseId}}",
+										"projects"
+									]
 								}
 							}
 						},
@@ -921,8 +1118,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{testProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{testProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{testProjectId}}"
+									]
 								}
 							}
 						},
@@ -967,8 +1169,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{testProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{testProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{testProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -1013,8 +1221,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{testProjectId}}/sprints",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{testProjectId}}", "sprints"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{testProjectId}}",
+										"sprints"
+									]
 								}
 							}
 						}
@@ -1060,8 +1274,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{testCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{testCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{testCourseId}}",
+										"projects"
+									]
 								}
 							}
 						},
@@ -1094,8 +1314,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{testProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{testProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{testProjectId}}"
+									]
 								}
 							}
 						},
@@ -1128,8 +1353,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{testProjectId}}/qualification",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{testProjectId}}", "qualification"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{testProjectId}}",
+										"qualification"
+									]
 								}
 							}
 						}
@@ -1175,8 +1406,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}"
+									]
 								}
 							}
 						},
@@ -1220,8 +1456,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}"
+									]
 								}
 							}
 						},
@@ -1266,8 +1507,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}/subtasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}", "subtasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}",
+										"subtasks"
+									]
 								}
 							}
 						},
@@ -1303,8 +1550,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}/history",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}", "history"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}",
+										"history"
+									]
 								}
 							}
 						},
@@ -1338,8 +1591,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/status",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "status"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"status"
+									]
 								}
 							}
 						}
@@ -1377,8 +1635,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									]
 								}
 							}
 						},
@@ -1415,8 +1677,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}"
+									]
 								}
 							}
 						},
@@ -1445,8 +1712,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/99999999",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "99999999"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"99999999"
+									]
 								}
 							}
 						}
@@ -1492,8 +1764,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprints", "{{testSprintId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprints",
+										"{{testSprintId}}"
+									]
 								}
 							}
 						},
@@ -1537,8 +1814,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprints", "{{testSprintId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprints",
+										"{{testSprintId}}"
+									]
 								}
 							}
 						},
@@ -1574,8 +1856,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/sprints/{{testSprintId}}/history",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprints", "{{testSprintId}}", "history"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprints",
+										"{{testSprintId}}",
+										"history"
+									]
 								}
 							}
 						}
@@ -1621,8 +1909,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprints", "{{testSprintId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprints",
+										"{{testSprintId}}"
+									]
 								}
 							}
 						},
@@ -1655,8 +1948,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprints", "{{testSprintId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprints",
+										"{{testSprintId}}"
+									]
 								}
 							}
 						},
@@ -1687,8 +1985,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/sprints",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprints"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprints"
+									]
 								}
 							}
 						}
@@ -1724,8 +2026,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/tasks/{{testSubtaskId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testSubtaskId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{testSubtaskId}}"
+							]
 						}
 					}
 				},
@@ -1754,8 +2061,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testTaskId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{testTaskId}}"
+							]
 						}
 					}
 				},
@@ -1784,8 +2096,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["sprints", "{{testSprintId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints",
+								"{{testSprintId}}"
+							]
 						}
 					}
 				},
@@ -1814,8 +2131,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/projects/{{testProjectId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["projects", "{{testProjectId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{testProjectId}}"
+							]
 						}
 					}
 				},
@@ -1844,8 +2166,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/courses/{{testCourseId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["courses", "{{testCourseId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"courses",
+								"{{testCourseId}}"
+							]
 						}
 					}
 				},
@@ -1874,8 +2201,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["subjects", "{{testSubjectId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subjects",
+								"{{testSubjectId}}"
+							]
 						}
 					}
 				}
@@ -1923,8 +2255,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -1964,8 +2301,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -2005,8 +2347,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -2046,8 +2393,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -2087,8 +2439,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -2128,8 +2485,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -2169,8 +2531,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -2209,8 +2576,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						},
@@ -2262,8 +2633,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects"
+									]
 								}
 							}
 						},
@@ -2303,8 +2678,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects"
+									]
 								}
 							}
 						},
@@ -2341,8 +2720,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -2379,8 +2764,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{ubProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{ubProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{ubProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -2424,8 +2815,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						}
@@ -2466,8 +2861,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -2501,8 +2901,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -2536,8 +2942,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -2578,8 +2989,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -2612,8 +3028,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{ubProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{ubProjectId}}"
+									]
 								}
 							}
 						},
@@ -2646,8 +3067,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{ubTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{ubTaskId}}"
+									]
 								}
 							}
 						},
@@ -2689,8 +3115,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"projects"
+									]
 								}
 							}
 						},
@@ -2723,8 +3155,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/students",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "students"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"students"
+									]
 								}
 							}
 						},
@@ -2757,8 +3195,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -2792,8 +3234,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{ubWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{ubWorkspaceId}}"
+									]
 								}
 							}
 						}
@@ -2831,8 +3278,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{ubProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{ubProjectId}}"
+									]
 								}
 							}
 						},
@@ -2865,8 +3317,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{ubTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{ubTaskId}}"
+									]
 								}
 							}
 						},
@@ -2907,8 +3364,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{ubTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{ubTaskId}}"
+									]
 								}
 							}
 						},
@@ -2941,8 +3403,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}"
+									]
 								}
 							}
 						},
@@ -2975,8 +3442,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/students",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}", "students"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}",
+										"students"
+									]
 								}
 							}
 						},
@@ -3018,8 +3491,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}",
+										"projects"
+									]
 								}
 							}
 						},
@@ -3052,8 +3531,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{ubWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{ubWorkspaceId}}"
+									]
 								}
 							}
 						},
@@ -3086,8 +3570,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -3120,8 +3608,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									]
 								}
 							}
 						}
@@ -3159,8 +3651,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{ubProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{ubProjectId}}"
+									]
 								}
 							}
 						},
@@ -3193,8 +3690,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{ubTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{ubTaskId}}"
+									]
 								}
 							}
 						},
@@ -3227,8 +3729,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}"
+									]
 								}
 							}
 						},
@@ -3261,8 +3768,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{ubWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{ubWorkspaceId}}"
+									]
 								}
 							}
 						},
@@ -3305,8 +3817,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{ubWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{ubWorkspaceId}}"
+									]
 								}
 							}
 						},
@@ -3354,8 +3871,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						},
@@ -3388,8 +3909,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/students",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}", "students"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}",
+										"students"
+									]
 								}
 							}
 						},
@@ -3422,8 +3949,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -3456,8 +3987,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									]
 								}
 							}
 						},
@@ -3498,8 +4033,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{ubSubjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{ubSubjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{ubSubjectId}}"
+									]
 								}
 							}
 						},
@@ -3529,8 +4069,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{testSubjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{testSubjectId}}"
+									]
 								}
 							}
 						},
@@ -3564,8 +4109,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{ubWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{ubWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{ubWorkspaceId}}"
+									]
 								}
 							}
 						}
@@ -3603,8 +4153,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -3637,8 +4192,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -3671,8 +4231,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{udgWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{udgWorkspaceId}}"
+									]
 								}
 							}
 						},
@@ -3714,8 +4279,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -3748,8 +4319,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"self-assign"
+									]
 								}
 							}
 						}
@@ -3787,8 +4364,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/sprints",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "sprints"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"sprints"
+									]
 								}
 							}
 						},
@@ -3821,8 +4404,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						},
@@ -3864,8 +4453,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						},
@@ -3898,8 +4493,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/history",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "history"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"history"
+									]
 								}
 							}
 						},
@@ -3932,8 +4533,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/pr-history",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "pr-history"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"pr-history"
+									]
 								}
 							}
 						},
@@ -3966,8 +4573,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						}
@@ -4018,8 +4631,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -4052,8 +4670,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/students",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}", "students"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}",
+										"students"
+									]
 								}
 							}
 						},
@@ -4086,8 +4710,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/invites",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}", "invites"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}",
+										"invites"
+									]
 								}
 							}
 						},
@@ -4129,8 +4759,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{ubCourseId}}/invites",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{ubCourseId}}", "invites"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{ubCourseId}}",
+										"invites"
+									]
 								}
 							}
 						}
@@ -4169,8 +4805,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"self-assign"
+									]
 								}
 							}
 						},
@@ -4203,8 +4845,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						},
@@ -4246,8 +4894,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						},
@@ -4280,8 +4934,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/history",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "history"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"history"
+									]
 								}
 							}
 						},
@@ -4314,8 +4974,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/pr-history",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "pr-history"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"pr-history"
+									]
 								}
 							}
 						},
@@ -4357,8 +5023,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/subtasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "subtasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"subtasks"
+									]
 								}
 							}
 						},
@@ -4392,8 +5064,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -4426,8 +5103,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/sprints",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "sprints"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"sprints"
+									]
 								}
 							}
 						},
@@ -4460,8 +5143,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/backlog",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "backlog"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"backlog"
+									]
 								}
 							}
 						},
@@ -4503,8 +5192,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -4537,8 +5232,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/activity",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "activity"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"activity"
+									]
 								}
 							}
 						},
@@ -4579,8 +5280,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -4613,8 +5319,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -4647,8 +5358,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -4681,8 +5397,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{ubTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{ubTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{ubTaskId}}"
+									]
 								}
 							}
 						},
@@ -4715,8 +5436,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{ubProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{ubProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{ubProjectId}}"
+									]
 								}
 							}
 						}
@@ -4766,8 +5492,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses"
+									]
 								}
 							}
 						},
@@ -4802,8 +5532,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses"
+									]
 								}
 							}
 						},
@@ -4838,8 +5572,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}"
+									]
 								}
 							}
 						},
@@ -4874,8 +5613,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/details",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "details"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"details"
+									]
 								}
 							}
 						},
@@ -4910,8 +5655,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/students",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "students"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"students"
+									]
 								}
 							}
 						},
@@ -4946,8 +5697,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"projects"
+									]
 								}
 							}
 						}
@@ -4981,8 +5738,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/999999",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "999999"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"999999"
+									]
 								}
 							}
 						},
@@ -5015,8 +5777,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/details",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "details"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"details"
+									]
 								}
 							}
 						},
@@ -5049,8 +5817,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/students",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "students"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"students"
+									]
 								}
 							}
 						},
@@ -5084,8 +5858,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}"
+									]
 								}
 							}
 						}
@@ -5130,8 +5909,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						},
@@ -5166,8 +5949,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{udgWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{udgWorkspaceId}}"
+									]
 								}
 							}
 						},
@@ -5201,8 +5989,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{udgWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{udgWorkspaceId}}"
+									]
 								}
 							}
 						}
@@ -5240,8 +6033,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						},
@@ -5274,8 +6071,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						},
@@ -5304,8 +6105,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/999999",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "999999"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"999999"
+									]
 								}
 							}
 						},
@@ -5347,8 +6153,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						},
@@ -5390,8 +6200,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						},
@@ -5425,8 +6239,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces", "{{udgWorkspaceId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces",
+										"{{udgWorkspaceId}}"
+									]
 								}
 							}
 						}
@@ -5474,8 +6293,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/sprint-patterns/course/{{udgCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprint-patterns", "course", "{{udgCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprint-patterns",
+										"course",
+										"{{udgCourseId}}"
+									]
 								}
 							}
 						}
@@ -5509,8 +6334,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/sprint-patterns/course/{{udgCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprint-patterns", "course", "{{udgCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprint-patterns",
+										"course",
+										"{{udgCourseId}}"
+									]
 								}
 							}
 						},
@@ -5552,8 +6383,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/sprint-patterns/course/{{udgCourseId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["sprint-patterns", "course", "{{udgCourseId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"sprint-patterns",
+										"course",
+										"{{udgCourseId}}"
+									]
 								}
 							}
 						}
@@ -5600,8 +6437,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/reports",
-									"host": ["{{baseUrl}}"],
-									"path": ["reports"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"reports"
+									]
 								}
 							}
 						}
@@ -5639,8 +6480,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/reports",
-									"host": ["{{baseUrl}}"],
-									"path": ["reports"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"reports"
+									]
 								}
 							}
 						},
@@ -5682,8 +6527,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/reports",
-									"host": ["{{baseUrl}}"],
-									"path": ["reports"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"reports"
+									]
 								}
 							}
 						}
@@ -5733,8 +6582,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -5774,8 +6628,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -5828,8 +6687,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}"
+									]
 								}
 							}
 						},
@@ -5868,8 +6732,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -5908,8 +6777,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}"
+									]
 								}
 							}
 						},
@@ -5947,8 +6821,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -5986,8 +6865,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testSubtaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testSubtaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testSubtaskId}}"
+									]
 								}
 							}
 						},
@@ -6030,8 +6914,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{testTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{testTaskId}}"
+									]
 								}
 							}
 						},
@@ -6069,8 +6958,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -6119,8 +7013,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -6160,8 +7059,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -6197,8 +7101,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"self-assign"
+									]
 								}
 							}
 						}
@@ -6246,8 +7156,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -6288,8 +7203,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*Frozen*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6336,8 +7255,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*past sprint*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6384,8 +7307,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*assigned to Bob*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6432,8 +7359,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*Alice for delete*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6480,8 +7411,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*status computed*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6528,8 +7463,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*cannot delete*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6576,8 +7515,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*future sprint*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6624,8 +7567,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search=name:*unassignment test*",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -6675,8 +7622,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{frozenTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{frozenTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{frozenTaskId}}"
+									]
 								}
 							}
 						},
@@ -6717,8 +7669,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{frozenTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{frozenTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{frozenTaskId}}"
+									]
 								}
 							}
 						},
@@ -6757,8 +7714,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{pastSprintTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{pastSprintTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{pastSprintTaskId}}"
+									]
 								}
 							}
 						},
@@ -6796,8 +7758,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{pastSprintTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{pastSprintTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{pastSprintTaskId}}"
+									]
 								}
 							}
 						},
@@ -6829,8 +7796,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{taskReportedNotAssignedId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{taskReportedNotAssignedId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{taskReportedNotAssignedId}}"
+									]
 								}
 							}
 						},
@@ -6869,8 +7841,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{taskAssignedToDeleteId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{taskAssignedToDeleteId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{taskAssignedToDeleteId}}"
+									]
 								}
 							}
 						},
@@ -6905,8 +7882,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/freeze",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "freeze"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"freeze"
+									]
 								}
 							}
 						},
@@ -6946,8 +7929,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/freeze",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "freeze"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"freeze"
+									]
 								}
 							}
 						},
@@ -6985,8 +7974,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{userStoryTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{userStoryTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{userStoryTaskId}}"
+									]
 								}
 							}
 						},
@@ -7024,8 +8018,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{userStoryTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{userStoryTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{userStoryTaskId}}"
+									]
 								}
 							}
 						},
@@ -7055,8 +8054,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{userStoryWithSubtasksId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{userStoryWithSubtasksId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{userStoryWithSubtasksId}}"
+									]
 								}
 							}
 						},
@@ -7094,8 +8098,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{futureSprintTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{futureSprintTaskId}}"
+									]
 								}
 							}
 						},
@@ -7133,8 +8142,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{futureSprintTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{futureSprintTaskId}}"
+									]
 								}
 							}
 						},
@@ -7172,8 +8186,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{futureSprintTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{futureSprintTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{futureSprintTaskId}}"
+									]
 								}
 							}
 						},
@@ -7211,8 +8230,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -7241,8 +8265,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/unfreeze",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "unfreeze"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"unfreeze"
+									]
 								}
 							}
 						},
@@ -7279,8 +8309,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -7312,8 +8347,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{unassignedTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{unassignedTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{unassignedTaskId}}"
+									]
 								}
 							}
 						},
@@ -7343,8 +8383,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/self-assign",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "self-assign"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"self-assign"
+									]
 								}
 							}
 						},
@@ -7375,8 +8421,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -7432,8 +8483,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -7469,8 +8525,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						},
@@ -7506,8 +8567,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -7565,8 +8631,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -7608,8 +8680,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -7651,8 +8729,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -7699,8 +8782,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/users/register",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "register"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"register"
+									]
 								}
 							}
 						},
@@ -7742,8 +8830,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/users/register",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "register"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"register"
+									]
 								}
 							}
 						},
@@ -7785,8 +8878,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/users/register",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "register"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"register"
+									]
 								}
 							}
 						}
@@ -7824,8 +8922,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -7858,8 +8961,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						}
@@ -7904,8 +9012,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{studentId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{studentId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{studentId}}"
+									]
 								}
 							}
 						},
@@ -7939,8 +9053,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/{{ubStudentEmail}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "{{ubStudentEmail}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"{{ubStudentEmail}}"
+									]
 								}
 							}
 						}
@@ -7979,8 +9098,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{professorId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{professorId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{professorId}}"
+									]
 								}
 							}
 						},
@@ -8013,8 +9138,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{ubStudentId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{ubStudentId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{ubStudentId}}"
+									]
 								}
 							}
 						}
@@ -8053,8 +9184,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{studentId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{studentId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{studentId}}"
+									]
 								}
 							}
 						},
@@ -8087,8 +9224,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{ubStudentId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{ubStudentId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{ubStudentId}}"
+									]
 								}
 							}
 						},
@@ -8122,8 +9265,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{wsAdminUdGId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{wsAdminUdGId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{wsAdminUdGId}}"
+									]
 								}
 							}
 						}
@@ -8162,8 +9311,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{studentId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{studentId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{studentId}}"
+									]
 								}
 							}
 						},
@@ -8203,8 +9358,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{student2Id}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{student2Id}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{student2Id}}"
+									]
 								}
 							}
 						},
@@ -8237,8 +9398,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{ubStudentId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{ubStudentId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{ubStudentId}}"
+									]
 								}
 							}
 						},
@@ -8271,8 +9438,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{professorId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{professorId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{professorId}}"
+									]
 								}
 							}
 						},
@@ -8305,8 +9478,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/uuid/{{adminId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "uuid", "{{adminId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"uuid",
+										"{{adminId}}"
+									]
 								}
 							}
 						}
@@ -8351,8 +9530,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/auth/self",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "self"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"self"
+									]
 								}
 							}
 						},
@@ -8381,8 +9565,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -8411,8 +9599,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -8446,8 +9638,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -8476,8 +9672,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -8506,8 +9706,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						},
@@ -8543,8 +9747,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users",
-									"host": ["{{baseUrl}}"],
-									"path": ["users"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users"
+									]
 								}
 							}
 						}
@@ -8594,8 +9802,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -8630,8 +9843,12 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks?search='; DROP TABLE tasks;--",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks"],
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks"
+									],
 									"query": [
 										{
 											"key": "search",
@@ -8671,8 +9888,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/1 OR 1=1",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "1 OR 1=1"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"1 OR 1=1"
+									]
 								}
 							}
 						}
@@ -8722,8 +9944,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "tasks"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"tasks"
+									]
 								}
 							}
 						},
@@ -8769,8 +9997,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						},
@@ -8816,8 +10050,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -8864,8 +10103,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						},
@@ -8902,8 +10145,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						},
@@ -8940,8 +10187,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects"
+									]
 								}
 							}
 						}
@@ -8983,8 +10234,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}/courses",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{testSubjectId}}", "courses"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{testSubjectId}}",
+										"courses"
+									]
 								}
 							}
 						},
@@ -9021,8 +10278,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/subjects/{{testSubjectId}}/courses",
-									"host": ["{{baseUrl}}"],
-									"path": ["subjects", "{{testSubjectId}}", "courses"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"subjects",
+										"{{testSubjectId}}",
+										"courses"
+									]
 								}
 							}
 						}
@@ -9064,8 +10327,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"projects"
+									]
 								}
 							}
 						},
@@ -9102,8 +10371,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/courses/{{udgCourseId}}/projects",
-									"host": ["{{baseUrl}}"],
-									"path": ["courses", "{{udgCourseId}}", "projects"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"courses",
+										"{{udgCourseId}}",
+										"projects"
+									]
 								}
 							}
 						}
@@ -9145,8 +10420,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/sprints",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "sprints"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"sprints"
+									]
 								}
 							}
 						},
@@ -9188,8 +10469,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}/sprints",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}", "sprints"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}",
+										"sprints"
+									]
 								}
 							}
 						}
@@ -9231,8 +10518,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						},
@@ -9269,8 +10562,14 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}", "comments"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}",
+										"comments"
+									]
 								}
 							}
 						}
@@ -9312,8 +10611,12 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/workspaces",
-									"host": ["{{baseUrl}}"],
-									"path": ["workspaces"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"workspaces"
+									]
 								}
 							}
 						}
@@ -9359,8 +10662,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
 						}
 					}
 				},
@@ -9401,8 +10709,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
-							"host": ["{{baseUrl}}"],
-							"path": ["projects", "{{udgProjectId}}", "tasks"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{udgProjectId}}",
+								"tasks"
+							]
 						}
 					}
 				}
@@ -9459,8 +10773,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -9500,8 +10819,13 @@
 								},
 								"url": {
 									"raw": "{{baseUrl}}/auth/login",
-									"host": ["{{baseUrl}}"],
-									"path": ["auth", "login"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
 								}
 							}
 						},
@@ -9541,8 +10865,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						}
@@ -9588,8 +10917,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/{{privacyOtherUserId}}/public",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "{{privacyOtherUserId}}", "public"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"{{privacyOtherUserId}}",
+										"public"
+									]
 								}
 							}
 						},
@@ -9629,8 +10964,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/{{privacyStudentId}}/public",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "{{privacyStudentId}}", "public"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"{{privacyStudentId}}",
+										"public"
+									]
 								}
 							}
 						},
@@ -9675,8 +11016,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -9728,8 +11074,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -9769,8 +11120,14 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/users/{{privacyStudentId}}/public",
-									"host": ["{{baseUrl}}"],
-									"path": ["users", "{{privacyStudentId}}", "public"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"{{privacyStudentId}}",
+										"public"
+									]
 								}
 							}
 						},
@@ -9810,8 +11167,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/projects/{{udgProjectId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["projects", "{{udgProjectId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"projects",
+										"{{udgProjectId}}"
+									]
 								}
 							}
 						},
@@ -9856,8 +11218,13 @@
 								],
 								"url": {
 									"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
-									"host": ["{{baseUrl}}"],
-									"path": ["tasks", "{{udgTaskId}}"]
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tasks",
+										"{{udgTaskId}}"
+									]
 								}
 							}
 						}
@@ -10059,6 +11426,11 @@
 		},
 		{
 			"key": "ubProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "setupCourseId",
 			"value": "",
 			"type": "string"
 		},
