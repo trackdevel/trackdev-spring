@@ -1,0 +1,215 @@
+{
+	"name": "8. Cleanup",
+	"item": [
+		{
+			"name": "8.1 Delete Subtask - Creator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{studentToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/tasks/{{testSubtaskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"tasks",
+						"{{testSubtaskId}}"
+					]
+				}
+			}
+		},
+		{
+			"name": "8.2 Delete Task - Creator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204 or 404 (or 400 if task not created)', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{studentToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"tasks",
+						"{{testTaskId}}"
+					]
+				}
+			}
+		},
+		{
+			"name": "8.3 Delete Sprint - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{adminToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"sprints",
+						"{{testSprintId}}"
+					]
+				}
+			}
+		},
+		{
+			"name": "8.4 Delete Project - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{adminToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/projects/{{testProjectId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"projects",
+						"{{testProjectId}}"
+					]
+				}
+			}
+		},
+		{
+			"name": "8.5 Delete Course - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 404]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{adminToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/courses/{{testCourseId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"courses",
+						"{{testCourseId}}"
+					]
+				}
+			}
+		},
+		{
+			"name": "8.6 Delete Subject - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204 or 404 (resource may not exist)', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 404]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{adminToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/subjects/{{testSubjectId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"subjects",
+						"{{testSubjectId}}"
+					]
+				}
+			}
+		}
+	]
+}
