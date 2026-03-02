@@ -1,0 +1,142 @@
+{
+	"name": "13. Report Tests",
+	"item": [
+		{
+			"name": "Happy Path",
+			"item": [
+				{
+					"name": "13.1.1 Get All Reports - Professor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    if (jsonData.length > 0) {",
+									"        pm.collectionVariables.set('testReportId', jsonData[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"reports"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "13.2.1 Get All Reports - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot access reports', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"reports"
+							]
+						}
+					}
+				},
+				{
+					"name": "13.2.2 Create Report - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot create report', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"    pm.expect(pm.response.code).to.not.equal(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hacked Report\",\n    \"rowType\": \"TASK\",\n    \"columnType\": \"SPRINT\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"reports"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
