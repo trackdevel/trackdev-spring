@@ -42,9 +42,6 @@ public final class HtmlSanitizer {
                 case '&':
                     sanitized.append("&amp;");
                     break;
-                case '/':
-                    sanitized.append("&#x2F;");
-                    break;
                 default:
                     sanitized.append(c);
             }
