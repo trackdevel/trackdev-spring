@@ -1,0 +1,381 @@
+{
+	"name": "11. Workspace Management Tests",
+	"item": [
+		{
+			"name": "Happy Path",
+			"item": [
+				{
+					"name": "11.1.1 Get All Workspaces - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData.length).to.be.greaterThan(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.1.2 Get Workspace by ID - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains workspace data', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces",
+								"{{udgWorkspaceId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.1.3 Get Own Workspace - Workspace Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Workspace Admin can view own workspace', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{wsAdminUdGToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces",
+								"{{udgWorkspaceId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "11.2.1 Get All Workspaces - Professor (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Professor cannot list all workspaces', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.2.2 Get All Workspaces - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot list workspaces', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.2.3 Get Workspace - Non-existent ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces",
+								"999999"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.2.4 Create Workspace - Professor (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Professor cannot create workspace', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"    pm.expect(pm.response.code).to.not.equal(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hacked Workspace\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/workspaces",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.2.5 Create Workspace - Workspace Admin (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Workspace Admin cannot create workspace', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"    pm.expect(pm.response.code).to.not.equal(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{wsAdminUdGToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hacked Workspace\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/workspaces",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "11.2.6 Delete Workspace - Workspace Admin (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Workspace Admin cannot delete own workspace', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"    pm.expect(pm.response.code).to.not.equal(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{wsAdminUdGToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/workspaces/{{udgWorkspaceId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"workspaces",
+								"{{udgWorkspaceId}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
