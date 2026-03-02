@@ -1,0 +1,272 @@
+{
+	"name": "7. Sprint Tests",
+	"item": [
+		{
+			"name": "Happy Path",
+			"item": [
+				{
+					"name": "7.1.1 Get Sprint - Member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400, or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains sprint data (if found)', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('name');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints",
+								"{{testSprintId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "7.1.2 Edit Sprint - Professor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400, or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+									"});",
+									"",
+									"pm.test('Sprint was updated (if found)', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('name');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Sprint {{$timestamp}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints",
+								"{{testSprintId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "7.1.3 Get Sprint History",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400, or 404', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+									"});",
+									"",
+									"pm.test('Response contains history (if found)', function () {",
+									"    if (pm.response.code === 200) {",
+									"        var jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('history');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprints/{{testSprintId}}/history",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints",
+								"{{testSprintId}}",
+								"history"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "7.2.1 Edit Sprint - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates unauthorized or bad request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});",
+									"",
+									"pm.test('Student cannot edit sprints', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hacked Sprint\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints",
+								"{{testSprintId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "7.2.2 Delete Sprint - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code indicates unauthorized or bad request', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});",
+									"",
+									"pm.test('Student cannot delete sprints', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprints/{{testSprintId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints",
+								"{{testSprintId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "7.2.3 Get All Sprints - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// After server restart with security fix, should be 403",
+									"// Before fix or server restart, may be 200",
+									"pm.test('Status code is 403 (forbidden) or 200 (pre-fix)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprints",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprints"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

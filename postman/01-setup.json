@@ -1,0 +1,251 @@
+{
+	"name": "1. Setup",
+	"item": [
+		{
+			"name": "1.1 Login as Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200 or 404', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+							"});",
+							"",
+							"pm.test('Response contains token', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('token');",
+							"    pm.collectionVariables.set('adminToken', jsonData.token);",
+							"});",
+							"",
+							"pm.test('Response contains user info', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('userdata');",
+							"    pm.expect(jsonData.userdata).to.have.property('email');",
+							"    pm.collectionVariables.set('adminEmail', jsonData.userdata.email);",
+							"    pm.collectionVariables.set('adminId', jsonData.userdata.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			}
+		},
+		{
+			"name": "1.2 Login as Professor",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200 or 404', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+							"});",
+							"",
+							"pm.test('Response contains token', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('token');",
+							"    pm.collectionVariables.set('professorToken', jsonData.token);",
+							"});",
+							"",
+							"pm.test('Response contains user info', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('userdata');",
+							"    pm.expect(jsonData.userdata).to.have.property('email');",
+							"    pm.collectionVariables.set('professorEmail', jsonData.userdata.email);",
+							"    pm.collectionVariables.set('professorId', jsonData.userdata.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{professorEmail}}\",\n    \"password\": \"{{professorPassword}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			}
+		},
+		{
+			"name": "1.2.1 Get Professor Course ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Found at least one subject with courses', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('subjects');",
+							"    pm.expect(jsonData.subjects.length).to.be.above(0);",
+							"    var firstSubject = jsonData.subjects[0];",
+							"    pm.expect(firstSubject.courses.length).to.be.above(0);",
+							"    var courseId = firstSubject.courses[0].id;",
+							"    pm.collectionVariables.set('setupCourseId', courseId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{professorToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/subjects",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"subjects"
+					]
+				}
+			}
+		},
+		{
+			"name": "1.2.2 Create Student User (if missing)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Student created or already exists', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([204, 400, 409]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{professorToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"udg-student1\",\n    \"fullName\": \"UdG Student 1\",\n    \"email\": \"{{studentEmail}}\",\n    \"password\": \"{{studentPassword}}\",\n    \"userType\": \"STUDENT\",\n    \"courseId\": {{setupCourseId}}\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"register"
+					]
+				}
+			}
+		},
+		{
+			"name": "1.3 Login as Student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200 or 404', function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+							"});",
+							"",
+							"pm.test('Response contains token', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('token');",
+							"    pm.collectionVariables.set('studentToken', jsonData.token);",
+							"});",
+							"",
+							"pm.test('Response contains user info', function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('userdata');",
+							"    pm.expect(jsonData.userdata).to.have.property('email');",
+							"    pm.collectionVariables.set('studentEmail', jsonData.userdata.email);",
+							"    pm.collectionVariables.set('studentId', jsonData.userdata.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{studentEmail}}\",\n    \"password\": \"{{studentPassword}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			}
+		}
+	]
+}

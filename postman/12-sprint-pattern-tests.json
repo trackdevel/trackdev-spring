@@ -1,0 +1,145 @@
+{
+	"name": "12. Sprint Pattern Tests",
+	"item": [
+		{
+			"name": "Happy Path",
+			"item": [
+				{
+					"name": "12.1.1 Get Sprint Patterns for Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains sprintPatterns array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('sprintPatterns');",
+									"    pm.expect(jsonData.sprintPatterns).to.be.an('array');",
+									"    if (jsonData.sprintPatterns.length > 0) {",
+									"        pm.collectionVariables.set('testSprintPatternId', jsonData.sprintPatterns[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprint-patterns/course/{{udgCourseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprint-patterns",
+								"course",
+								"{{udgCourseId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "12.2.1 Get Sprint Patterns - Student (Allowed but empty for non-enrolled)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200, 400 or 403', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sprint-patterns/course/{{udgCourseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprint-patterns",
+								"course",
+								"{{udgCourseId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "12.2.2 Create Sprint Pattern - Student (Forbidden)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 (Forbidden)', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+									"});",
+									"",
+									"pm.test('SECURITY: Student cannot create sprint pattern', function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"    pm.expect(pm.response.code).to.not.equal(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hacked Pattern\",\n    \"durationWeeks\": 2,\n    \"items\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sprint-patterns/course/{{udgCourseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sprint-patterns",
+								"course",
+								"{{udgCourseId}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

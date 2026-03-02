@@ -1,0 +1,416 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "TrackDev API Tests",
+		"description": "Comprehensive API test collection for TrackDev Spring Boot application. Includes happy path tests and error cases.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "adminEmail",
+			"value": "admin@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "adminPassword",
+			"value": "admin",
+			"type": "secret"
+		},
+		{
+			"key": "professorEmail",
+			"value": "maria.garcia@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "professorPassword",
+			"value": "professor",
+			"type": "string"
+		},
+		{
+			"key": "studentEmail",
+			"value": "udg.student1@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "studentPassword",
+			"value": "student1",
+			"type": "string"
+		},
+		{
+			"key": "student2Email",
+			"value": "udg.student4@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "student2Password",
+			"value": "student4",
+			"type": "string"
+		},
+		{
+			"key": "student2Token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "student2Id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentEmail",
+			"value": "ub.student1@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentPassword",
+			"value": "student1",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubStudentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGEmail",
+			"value": "wsadmin.udg@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGPassword",
+			"value": "wsadmin",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUdGId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBEmail",
+			"value": "wsadmin.ub@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBPassword",
+			"value": "wsadmin",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wsAdminUBId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGEmail",
+			"value": "maria.garcia@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGPassword",
+			"value": "professor",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUdGId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUBEmail",
+			"value": "carlos.martinez@trackdev.com",
+			"type": "string"
+		},
+		{
+			"key": "professorUBPassword",
+			"value": "professor",
+			"type": "string"
+		},
+		{
+			"key": "professorUBToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorUBId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgWorkspaceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubWorkspaceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "setupCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "udgTaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ubTaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "studentToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "professorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "studentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testSubjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testCourseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testProjectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testTaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testSubtaskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testSprintId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "frozenTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task that is frozen (for permission tests)"
+		},
+		{
+			"key": "pastSprintTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task in a PAST/CLOSED sprint (for permission tests)"
+		},
+		{
+			"key": "taskReportedNotAssignedId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task where the logged-in user is reporter but not assignee"
+		},
+		{
+			"key": "reporterStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a student who reported a task but is not assigned to it"
+		},
+		{
+			"key": "taskAssignedToDeleteId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task assigned to current user for delete test"
+		},
+		{
+			"key": "userStoryTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a USER_STORY type task"
+		},
+		{
+			"key": "userStoryWithSubtasksId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a USER_STORY that has subtasks (for delete test)"
+		},
+		{
+			"key": "futureSprintTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task in a FUTURE/DRAFT sprint"
+		},
+		{
+			"key": "formerAssigneeToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a user who was previously assigned but has been unassigned"
+		},
+		{
+			"key": "unassignedTaskId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a task that has been unassigned from its former assignee"
+		},
+		{
+			"key": "udgStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a student enrolled in UdG courses"
+		},
+		{
+			"key": "udgStudentId",
+			"value": "",
+			"type": "string",
+			"description": "ID of a student enrolled in UdG courses"
+		},
+		{
+			"key": "udgStudentEmail",
+			"value": "udg.student1@trackdev.com",
+			"type": "string",
+			"description": "Email of a student enrolled in UdG courses"
+		},
+		{
+			"key": "udgStudentPassword",
+			"value": "student1",
+			"type": "string",
+			"description": "Password for the UdG student"
+		},
+		{
+			"key": "ubStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token of a student enrolled in UB courses (cross-project test)"
+		},
+		{
+			"key": "privacyStudentToken",
+			"value": "",
+			"type": "string",
+			"description": "Token for student in email privacy tests"
+		},
+		{
+			"key": "privacyStudentId",
+			"value": "",
+			"type": "string",
+			"description": "ID of student in email privacy tests"
+		},
+		{
+			"key": "privacyStudentEmail",
+			"value": "",
+			"type": "string",
+			"description": "Email of student in email privacy tests"
+		},
+		{
+			"key": "privacyProfessorToken",
+			"value": "",
+			"type": "string",
+			"description": "Token for professor in email privacy tests"
+		},
+		{
+			"key": "privacyProfessorId",
+			"value": "",
+			"type": "string",
+			"description": "ID of professor in email privacy tests"
+		},
+		{
+			"key": "privacyOtherUserId",
+			"value": "",
+			"type": "string",
+			"description": "ID of another user to test email visibility"
+		}
+	]
+}
