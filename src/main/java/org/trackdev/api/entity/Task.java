@@ -158,6 +158,7 @@ public class Task extends BaseEntityLong {
     }
 
     public ZonedDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
 
     public User getReporter() { return reporter; }
 
