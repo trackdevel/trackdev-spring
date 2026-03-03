@@ -846,44 +846,49 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
      * Get all tasks from projects the user has access to, paginated with optional filters.
      */
     public org.springframework.data.domain.Page<Task> getMyTasks(
-            String userId, 
-            int page, 
+            String userId,
+            int page,
             int size,
             TaskType type,
             TaskStatus status,
             String assigneeId,
+            Long projectId,
             String sortOrder) {
         Collection<Project> accessibleProjects = projectService.getProjectsForUser(userId);
         if (accessibleProjects.isEmpty()) {
             return org.springframework.data.domain.Page.empty();
         }
-        
+
         // Build sort direction
-        org.springframework.data.domain.Sort.Direction direction = 
-            "asc".equalsIgnoreCase(sortOrder) 
-                ? org.springframework.data.domain.Sort.Direction.ASC 
+        org.springframework.data.domain.Sort.Direction direction =
+            "asc".equalsIgnoreCase(sortOrder)
+                ? org.springframework.data.domain.Sort.Direction.ASC
                 : org.springframework.data.domain.Sort.Direction.DESC;
-        
-        org.springframework.data.domain.Pageable pageable = 
-            org.springframework.data.domain.PageRequest.of(page, size, 
+
+        org.springframework.data.domain.Pageable pageable =
+            org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by(direction, "createdAt"));
-        
+
         // Build specification with filters
-        org.springframework.data.jpa.domain.Specification<Task> spec = 
+        org.springframework.data.jpa.domain.Specification<Task> spec =
             (root, query, cb) -> root.get("project").in(accessibleProjects);
-        
+
+        if (projectId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("project").get("id"), projectId));
+        }
+
         if (type != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("type"), type));
         }
-        
+
         if (status != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
         }
-        
+
         if (assigneeId != null && !assigneeId.isBlank()) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("assignee").get("id"), assigneeId));
         }
-        
+
         return repo.findAll(spec, pageable);
     }
 

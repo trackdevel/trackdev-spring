@@ -11231,6 +11231,306 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "22. Task Sort Order Tests",
+			"item": [
+				{
+					"name": "22.1 Get My Tasks - Default (desc) order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"pm.test('Response has tasks array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('tasks');",
+									"    pm.expect(jsonData.tasks).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Tasks within page are ordered newest first (desc)', function () {",
+									"    var jsonData = pm.response.json();",
+									"    var tasks = jsonData.tasks;",
+									"    if (tasks.length < 2) {",
+									"        console.log('Not enough tasks to verify order, skipping');",
+									"        return;",
+									"    }",
+									"    for (var i = 0; i < tasks.length - 1; i++) {",
+									"        var currentDate = new Date(tasks[i].createdAt).getTime();",
+									"        var nextDate = new Date(tasks[i + 1].createdAt).getTime();",
+									"        pm.expect(currentDate).to.be.at.least(nextDate,",
+									"            'Task at index ' + i + ' (createdAt: ' + tasks[i].createdAt + ') should be >= task at index ' + (i+1) + ' (createdAt: ' + tasks[i+1].createdAt + ')');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/my?sortOrder=desc&size=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"my"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "22.2 Get My Tasks - Ascending order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"pm.test('Response has tasks array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('tasks');",
+									"    pm.expect(jsonData.tasks).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Tasks within page are ordered oldest first (asc)', function () {",
+									"    var jsonData = pm.response.json();",
+									"    var tasks = jsonData.tasks;",
+									"    if (tasks.length < 2) {",
+									"        console.log('Not enough tasks to verify order, skipping');",
+									"        return;",
+									"    }",
+									"    for (var i = 0; i < tasks.length - 1; i++) {",
+									"        var currentDate = new Date(tasks[i].createdAt).getTime();",
+									"        var nextDate = new Date(tasks[i + 1].createdAt).getTime();",
+									"        pm.expect(currentDate).to.be.at.most(nextDate,",
+									"            'Task at index ' + i + ' (createdAt: ' + tasks[i].createdAt + ') should be <= task at index ' + (i+1) + ' (createdAt: ' + tasks[i+1].createdAt + ')');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/my?sortOrder=asc&size=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"my"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "asc"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "22.3 Get My Tasks - Desc order page consistency",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"pm.test('Response has pagination info', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('totalPages');",
+									"    pm.expect(jsonData).to.have.property('totalElements');",
+									"    pm.expect(jsonData).to.have.property('currentPage');",
+									"    pm.expect(jsonData.currentPage).to.eql(0);",
+									"});",
+									"",
+									"pm.test('Tasks within small page are ordered newest first (desc)', function () {",
+									"    var jsonData = pm.response.json();",
+									"    var tasks = jsonData.tasks;",
+									"    if (tasks.length < 2) {",
+									"        console.log('Not enough tasks to verify order, skipping');",
+									"        return;",
+									"    }",
+									"    for (var i = 0; i < tasks.length - 1; i++) {",
+									"        var currentDate = new Date(tasks[i].createdAt).getTime();",
+									"        var nextDate = new Date(tasks[i + 1].createdAt).getTime();",
+									"        pm.expect(currentDate).to.be.at.least(nextDate,",
+									"            'Task at index ' + i + ' (createdAt: ' + tasks[i].createdAt + ') should be >= task at index ' + (i+1) + ' (createdAt: ' + tasks[i+1].createdAt + ')');",
+									"    }",
+									"    // Save last task date for cross-page check",
+									"    if (tasks.length > 0) {",
+									"        pm.collectionVariables.set('lastTaskDatePage0', tasks[tasks.length - 1].createdAt);",
+									"    }",
+									"    if (jsonData.totalPages > 1) {",
+									"        pm.collectionVariables.set('hasMultiplePages', 'true');",
+									"    } else {",
+									"        pm.collectionVariables.set('hasMultiplePages', 'false');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/my?sortOrder=desc&size=3&page=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"my"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								},
+								{
+									"key": "size",
+									"value": "3"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "22.4 Get My Tasks - Desc order page 2 consistency",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.expect(pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"pm.test('Page 2 tasks are older than page 1 last task (desc cross-page order)', function () {",
+									"    var hasMultiple = pm.collectionVariables.get('hasMultiplePages');",
+									"    if (hasMultiple !== 'true') {",
+									"        console.log('Only one page of results, skipping cross-page check');",
+									"        return;",
+									"    }",
+									"    var jsonData = pm.response.json();",
+									"    var tasks = jsonData.tasks;",
+									"    if (tasks.length === 0) {",
+									"        console.log('No tasks on page 2, skipping');",
+									"        return;",
+									"    }",
+									"    var lastDatePage0 = new Date(pm.collectionVariables.get('lastTaskDatePage0')).getTime();",
+									"    var firstDatePage1 = new Date(tasks[0].createdAt).getTime();",
+									"    pm.expect(lastDatePage0).to.be.at.least(firstDatePage1,",
+									"        'Last task on page 0 (createdAt: ' + pm.collectionVariables.get('lastTaskDatePage0') + ') should be >= first task on page 1 (createdAt: ' + tasks[0].createdAt + ')');",
+									"});",
+									"",
+									"pm.test('Tasks within page 2 are also ordered newest first (desc)', function () {",
+									"    var jsonData = pm.response.json();",
+									"    var tasks = jsonData.tasks;",
+									"    if (tasks.length < 2) {",
+									"        console.log('Not enough tasks on page 2 to verify within-page order');",
+									"        return;",
+									"    }",
+									"    for (var i = 0; i < tasks.length - 1; i++) {",
+									"        var currentDate = new Date(tasks[i].createdAt).getTime();",
+									"        var nextDate = new Date(tasks[i + 1].createdAt).getTime();",
+									"        pm.expect(currentDate).to.be.at.least(nextDate,",
+									"            'Task at index ' + i + ' (createdAt: ' + tasks[i].createdAt + ') should be >= task at index ' + (i+1) + ' (createdAt: ' + tasks[i+1].createdAt + ')');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{studentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/my?sortOrder=desc&size=3&page=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"my"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								},
+								{
+									"key": "size",
+									"value": "3"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
 		}
 	],
 	"event": [
@@ -11639,6 +11939,18 @@
 			"value": "",
 			"type": "string",
 			"description": "ID of another user to test email visibility"
+		},
+		{
+			"key": "lastTaskDatePage0",
+			"value": "",
+			"type": "string",
+			"description": "createdAt of last task on page 0 for cross-page order verification"
+		},
+		{
+			"key": "hasMultiplePages",
+			"value": "",
+			"type": "string",
+			"description": "Whether the my-tasks endpoint returned multiple pages"
 		}
 	]
 }

@@ -411,6 +411,18 @@
 			"value": "",
 			"type": "string",
 			"description": "ID of another user to test email visibility"
+		},
+		{
+			"key": "lastTaskDatePage0",
+			"value": "",
+			"type": "string",
+			"description": "createdAt of last task on page 0 for cross-page order verification"
+		},
+		{
+			"key": "hasMultiplePages",
+			"value": "",
+			"type": "string",
+			"description": "Whether the my-tasks endpoint returned multiple pages"
 		}
 	]
 }
