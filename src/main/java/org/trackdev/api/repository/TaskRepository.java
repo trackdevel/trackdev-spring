@@ -8,6 +8,9 @@ import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.TaskStatus;
 import org.trackdev.api.entity.User;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -64,4 +67,18 @@ public interface TaskRepository extends BaseRepositoryLong<Task> {
      * Find all tasks in a project with a specific status and assignee
      */
     List<Task> findByProjectIdAndStatusAndAssigneeId(Long projectId, TaskStatus status, String assigneeId);
+
+    /**
+     * Find the maximum rank among USER_STORY tasks in a project.
+     * Used to assign rank to newly created USER_STORY tasks (appended to bottom of backlog).
+     */
+    @Query("SELECT MAX(t.rank) FROM Task t WHERE t.project.id = :projectId AND t.type = org.trackdev.api.entity.TaskType.USER_STORY AND t.parentTask IS NULL")
+    Integer findMaxRankByProjectId(@Param("projectId") Long projectId);
+
+    /**
+     * Find all USER_STORY tasks in a project ordered by rank ascending.
+     * Used for bulk rank rebalancing when gap exhaustion is detected.
+     */
+    @Query("SELECT t FROM Task t WHERE t.project.id = :projectId AND t.type = org.trackdev.api.entity.TaskType.USER_STORY AND t.parentTask IS NULL ORDER BY t.rank ASC")
+    List<Task> findUserStoriesByProjectIdOrderByRankAsc(@Param("projectId") Long projectId);
 }
