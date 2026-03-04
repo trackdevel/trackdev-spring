@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.entity.*;
@@ -25,6 +26,7 @@ import java.util.*;
  * professors, subjects, courses, projects, sprint patterns, sprints, and tasks.
  */
 @Component
+@Lazy
 public class DemoDataSeeder {
 
     private final Logger logger = LoggerFactory.getLogger(DemoDataSeeder.class);

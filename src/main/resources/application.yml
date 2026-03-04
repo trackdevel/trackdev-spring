@@ -6,7 +6,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-      # ddl-auto: update
       # database-platform: org.hibernate.dialect.MariaDBDialect
       naming:
         physical-strategy: io.hypersistence.utils.hibernate.naming.CamelCaseToSnakeCaseNamingStrategy
@@ -51,7 +50,6 @@ server:
     include-exception: false
     include-stacktrace: never
 
-# Mail configuration - credentials from environment variables
 trackdev:
   mail:
     host: ${MAIL_HOST}
