@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
  * - canEditSprint: USER_STORY with subtasks cannot, DONE status blocked, PAST sprint escape allowed
  * - canEditType: USER_STORY and BUG cannot change type
  * - canEditEstimation: Only TASK/BUG can edit (USER_STORY is computed)
- * - canDelete: USER_STORY needs no subtasks, TASK/BUG needs TODO/INPROGRESS
+ * - canDelete: USER_STORY needs all subtasks in TODO, TASK/BUG needs BACKLOG/TODO/INPROGRESS
  * - canSelfAssign: Only unassigned, only students, only project members
  * - canUnassign: Only assignee or professor
  * - canAddSubtask: Only USER_STORY, only project members or professor
@@ -504,11 +504,23 @@ class AccessCheckerTaskPermissionsTest {
     class CanDeleteTaskTests {
 
         @Test
-        @DisplayName("USER_STORY with subtasks should NOT be deletable")
-        void userStoryWithSubtasks_shouldNotBeDeletable() {
-            Task subtask = createTask(10L, "Subtask", TaskType.TASK, TaskStatus.TODO);
-            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask));
-            
+        @DisplayName("USER_STORY with subtasks all in TODO SHOULD be deletable")
+        void userStoryWithSubtasksAllTodo_shouldBeDeletable() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
+            Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.TODO);
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
+
+            assertTrue(accessChecker.canDeleteTask(userStoryTask, "student-id"));
+            assertTrue(accessChecker.canDeleteTask(userStoryTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY with subtasks NOT all in TODO should NOT be deletable")
+        void userStoryWithSubtasksNotAllTodo_shouldNotBeDeletable() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
+            Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.INPROGRESS);
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
+
             assertFalse(accessChecker.canDeleteTask(userStoryTask, "student-id"));
             assertFalse(accessChecker.canDeleteTask(userStoryTask, "professor-id"));
         }
@@ -518,6 +530,13 @@ class AccessCheckerTaskPermissionsTest {
         void userStoryWithoutSubtasks_shouldBeDeletable() {
             ReflectionTestUtils.setField(userStoryTask, "childTasks", new ArrayList<>());
             assertTrue(accessChecker.canDeleteTask(userStoryTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("TASK in BACKLOG status SHOULD be deletable")
+        void taskInBacklogStatus_shouldBeDeletable() {
+            taskTask.setStatus(TaskStatus.BACKLOG);
+            assertTrue(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
         @Test
@@ -914,8 +933,8 @@ class AccessCheckerTaskPermissionsTest {
             // Estimation never editable
             assertFalse(accessChecker.canEditEstimation(userStoryTask, "admin-id"));
             
-            // Delete blocked if has subtasks
-            Task subtask = createTask(10L, "Subtask", TaskType.TASK, TaskStatus.TODO);
+            // Delete blocked if has subtasks not in TODO
+            Task subtask = createTask(10L, "Subtask", TaskType.TASK, TaskStatus.INPROGRESS);
             ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask));
             assertFalse(accessChecker.canDeleteTask(userStoryTask, "admin-id"));
         }
