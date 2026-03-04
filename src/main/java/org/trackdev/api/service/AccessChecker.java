@@ -996,8 +996,8 @@ public class AccessChecker {
     /**
      * Compute canDelete permission.
      * Professor, assignee, or reporter can delete.
-     * USER_STORY can only be deleted if it has no subtasks.
-     * TASK/BUG can only be deleted if status is TODO or INPROGRESS.
+     * USER_STORY can only be deleted if all its subtasks are in TODO status.
+     * TASK/BUG can only be deleted if status is BACKLOG, TODO or INPROGRESS.
      */
     public boolean canDeleteTask(org.trackdev.api.entity.Task task, String userId) {
         boolean isProfessor = isProfessorForTask(task, userId);
@@ -1013,13 +1013,16 @@ public class AccessChecker {
         if (!isProfessor && !isTaskAssignee(task, userId) && !isTaskReporter(task, userId)) {
             return false;
         }
-        // USER_STORY: can only delete if no subtasks
+        // USER_STORY: can only delete if all subtasks are in TODO status
         if (task.getTaskType() == TaskType.USER_STORY) {
             Collection<org.trackdev.api.entity.Task> children = task.getChildTasks();
-            return children == null || children.isEmpty();
+            if (children == null || children.isEmpty()) {
+                return true;
+            }
+            return children.stream().allMatch(child -> child.getStatus() == TaskStatus.TODO);
         }
-        // TASK/BUG: can only delete if status is TODO or INPROGRESS
-        return task.getStatus() == TaskStatus.TODO || task.getStatus() == TaskStatus.INPROGRESS;
+        // TASK/BUG: can only delete if status is BACKLOG, TODO or INPROGRESS
+        return task.getStatus() == TaskStatus.BACKLOG || task.getStatus() == TaskStatus.TODO || task.getStatus() == TaskStatus.INPROGRESS;
     }
 
     /**
