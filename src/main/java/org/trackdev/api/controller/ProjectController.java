@@ -77,6 +77,9 @@ public class ProjectController extends BaseController {
     @Autowired
     org.trackdev.api.mapper.PullRequestMapper pullRequestMapper;
 
+    @Autowired
+    org.trackdev.api.service.TaskService taskService;
+
     @Operation(summary = "Get all projects", description = "Get all projects")
     @GetMapping
     public ProjectsResponseDTO getProjects(Principal principal) {
@@ -152,6 +155,16 @@ public class ProjectController extends BaseController {
         // Authorization check is now inside the service method
         Collection<Task> tasks = service.getAllProjectTasks(projectId, userId);
         return new ProjectTasksResponseDTO(taskMapper.toBasicDTOCollection(tasks), projectId);
+    }
+
+    @Operation(summary = "Rebalance task ranks in project backlog",
+               description = "Reassigns rank values for all USER_STORY tasks in the project with even spacing, preserving current order")
+    @PostMapping(path = "/{projectId}/tasks/rebalance-ranks")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void rebalanceTaskRanks(Principal principal,
+                                   @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        taskService.rebalanceRanks(projectId, userId);
     }
 
     @Operation(summary = "Create sprint of specific project", description = "Create sprint of specific project")
