@@ -53,7 +53,6 @@ public class DataInitializer implements CommandLineRunner {
             // Production mode: Flyway was deferred by AfterMigrateCallback (no-op strategy).
             // Now JPA is ready, so we can run migrations in stages with data seeding in between.
             logger.info("Running production initialization (Flyway + data seeding)...");
-            runFlywayWithDataSeeding();
             ensureAdminUserExists();
         }
     }
