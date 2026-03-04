@@ -71,7 +71,6 @@ fi
 echo "Loading environment variables from $ENV_FILE"
 while IFS= read -r line || [ -n "$line" ]; do
     # Skip blank lines and comments
-    echo "Line: $line"
     [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
     # Split on first '=' only
     key="${line%%=*}"
@@ -82,7 +81,6 @@ while IFS= read -r line || [ -n "$line" ]; do
     # Export the variable
     echo "Key: $key, Value: $value"
     export "$key=$value"
-    echo "  Loaded: $key"
 done < "$ENV_FILE"
 
 echo ""
