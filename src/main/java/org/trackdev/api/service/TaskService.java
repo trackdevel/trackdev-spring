@@ -70,6 +70,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         String sanitizedName = HtmlSanitizer.sanitize(name);
         Task task = new Task(sanitizedName, user);
         task.setType(TaskType.USER_STORY);
+
+        // Assign rank at bottom of backlog (max existing rank + GAP_SIZE)
+        Integer maxRank = repo.findMaxRankByProjectId(projectId);
+        task.setRank((maxRank != null ? maxRank : 0) + 65536);
+
         project.addTask(task);  // This sets project, taskNumber, and taskKey
         this.repo.save(task);
 
@@ -270,10 +275,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         
         accessChecker.checkCanViewProject(task.getProject(), userId);
 
-        // Check if user can edit task fields (name, description, estimation, rank, sprints, type)
-        // This is required for any field modification except status (which has its own check)
-        boolean hasEditFields = editTask.name != null || editTask.description != null || 
-                                editTask.estimationPoints != null || editTask.rank != null ||
+        // Check if user can edit task fields (name, description, estimation, sprints, type)
+        // This is required for any field modification except status and rank (which have their own checks)
+        boolean hasEditFields = editTask.name != null || editTask.description != null ||
+                                editTask.estimationPoints != null ||
                                 editTask.reporter != null || editTask.assignee != null ||
                                 editTask.activeSprints != null || editTask.type != null;
         if (hasEditFields) {
@@ -683,6 +688,27 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         return task;
     }
 
+    /**
+     * Rebalance ranks for all USER_STORY tasks in a project.
+     * Called when gap exhaustion is detected (when computed midpoint equals
+     * one of its neighbors). Reassigns ranks with GAP=65536 spacing
+     * while preserving the current order.
+     */
+    @Transactional
+    public void rebalanceRanks(Long projectId, String userId) {
+        Project project = projectService.get(projectId);
+        accessChecker.checkCanViewProject(project, userId);
+
+        List<Task> stories = repo.findUserStoriesByProjectIdOrderByRankAsc(projectId);
+        int rank = 65536;
+        for (Task story : stories) {
+            if (!Objects.equals(story.getRank(), rank)) {
+                story.setRank(rank);
+                repo.save(story);
+            }
+            rank += 65536;
+        }
+    }
 
     @Transactional
     public void deleteTask(Long id, String userId) {
