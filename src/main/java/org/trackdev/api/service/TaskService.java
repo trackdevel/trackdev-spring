@@ -724,13 +724,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
         // Validate delete constraints
         if (task.getTaskType() == TaskType.USER_STORY) {
-            // USER_STORY can only be deleted if it has no subtasks
-            if (task.getChildTasks() != null && !task.getChildTasks().isEmpty()) {
-                throw new ServiceException(ErrorConstants.USER_STORY_HAS_SUBTASKS_CANNOT_DELETE);
+            // USER_STORY can only be deleted if all subtasks are in TODO status
+            Collection<Task> children = task.getChildTasks();
+            if (children != null && !children.isEmpty()) {
+                boolean allTodo = children.stream().allMatch(child -> child.getStatus() == TaskStatus.TODO);
+                if (!allTodo) {
+                    throw new ServiceException(ErrorConstants.USER_STORY_SUBTASKS_NOT_TODO_CANNOT_DELETE);
+                }
             }
         } else {
-            // TASK or BUG can only be deleted if status is TODO or INPROGRESS
-            if (task.getStatus() != TaskStatus.TODO && task.getStatus() != TaskStatus.INPROGRESS) {
+            // TASK or BUG can only be deleted if status is BACKLOG, TODO or INPROGRESS
+            if (task.getStatus() != TaskStatus.BACKLOG && task.getStatus() != TaskStatus.TODO && task.getStatus() != TaskStatus.INPROGRESS) {
                 throw new ServiceException(ErrorConstants.TASK_STATUS_CANNOT_DELETE);
             }
         }
