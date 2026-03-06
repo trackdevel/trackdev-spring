@@ -531,7 +531,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             task.setActiveSprints(sprints);
             sprints.stream().forEach(sprint -> sprint.addTask(task, user));
             changes.add(new TaskActiveSprintsChange(user, task, oldValues, newValues));
-            
+
+            // Auto-transition BACKLOG → TODO when assigning to a sprint
+            if (!sprintsIds.isEmpty() && task.getStatus() == TaskStatus.BACKLOG) {
+                task.forceSetStatus(TaskStatus.TODO);
+                changes.add(new TaskStatusChange(user, task, TaskStatus.BACKLOG.toString(), TaskStatus.TODO.toString()));
+            }
+
             // For USER_STORY: cascade sprint assignment to all subtasks
             if (task.getTaskType() == TaskType.USER_STORY && task.getChildTasks() != null) {
                 for (Task subtask : task.getChildTasks()) {
@@ -540,6 +546,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     // Assign to new sprints
                     subtask.setActiveSprints(new ArrayList<>(sprints));
                     sprints.stream().forEach(sprint -> sprint.addTask(subtask, user));
+                    // Auto-transition subtasks BACKLOG → TODO
+                    if (subtask.getStatus() == TaskStatus.BACKLOG) {
+                        subtask.forceSetStatus(TaskStatus.TODO);
+                    }
                     repo.save(subtask);
                 }
             }
@@ -722,19 +732,26 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Only task assignee, reporter, professor, or admin can delete tasks
         accessChecker.checkCanDeleteTask(task, userId);
 
-        // Validate delete constraints
+        // Validate delete constraints (professor can delete any task)
+        boolean isProfessor = accessChecker.isProfessorForTask(task, userId);
         if (task.getTaskType() == TaskType.USER_STORY) {
-            // USER_STORY can only be deleted if all subtasks are in TODO status
             Collection<Task> children = task.getChildTasks();
-            if (children != null && !children.isEmpty()) {
+            if (!isProfessor && children != null && !children.isEmpty()) {
+                // Student: all subtasks must be in TODO status
                 boolean allTodo = children.stream().allMatch(child -> child.getStatus() == TaskStatus.TODO);
                 if (!allTodo) {
                     throw new ServiceException(ErrorConstants.USER_STORY_SUBTASKS_NOT_TODO_CANNOT_DELETE);
                 }
+                // Student: all subtasks must be assigned to this student
+                boolean allAssigned = children.stream().allMatch(child ->
+                        child.getAssignee() != null && child.getAssignee().getId().equals(userId));
+                if (!allAssigned) {
+                    throw new ServiceException(ErrorConstants.USER_STORY_SUBTASKS_NOT_ASSIGNED_CANNOT_DELETE);
+                }
             }
         } else {
-            // TASK or BUG can only be deleted if status is BACKLOG, TODO or INPROGRESS
-            if (task.getStatus() != TaskStatus.BACKLOG && task.getStatus() != TaskStatus.TODO && task.getStatus() != TaskStatus.INPROGRESS) {
+            // TASK or BUG: student cannot delete if status is DONE
+            if (!isProfessor && task.getStatus() == TaskStatus.DONE) {
                 throw new ServiceException(ErrorConstants.TASK_STATUS_CANNOT_DELETE);
             }
         }
