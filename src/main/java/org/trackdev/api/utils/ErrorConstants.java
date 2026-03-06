@@ -62,6 +62,7 @@ public final class ErrorConstants {
     public static final String USER_STORY_HAS_SUBTASKS_CANNOT_DELETE = "error.task.user.story.has.subtasks.delete";
     public static final String USER_STORY_SUBTASKS_NOT_TODO_CANNOT_DELETE = "error.task.user.story.subtasks.not.todo.delete";
     public static final String TASK_STATUS_CANNOT_DELETE = "error.task.status.cannot.delete";
+    public static final String USER_STORY_SUBTASKS_NOT_ASSIGNED_CANNOT_DELETE = "error.task.user.story.subtasks.not.assigned.delete";
     
     // Project errors
     public static final String PRJ_WITHOUT_MEMBERS = "error.project.no.members";
