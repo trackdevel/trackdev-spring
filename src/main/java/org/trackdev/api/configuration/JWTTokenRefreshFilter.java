@@ -46,51 +46,49 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        // Continue with the filter chain first
-        filterChain.doFilter(request, response);
-        
-        // After the request is processed, check if user is authenticated
+        // Set refreshed token BEFORE the filter chain processes the request.
+        // This ensures the response header is set before the response body is written,
+        // avoiding issues where response.setHeader() is silently ignored if the
+        // response has already been committed (flushed to the client).
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            
+
             if (authentication != null && authentication.isAuthenticated()
                     && authentication.getPrincipal() instanceof String) {
 
                 // Skip token refresh for PAT-authenticated requests
                 Boolean isPATAuth = (Boolean) request.getAttribute(
                     PATAuthorizationFilter.PAT_AUTH_ATTRIBUTE);
-                if (Boolean.TRUE.equals(isPATAuth)) {
-                    return;
-                }
+                if (!Boolean.TRUE.equals(isPATAuth)) {
+                    String userId = (String) authentication.getPrincipal();
 
-                String userId = (String) authentication.getPrincipal();
+                    // Skip token refresh for certain endpoints
+                    String requestPath = request.getServletPath();
+                    if (!shouldSkipRefresh(requestPath)) {
+                        // Generate refreshed token
+                        String refreshedToken = generateRefreshedToken(userId);
 
-                // Skip token refresh for certain endpoints
-                String requestPath = request.getRequestURI();
-                if (shouldSkipRefresh(requestPath)) {
-                    return;
+                        // Add refreshed token to response header
+                        response.setHeader(REFRESHED_TOKEN_HEADER, refreshedToken);
+
+                        // Also update the cookie for web clients
+                        String cookieTokenValue = Base64.getEncoder()
+                                .withoutPadding()
+                                .encodeToString(refreshedToken.getBytes());
+                        cookieManager.addSessionCookie(request, response, COOKIE_NAME, cookieTokenValue);
+                    }
                 }
-                
-                // Generate refreshed token
-                String refreshedToken = generateRefreshedToken(userId);
-                
-                // Add refreshed token to response header
-                response.setHeader(REFRESHED_TOKEN_HEADER, refreshedToken);
-                
-                // Also update the cookie for web clients
-                String cookieTokenValue = Base64.getEncoder()
-                        .withoutPadding()
-                        .encodeToString(refreshedToken.getBytes());
-                cookieManager.addSessionCookie(request, response, COOKIE_NAME, cookieTokenValue);
             }
         } catch (Exception e) {
             // Don't fail the request if token refresh fails
             // Just log and continue - the original token is still valid
             logger.debug("Token refresh failed: " + e.getMessage());
         }
+
+        filterChain.doFilter(request, response);
     }
     
     /**
