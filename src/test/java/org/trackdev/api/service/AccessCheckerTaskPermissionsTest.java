@@ -158,7 +158,7 @@ class AccessCheckerTaskPermissionsTest {
         ReflectionTestUtils.setField(task, "id", id);
         task.setName(name);
         task.setType(type);
-        task.setStatus(status);
+        ReflectionTestUtils.setField(task, "status", status);
         task.setProject(project);
         task.setReporter(studentUser);
         task.setAssignee(studentUser);
@@ -368,14 +368,14 @@ class AccessCheckerTaskPermissionsTest {
         @Test
         @DisplayName("TASK in DONE status should NOT edit sprint (student)")
         void taskInDoneStatus_shouldNotEditSprintByStudent() {
-            taskTask.setStatus(TaskStatus.DONE);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.DONE);
             assertFalse(accessChecker.canEditSprint(taskTask, "student-id"));
         }
 
         @Test
         @DisplayName("TASK in DONE status SHOULD edit sprint by professor")
         void taskInDoneStatus_shouldEditSprintByProfessor() {
-            taskTask.setStatus(TaskStatus.DONE);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.DONE);
             assertTrue(accessChecker.canEditSprint(taskTask, "professor-id"));
         }
 
@@ -383,7 +383,7 @@ class AccessCheckerTaskPermissionsTest {
         @DisplayName("TASK in PAST sprint (not DONE) SHOULD edit sprint to escape")
         void taskInPastSprintNotDone_shouldEditSprintToEscape() {
             ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
-            taskTask.setStatus(TaskStatus.INPROGRESS);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.INPROGRESS);
             assertTrue(accessChecker.canEditSprint(taskTask, "student-id"));
         }
 
@@ -391,7 +391,7 @@ class AccessCheckerTaskPermissionsTest {
         @DisplayName("TASK in PAST sprint with DONE status should NOT edit sprint (student)")
         void taskInPastSprintDone_shouldNotEditSprintByStudent() {
             ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
-            taskTask.setStatus(TaskStatus.DONE);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.DONE);
             assertFalse(accessChecker.canEditSprint(taskTask, "student-id"));
         }
 
@@ -515,14 +515,23 @@ class AccessCheckerTaskPermissionsTest {
         }
 
         @Test
-        @DisplayName("USER_STORY with subtasks NOT all in TODO should NOT be deletable")
-        void userStoryWithSubtasksNotAllTodo_shouldNotBeDeletable() {
+        @DisplayName("USER_STORY with subtasks NOT all in TODO should NOT be deletable by student")
+        void userStoryWithSubtasksNotAllTodo_shouldNotBeDeletableByStudent() {
             Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
             Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.INPROGRESS);
             ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
 
             assertFalse(accessChecker.canDeleteTask(userStoryTask, "student-id"));
-            assertFalse(accessChecker.canDeleteTask(userStoryTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY with subtasks NOT all in TODO SHOULD be deletable by professor")
+        void userStoryWithSubtasksNotAllTodo_shouldBeDeletableByProfessor() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
+            Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.INPROGRESS);
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
+
+            assertTrue(accessChecker.canDeleteTask(userStoryTask, "professor-id"));
         }
 
         @Test
@@ -535,35 +544,35 @@ class AccessCheckerTaskPermissionsTest {
         @Test
         @DisplayName("TASK in BACKLOG status SHOULD be deletable")
         void taskInBacklogStatus_shouldBeDeletable() {
-            taskTask.setStatus(TaskStatus.BACKLOG);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.BACKLOG);
             assertTrue(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
         @Test
         @DisplayName("TASK in TODO status SHOULD be deletable")
         void taskInTodoStatus_shouldBeDeletable() {
-            taskTask.setStatus(TaskStatus.TODO);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO);
             assertTrue(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
         @Test
         @DisplayName("TASK in INPROGRESS status SHOULD be deletable")
         void taskInInProgressStatus_shouldBeDeletable() {
-            taskTask.setStatus(TaskStatus.INPROGRESS);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.INPROGRESS);
             assertTrue(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
         @Test
-        @DisplayName("TASK in VERIFY status should NOT be deletable")
-        void taskInVerifyStatus_shouldNotBeDeletable() {
-            taskTask.setStatus(TaskStatus.VERIFY);
-            assertFalse(accessChecker.canDeleteTask(taskTask, "student-id"));
+        @DisplayName("TASK in VERIFY status SHOULD be deletable by student")
+        void taskInVerifyStatus_shouldBeDeletableByStudent() {
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.VERIFY);
+            assertTrue(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
         @Test
         @DisplayName("TASK in DONE status should NOT be deletable")
         void taskInDoneStatus_shouldNotBeDeletable() {
-            taskTask.setStatus(TaskStatus.DONE);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.DONE);
             assertFalse(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
@@ -578,7 +587,7 @@ class AccessCheckerTaskPermissionsTest {
         @DisplayName("Frozen TASK in TODO SHOULD be deletable by professor")
         void frozenTaskInTodo_shouldBeDeletableByProfessor() {
             taskTask.setFrozen(true);
-            taskTask.setStatus(TaskStatus.TODO);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO);
             assertTrue(accessChecker.canDeleteTask(taskTask, "professor-id"));
         }
 
@@ -595,7 +604,7 @@ class AccessCheckerTaskPermissionsTest {
             // Student is reporter but not assignee
             taskTask.setReporter(studentUser);
             taskTask.setAssignee(null);  // Unassigned
-            taskTask.setStatus(TaskStatus.TODO);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO);
             assertFalse(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
@@ -605,7 +614,7 @@ class AccessCheckerTaskPermissionsTest {
             // Student was assignee, now unassigned
             taskTask.setReporter(studentUser);  // Still reporter
             taskTask.setAssignee(null);  // No longer assignee
-            taskTask.setStatus(TaskStatus.TODO);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO);
             assertFalse(accessChecker.canDeleteTask(taskTask, "student-id"));
         }
 
@@ -613,8 +622,65 @@ class AccessCheckerTaskPermissionsTest {
         @DisplayName("Current assignee SHOULD be able to delete (TODO status)")
         void currentAssignee_shouldDelete() {
             taskTask.setAssignee(studentUser);
-            taskTask.setStatus(TaskStatus.TODO);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO);
             assertTrue(accessChecker.canDeleteTask(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY + student: subtasks TODO but not all assigned to student should NOT be deletable")
+        void userStorySubtasksTodoButNotAssigned_shouldNotBeDeletableByStudent() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
+            Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.TODO);
+            subtask2.setAssignee(otherStudentUser);  // Assigned to someone else
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
+
+            assertFalse(accessChecker.canDeleteTask(userStoryTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY + student: subtasks TODO and all assigned to student SHOULD be deletable")
+        void userStorySubtasksTodoAndAssigned_shouldBeDeletableByStudent() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
+            Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.TODO);
+            // Both subtasks assigned to studentUser (default from createTask)
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
+
+            assertTrue(accessChecker.canDeleteTask(userStoryTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY + professor: subtasks in mixed states SHOULD be deletable")
+        void userStoryMixedSubtasks_shouldBeDeletableByProfessor() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.DONE);
+            Task subtask2 = createTask(11L, "Subtask 2", TaskType.TASK, TaskStatus.INPROGRESS);
+            subtask2.setAssignee(otherStudentUser);
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1, subtask2));
+
+            assertTrue(accessChecker.canDeleteTask(userStoryTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("TASK in DONE status SHOULD be deletable by professor")
+        void taskInDoneStatus_shouldBeDeletableByProfessor() {
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.DONE);
+            assertTrue(accessChecker.canDeleteTask(taskTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("TASK in VERIFY status SHOULD be deletable by professor")
+        void taskInVerifyStatus_shouldBeDeletableByProfessor() {
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.VERIFY);
+            assertTrue(accessChecker.canDeleteTask(taskTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY + student: subtask with null assignee should NOT be deletable")
+        void userStorySubtaskUnassigned_shouldNotBeDeletableByStudent() {
+            Task subtask1 = createTask(10L, "Subtask 1", TaskType.TASK, TaskStatus.TODO);
+            subtask1.setAssignee(null);  // Unassigned subtask
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask1));
+
+            assertFalse(accessChecker.canDeleteTask(userStoryTask, "student-id"));
         }
     }
 
@@ -882,7 +948,7 @@ class AccessCheckerTaskPermissionsTest {
         @DisplayName("Task in PAST sprint - professor CAN still edit")
         void taskInPastSprint_professorCanStillEdit() {
             ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
-            taskTask.setStatus(TaskStatus.TODO); // Ensure TODO for delete test
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO); // Ensure TODO for delete test
             
             assertTrue(accessChecker.canEditStatus(taskTask, "professor-id"));
             assertTrue(accessChecker.canEditType(taskTask, "professor-id"));
@@ -910,7 +976,7 @@ class AccessCheckerTaskPermissionsTest {
         @DisplayName("Frozen task - professor CAN still edit")
         void frozenTask_professorCanStillEdit() {
             taskTask.setFrozen(true);
-            taskTask.setStatus(TaskStatus.TODO);
+            ReflectionTestUtils.setField(taskTask, "status",TaskStatus.TODO);
             
             assertTrue(accessChecker.canEditStatus(taskTask, "professor-id"));
             assertTrue(accessChecker.canEditSprint(taskTask, "professor-id"));
@@ -933,10 +999,10 @@ class AccessCheckerTaskPermissionsTest {
             // Estimation never editable
             assertFalse(accessChecker.canEditEstimation(userStoryTask, "admin-id"));
             
-            // Delete blocked if has subtasks not in TODO
+            // Admin (professor-equivalent) can delete USER_STORY regardless of subtask state
             Task subtask = createTask(10L, "Subtask", TaskType.TASK, TaskStatus.INPROGRESS);
             ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(subtask));
-            assertFalse(accessChecker.canDeleteTask(userStoryTask, "admin-id"));
+            assertTrue(accessChecker.canDeleteTask(userStoryTask, "admin-id"));
         }
 
         @Test
