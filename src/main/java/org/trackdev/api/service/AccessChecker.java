@@ -331,22 +331,16 @@ public class AccessChecker {
 
     /**
      * Check if user can delete a task. Allowed for:
+     * - Professor (course owner, subject owner) or Admin
      * - Task assignee
-     * - Task reporter (creator)
-     * - Professor (course owner, subject owner)
-     * - Admin
      */
     public void checkCanDeleteTask(org.trackdev.api.entity.Task task, String userId) {
-        // Task assignee can delete
-        if (isTaskAssignee(task, userId)) {
-            return;
-        }
-        // Task reporter can delete their own task
-        if (isTaskReporter(task, userId)) {
-            return;
-        }
         // Professor (course owner, subject owner) or admin can delete
         if (isProfessorForTask(task, userId)) {
+            return;
+        }
+        // Task assignee can delete
+        if (isTaskAssignee(task, userId)) {
             return;
         }
         throw new ServiceException(ErrorConstants.UNAUTHORIZED);
@@ -1009,20 +1003,27 @@ public class AccessChecker {
         if (isTaskInPastSprintOnly(task) && !isProfessor) {
             return false;
         }
-        // Professor, assignee, or reporter can delete
-        if (!isProfessor && !isTaskAssignee(task, userId) && !isTaskReporter(task, userId)) {
+        // Professor can delete any task regardless of state or assignee
+        if (isProfessor) {
+            return true;
+        }
+        // Student: must be assignee (not just reporter)
+        if (!isTaskAssignee(task, userId)) {
             return false;
         }
-        // USER_STORY: can only delete if all subtasks are in TODO status
+        // USER_STORY + student: all subtasks must be TODO and assigned to this student
         if (task.getTaskType() == TaskType.USER_STORY) {
             Collection<org.trackdev.api.entity.Task> children = task.getChildTasks();
             if (children == null || children.isEmpty()) {
                 return true;
             }
-            return children.stream().allMatch(child -> child.getStatus() == TaskStatus.TODO);
+            return children.stream().allMatch(child ->
+                    child.getStatus() == TaskStatus.TODO
+                    && child.getAssignee() != null
+                    && child.getAssignee().getId().equals(userId));
         }
-        // TASK/BUG: can only delete if status is BACKLOG, TODO or INPROGRESS
-        return task.getStatus() == TaskStatus.BACKLOG || task.getStatus() == TaskStatus.TODO || task.getStatus() == TaskStatus.INPROGRESS;
+        // TASK/BUG + student: cannot delete if status is DONE
+        return task.getStatus() != TaskStatus.DONE;
     }
 
     /**
