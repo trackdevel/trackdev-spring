@@ -767,11 +767,18 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
         task.setActiveSprints(new ArrayList<>());
 
-        // If task is a parent (USER_STORY), delete child tasks (already validated above)
+        // If task is a parent (USER_STORY), delete child tasks and their related entities
         if (task.getParentTask() == null){
             Collection<Task> removeTask = task.getChildTasks();
-            removeTask.stream().forEach(childTask -> childTask.setParentTask(null));
-            removeTask.stream().forEach(childTask -> childTask.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(childTask)));
+            for (Task childTask : removeTask) {
+                commentService.deleteByTask(childTask);
+                taskChangeService.deleteByTask(childTask);
+                activityService.deleteByTask(childTask);
+                taskAttributeValueService.deleteByTaskId(childTask.getId());
+                projectAnalysisService.deleteFilesByTask(childTask);
+                childTask.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(childTask));
+                childTask.setParentTask(null);
+            }
             repo.deleteAll(removeTask);
         }
 
