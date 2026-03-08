@@ -692,7 +692,7 @@ public class DemoDataSeeder {
                 String storyName = storyTemplates.get(storyIndex % storyTemplates.size());
                 storyIndex++;
 
-                Task story = taskService.createTask(project.getId(), storyName, reporter.getId());
+                Task story = taskService.createTask(project.getId(), storyName, null, null, null, reporter.getId());
                 assignOrderedTimestamp(story);
 
                 // For pds25a sprint 2, assign some stories to Alice Johnson
@@ -737,7 +737,7 @@ public class DemoDataSeeder {
 
                     // Create subtask with sprint assignment - randomly assign TASK or BUG type
                     TaskType subtaskType = random.nextBoolean() ? TaskType.TASK : TaskType.BUG;
-                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, assignee.getId(), sprint.getId(), subtaskType);
+                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, null, assignee.getId(), sprint.getId(), subtaskType);
                     assignOrderedTimestamp(subtask);
 
                     User subtaskAssignee;
@@ -799,7 +799,7 @@ public class DemoDataSeeder {
             String storyName = storyTemplates.get((storyIndex + i) % storyTemplates.size());
 
             // Create backlog task - no estimation points needed (calculated from subtasks, and subtasks can't have estimation points in BACKLOG)
-            Task backlogTask = taskService.createTask(project.getId(), storyName, reporter.getId());
+            Task backlogTask = taskService.createTask(project.getId(), storyName, null, null, null, reporter.getId());
             assignOrderedTimestamp(backlogTask);
         }
 
@@ -923,9 +923,9 @@ public class DemoDataSeeder {
             new int[]{2, 8});
 
         // ========== BACKLOG: Add a couple of stories ==========
-        Task backlog1 = taskService.createTask(project.getId(), "As a user, I want to export reports to PDF", alice.getId());
+        Task backlog1 = taskService.createTask(project.getId(), "As a user, I want to export reports to PDF", null, null, null, alice.getId());
         assignOrderedTimestamp(backlog1);
-        Task backlog2 = taskService.createTask(project.getId(), "As a user, I want to receive email notifications", alice.getId());
+        Task backlog2 = taskService.createTask(project.getId(), "As a user, I want to receive email notifications", null, null, null, alice.getId());
         assignOrderedTimestamp(backlog2);
 
         logger.info("pds25a: Completed data creation");
@@ -939,7 +939,7 @@ public class DemoDataSeeder {
                                        String storyName, String[] subtaskNames,
                                        TaskStatus[] subtaskStatuses, int[] estimationPoints) {
         // Create the USER_STORY
-        Task story = taskService.createTask(project.getId(), "As a user, I want to " + storyName.toLowerCase(), assignee.getId());
+        Task story = taskService.createTask(project.getId(), "As a user, I want to " + storyName.toLowerCase(), null, null, null, assignee.getId());
         assignOrderedTimestamp(story);
 
         // Set story assignee
@@ -950,7 +950,7 @@ public class DemoDataSeeder {
         // Create subtasks - use createSubTaskInternal with allowPastSprint=true for demo data
         for (int i = 0; i < subtaskNames.length; i++) {
             TaskType subtaskType = (i % 2 == 0) ? TaskType.TASK : TaskType.BUG; // Alternate TASK/BUG
-            Task subtask = taskService.createSubTaskInternal(story.getId(), subtaskNames[i], assignee.getId(), sprint.getId(), subtaskType, true);
+            Task subtask = taskService.createSubTaskInternal(story.getId(), subtaskNames[i], null, assignee.getId(), sprint.getId(), subtaskType, true);
             assignOrderedTimestamp(subtask);
 
             // Set subtask status
@@ -1248,7 +1248,7 @@ public class DemoDataSeeder {
         logger.info("");
 
         // 1. FROZEN TASK - A task that is frozen (only professor can edit)
-        Task frozenTask = taskService.createTask(project.getId(), "PERMISSION TEST: Frozen task", alice.getId());
+        Task frozenTask = taskService.createTask(project.getId(), "PERMISSION TEST: Frozen task", null, null, null, alice.getId());
         assignOrderedTimestamp(frozenTask);
         MergePatchTask frozenEdit = new MergePatchTask();
         frozenEdit.assignee = Optional.of(alice.getEmail());
@@ -1258,7 +1258,7 @@ public class DemoDataSeeder {
 
         // 2. PAST SPRINT TASK - A task in a closed/past sprint (student cannot edit status)
         // Create a USER_STORY in backlog, then add a subtask to the past sprint
-        Task pastStory = taskService.createTask(project.getId(), "PERMISSION TEST: Past sprint story", alice.getId());
+        Task pastStory = taskService.createTask(project.getId(), "PERMISSION TEST: Past sprint story", null, null, null, alice.getId());
         assignOrderedTimestamp(pastStory);
         MergePatchTask pastStoryEdit = new MergePatchTask();
         pastStoryEdit.assignee = Optional.of(alice.getEmail());
@@ -1266,7 +1266,7 @@ public class DemoDataSeeder {
 
         // Create subtask in past sprint using internal method that allows past sprint
         Task pastSprintTask = taskService.createSubTaskInternal(pastStory.getId(),
-            "PERMISSION TEST: Task in past sprint", alice.getId(), pastSprint.getId(), TaskType.TASK, true);
+            "PERMISSION TEST: Task in past sprint", null, alice.getId(), pastSprint.getId(), TaskType.TASK, true);
         assignOrderedTimestamp(pastSprintTask);
         MergePatchTask pastTaskEdit = new MergePatchTask();
         pastTaskEdit.assignee = Optional.of(alice.getEmail());
@@ -1277,7 +1277,7 @@ public class DemoDataSeeder {
         // 3. TASK REPORTED BY ALICE BUT ASSIGNED TO BOB (for delete permission test)
         // Reporter is Alice, Assignee is Bob - Alice should NOT be able to delete
         Task reportedNotAssigned = taskService.createTask(project.getId(),
-            "PERMISSION TEST: Reported by Alice, assigned to Bob", alice.getId());
+            "PERMISSION TEST: Reported by Alice, assigned to Bob", null, null, null, alice.getId());
         assignOrderedTimestamp(reportedNotAssigned);
         MergePatchTask reportedEdit = new MergePatchTask();
         reportedEdit.assignee = Optional.of(bob.getEmail());
@@ -1286,7 +1286,7 @@ public class DemoDataSeeder {
 
         // 4. TASK ASSIGNED TO ALICE FOR DELETE TEST
         Task taskToDelete = taskService.createTask(project.getId(),
-            "PERMISSION TEST: Task assigned to Alice for delete", alice.getId());
+            "PERMISSION TEST: Task assigned to Alice for delete", null, null, null, alice.getId());
         assignOrderedTimestamp(taskToDelete);
         MergePatchTask deleteEdit = new MergePatchTask();
         deleteEdit.assignee = Optional.of(alice.getEmail());
@@ -1295,7 +1295,7 @@ public class DemoDataSeeder {
 
         // 5. USER_STORY (for testing that status cannot be changed directly)
         Task userStory = taskService.createTask(project.getId(),
-            "PERMISSION TEST: User story (status computed from subtasks)", alice.getId());
+            "PERMISSION TEST: User story (status computed from subtasks)", null, null, null, alice.getId());
         assignOrderedTimestamp(userStory);
         MergePatchTask storyEdit = new MergePatchTask();
         storyEdit.assignee = Optional.of(alice.getEmail());
@@ -1304,7 +1304,7 @@ public class DemoDataSeeder {
 
         // 6. USER_STORY WITH SUBTASKS (for testing cannot delete if has subtasks)
         Task userStoryWithSubtasks = taskService.createTask(project.getId(),
-            "PERMISSION TEST: User story with subtasks (cannot delete)", alice.getId());
+            "PERMISSION TEST: User story with subtasks (cannot delete)", null, null, null, alice.getId());
         assignOrderedTimestamp(userStoryWithSubtasks);
         MergePatchTask storyWithSubtasksEdit = new MergePatchTask();
         storyWithSubtasksEdit.assignee = Optional.of(alice.getEmail());
@@ -1312,7 +1312,7 @@ public class DemoDataSeeder {
 
         // Add a subtask to make it non-deletable
         Task subtask1 = taskService.createSubTask(userStoryWithSubtasks.getId(),
-            "PERMISSION TEST: Subtask 1", alice.getId(), activeSprint.getId(), TaskType.TASK);
+            "PERMISSION TEST: Subtask 1", null, alice.getId(), activeSprint.getId(), TaskType.TASK);
         assignOrderedTimestamp(subtask1);
         MergePatchTask subtaskEdit = new MergePatchTask();
         subtaskEdit.assignee = Optional.of(alice.getEmail());
@@ -1321,7 +1321,7 @@ public class DemoDataSeeder {
 
         // 7. TASK IN FUTURE SPRINT (cannot change status from TODO)
         Task futureTask = taskService.createTask(project.getId(),
-            "PERMISSION TEST: Task in future sprint", alice.getId());
+            "PERMISSION TEST: Task in future sprint", null, null, null, alice.getId());
         assignOrderedTimestamp(futureTask);
         MergePatchTask futureEdit = new MergePatchTask();
         futureEdit.assignee = Optional.of(alice.getEmail());
@@ -1332,7 +1332,7 @@ public class DemoDataSeeder {
         // 8. TASK FOR UNASSIGNMENT TEST
         // First create a task assigned to Alice, then we'll unassign it via test
         Task unassignmentTask = taskService.createTask(project.getId(),
-            "PERMISSION TEST: Task for unassignment test", alice.getId());
+            "PERMISSION TEST: Task for unassignment test", null, null, null, alice.getId());
         assignOrderedTimestamp(unassignmentTask);
         MergePatchTask unassignEdit = new MergePatchTask();
         unassignEdit.assignee = Optional.of(alice.getEmail());
