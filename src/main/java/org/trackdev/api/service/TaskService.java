@@ -62,14 +62,24 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     ProjectAnalysisService projectAnalysisService;
 
     @Transactional
-    public Task createTask(Long projectId, String name, String userId) {
+    public Task createTask(Long projectId, String name, String description, TaskType type, String assigneeId, String userId) {
         Project project = projectService.get(projectId);
         User user = userService.get(userId);
         accessChecker.checkCanViewProject(project, userId);
         // Sanitize task name to prevent XSS attacks
         String sanitizedName = HtmlSanitizer.sanitize(name);
         Task task = new Task(sanitizedName, user);
-        task.setType(TaskType.USER_STORY);
+        // Set type - default to USER_STORY if not provided
+        task.setType(type != null ? type : TaskType.USER_STORY);
+        // Set description if provided
+        if (description != null && !description.isBlank()) {
+            task.setDescription(description);
+        }
+        // Set assignee if provided
+        if (assigneeId != null && !assigneeId.isBlank()) {
+            User assignee = userService.get(assigneeId);
+            task.setAssignee(assignee);
+        }
 
         // Assign rank at bottom of backlog (max existing rank + GAP_SIZE)
         Integer maxRank = repo.findMaxRankByProjectId(projectId);
@@ -159,8 +169,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task createSubTask(Long taskId, String name, String userId, Long sprintId, TaskType type) {
-        return createSubTaskInternal(taskId, name, userId, sprintId, type, false);
+    public Task createSubTask(Long taskId, String name, String description, String userId, Long sprintId, TaskType type) {
+        return createSubTaskInternal(taskId, name, description, userId, sprintId, type, false);
     }
 
     /**
@@ -168,7 +178,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
      * Used by DemoDataSeeder to create subtasks in past sprints for demo purposes.
      */
     @Transactional
-    public Task createSubTaskInternal(Long taskId, String name, String userId, Long sprintId, TaskType type, boolean allowPastSprint) {
+    public Task createSubTaskInternal(Long taskId, String name, String description, String userId, Long sprintId, TaskType type, boolean allowPastSprint) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
 
@@ -187,7 +197,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Sanitize subtask name to prevent XSS attacks
         String sanitizedName = HtmlSanitizer.sanitize(name);
         Task subtask = new Task(sanitizedName, user);
-        
+
+        // Set description if provided
+        if (description != null && !description.isBlank()) {
+            subtask.setDescription(description);
+        }
+
         // Subtasks can only be TASK or BUG, default to TASK if not specified or invalid
         if (type == TaskType.TASK || type == TaskType.BUG) {
             subtask.setType(type);
