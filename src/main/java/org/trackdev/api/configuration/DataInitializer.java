@@ -20,11 +20,10 @@ import java.util.List;
  * Initializes data on application startup.
  *
  * Behavior:
- * - Non-prod profiles: Seeds demo data for development/testing
- * - Prod profile: Runs Flyway migrations in stages (partial → seed → remaining),
- *   then ensures an admin user exists.
- *   Flyway is deferred via {@link org.trackdev.api.configuration.flywaydb.AfterMigrateCallback}
- *   so that JPA is available for data seeding between migration steps.
+ * - dev profile: Seeds demo data (Flyway disabled, Hibernate manages schema)
+ * - prod profile: Flyway runs automatically, then ensures admin user exists
+ * - migration profile: Flyway is deferred (via {@link org.trackdev.api.configuration.flywaydb.AfterMigrateCallback}),
+ *   then run in stages (partial → seed demo data → remaining) so JPA is available for seeding
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -42,35 +41,40 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         List<String> activeProfiles = Arrays.asList(environment.getActiveProfiles());
-        boolean isProdProfile = activeProfiles.contains("prod");
 
-        if (!isProdProfile) {
+        if (activeProfiles.contains("dev")) {
             // Development/test mode: seed demo data (Flyway disabled, Hibernate manages schema)
             logger.info("Initializing demo data for development environment...");
             context.getBean(DemoDataSeeder.class).seedDemoData();
             logger.info("Demo data initialization complete");
-        } else {
-            // Production mode: Flyway was deferred by AfterMigrateCallback (no-op strategy).
-            // Now JPA is ready, so we can run migrations in stages with data seeding in between.
-            logger.info("Running production initialization (Flyway + data seeding)...");
+        } else if (activeProfiles.contains("prod")) {
+            // Production mode: Flyway runs automatically before this.
+            // Just ensure admin user exists.
+            logger.info("Running production initialization...");
             ensureAdminUserExists();
+        } else if (activeProfiles.contains("migration")) {
+            // Test mode with Flyway migration testing: run migrations in stages with data seeding
+            logger.info("Running test-migration initialization (Flyway + data seeding)...");
+            runFlywayWithDataSeeding();
+        } else {
+            logger.warn("No recognized profile active. Skipping data initialization.");
         }
     }
 
     /**
      * Runs Flyway migrations in 3 stages:
-     * 1. Migrate up to V13 (creates all tables needed for demo data)
+     * 1. Migrate up to V14 (creates all tables needed for demo data)
      * 2. Seed demo data (requires JPA/EntityManager)
      * 3. Run remaining migrations (future migrations that may depend on seeded data)
      */
     private void runFlywayWithDataSeeding() {
         Flyway flyway = context.getBean(Flyway.class);
 
-        // Step 1: Run migrations up to V13
-        logger.info("Step 1: Running Flyway migrations up to V13...");
+        // Step 1: Run migrations up to V14
+        logger.info("Step 1: Running Flyway migrations up to V14...");
         Flyway partialFlyway = Flyway.configure()
             .configuration(flyway.getConfiguration())
-            .target(MigrationVersion.fromVersion("13"))
+            .target(MigrationVersion.fromVersion("14"))
             .load();
         partialFlyway.migrate();
 
