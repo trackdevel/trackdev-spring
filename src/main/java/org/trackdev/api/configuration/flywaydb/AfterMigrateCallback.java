@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * we allow JPA to initialize first, then run: partial migration → seed → remaining migration.
  */
 @Component
-@Profile("test-migration")
+@Profile("migration")
 public class AfterMigrateCallback implements FlywayMigrationStrategy {
 
     @Override
