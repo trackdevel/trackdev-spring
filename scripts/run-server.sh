@@ -13,7 +13,7 @@ if [ -n "$1" ]; then
     ENV_FILE=$(realpath "$1")
     PROJECT_ROOT="$(dirname "$ENV_FILE")"
 else
-    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     ENV_FILE="$PROJECT_ROOT/.env"
 fi
 
@@ -68,19 +68,17 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Load environment variables from .env file
+# Format: KEY=value (no quotes, value is everything after '=' trimmed of whitespace)
 echo "Loading environment variables from $ENV_FILE"
 while IFS= read -r line || [ -n "$line" ]; do
-    # Skip blank lines and comments
-    [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
-    # Split on first '=' only
-    key="${line%%=*}"
-    value="${line#*=}"
-    # Strip leading/trailing whitespace from key only
-    key="${key#"${key%%[![:space:]]*}"}"
-    key="${key%"${key##*[![:space:]]}"}"
-    # Export the variable
-    echo "Key: $key, Value: $value"
-    export "$key=$value"
+    if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*) ]]; then
+        value="${BASH_REMATCH[2]}"
+        # Trim leading and trailing whitespace from value
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
+        export "${BASH_REMATCH[1]}=$value"
+        echo "  Loaded ${BASH_REMATCH[1]}=$value"
+    fi
 done < "$ENV_FILE"
 
 echo ""

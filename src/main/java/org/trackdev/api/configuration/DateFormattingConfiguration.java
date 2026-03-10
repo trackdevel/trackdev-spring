@@ -1,8 +1,5 @@
 package org.trackdev.api.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -75,18 +72,6 @@ public class DateFormattingConfiguration {
             builder.serializerByType(ZonedDateTime.class, new JsonZonedDateTimeSerializer());
             builder.deserializerByType(ZonedDateTime.class, new JsonZonedDateTimeDeserializer());
         };
-    }
-
-    /**
-     * Jackson ObjectMapper configured with Java 8 time support and UTC timezone.
-     */
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        return mapper;
     }
 
     /**

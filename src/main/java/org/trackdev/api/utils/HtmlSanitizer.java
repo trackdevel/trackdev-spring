@@ -37,7 +37,7 @@ public final class HtmlSanitizer {
                     sanitized.append("&quot;");
                     break;
                 case '\'':
-                    sanitized.append("&#x27;");
+                    sanitized.append(c);
                     break;
                 case '&':
                     sanitized.append("&amp;");

@@ -5,7 +5,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
       # database-platform: org.hibernate.dialect.MariaDBDialect
       naming:
         physical-strategy: io.hypersistence.utils.hibernate.naming.CamelCaseToSnakeCaseNamingStrategy
@@ -13,9 +13,6 @@ spring:
   flyway:
     # Enable Flyway
     enabled: true
-    baseline-on-migrate: true
-    validate-on-migrate: true
-    clean-disabled: true
   mvc:
     # Disable RFC 7807 Problem Details format to use custom error responses
     problemdetails:
