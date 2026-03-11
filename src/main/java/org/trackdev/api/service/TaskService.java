@@ -178,8 +178,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     @Transactional
-    public Task createSubTask(Long taskId, String name, String description, String userId, Long sprintId, TaskType type) {
-        return createSubTaskInternal(taskId, name, description, userId, sprintId, type, false);
+    public Task createSubTask(Long taskId, String name, String description, String userId, Long sprintId, TaskType type, String assigneeId) {
+        return createSubTaskInternal(taskId, name, description, userId, sprintId, type, assigneeId, false);
     }
 
     /**
@@ -187,7 +187,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
      * Used by DemoDataSeeder to create subtasks in past sprints for demo purposes.
      */
     @Transactional
-    public Task createSubTaskInternal(Long taskId, String name, String description, String userId, Long sprintId, TaskType type, boolean allowPastSprint) {
+    public Task createSubTaskInternal(Long taskId, String name, String description, String userId, Long sprintId, TaskType type, String assigneeId, boolean allowPastSprint) {
         Task parentTask = this.get(taskId);
         User user = userService.get(userId);
 
@@ -220,9 +220,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
         subtask.setParentTask(parentTask);
         
-        // Auto-assign subtask to the student who creates it
-        if (user.isUserType(UserType.STUDENT)) {
-            subtask.setAssignee(user);
+        // Set assignee if provided
+        if (assigneeId != null && !assigneeId.isBlank()) {
+            User assignee = userService.get(assigneeId);
+            if (!parentTask.getProject().isMember(assignee)) {
+                throw new ServiceException(ErrorConstants.UNAUTHORIZED);
+            }
+            subtask.setAssignee(assignee);
         }
         
         // Determine the target sprint FIRST, then set status based on sprint assignment

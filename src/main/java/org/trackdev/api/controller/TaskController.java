@@ -213,7 +213,7 @@ public class TaskController extends CrudController<Task, TaskService> {
             throw new ControllerException(ErrorConstants.INVALID_TASK_NAME_LENGTH);
         }
         String userId = super.getUserId(principal);
-        Task subtask = service.createSubTask(id, request.name, request.description, userId, request.sprintId, request.type);
+        Task subtask = service.createSubTask(id, request.name, request.description, userId, request.sprintId, request.type, request.assigneeId);
 
         return new IdResponseDTO(subtask.getId());
     }
@@ -371,6 +371,8 @@ public class TaskController extends CrudController<Task, TaskService> {
         public Long sprintId;
 
         public TaskType type;
+
+        public String assigneeId;
     }
 
     static class SetAttributeValueRequest {

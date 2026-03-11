@@ -737,7 +737,7 @@ public class DemoDataSeeder {
 
                     // Create subtask with sprint assignment - randomly assign TASK or BUG type
                     TaskType subtaskType = random.nextBoolean() ? TaskType.TASK : TaskType.BUG;
-                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, null, assignee.getId(), sprint.getId(), subtaskType);
+                    Task subtask = taskService.createSubTask(story.getId(), subtaskName, null, assignee.getId(), sprint.getId(), subtaskType, assignee.getId());
                     assignOrderedTimestamp(subtask);
 
                     User subtaskAssignee;
@@ -950,7 +950,7 @@ public class DemoDataSeeder {
         // Create subtasks - use createSubTaskInternal with allowPastSprint=true for demo data
         for (int i = 0; i < subtaskNames.length; i++) {
             TaskType subtaskType = (i % 2 == 0) ? TaskType.TASK : TaskType.BUG; // Alternate TASK/BUG
-            Task subtask = taskService.createSubTaskInternal(story.getId(), subtaskNames[i], null, assignee.getId(), sprint.getId(), subtaskType, true);
+            Task subtask = taskService.createSubTaskInternal(story.getId(), subtaskNames[i], null, assignee.getId(), sprint.getId(), subtaskType, assignee.getId(), true);
             assignOrderedTimestamp(subtask);
 
             // Set subtask status
@@ -1266,7 +1266,7 @@ public class DemoDataSeeder {
 
         // Create subtask in past sprint using internal method that allows past sprint
         Task pastSprintTask = taskService.createSubTaskInternal(pastStory.getId(),
-            "PERMISSION TEST: Task in past sprint", null, alice.getId(), pastSprint.getId(), TaskType.TASK, true);
+            "PERMISSION TEST: Task in past sprint", null, alice.getId(), pastSprint.getId(), TaskType.TASK, alice.getId(), true);
         assignOrderedTimestamp(pastSprintTask);
         MergePatchTask pastTaskEdit = new MergePatchTask();
         pastTaskEdit.assignee = Optional.of(alice.getEmail());
@@ -1312,7 +1312,7 @@ public class DemoDataSeeder {
 
         // Add a subtask to make it non-deletable
         Task subtask1 = taskService.createSubTask(userStoryWithSubtasks.getId(),
-            "PERMISSION TEST: Subtask 1", null, alice.getId(), activeSprint.getId(), TaskType.TASK);
+            "PERMISSION TEST: Subtask 1", null, alice.getId(), activeSprint.getId(), TaskType.TASK, alice.getId());
         assignOrderedTimestamp(subtask1);
         MergePatchTask subtaskEdit = new MergePatchTask();
         subtaskEdit.assignee = Optional.of(alice.getEmail());
