@@ -61,6 +61,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Lazy
     ProjectAnalysisService projectAnalysisService;
 
+    @Autowired
+    SseEmitterService sseEmitterService;
+
     @Transactional
     public Task createTask(Long projectId, String name, String description, TaskType type, String assigneeId, String userId) {
         Project project = projectService.get(projectId);
@@ -91,6 +94,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Record activity for task creation
         activityService.recordActivity(ActivityType.TASK_CREATED, user, task);
 
+        sseEmitterService.publishTaskEvent(task, user, "task_created");
+
         return task;
     }
 
@@ -119,9 +124,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         taskChangeService.store(change);
         
         // Record activity
-        activityService.recordActivity(ActivityType.TASK_ASSIGNED, user, task.getProject(), task, 
+        activityService.recordActivity(ActivityType.TASK_ASSIGNED, user, task.getProject(), task,
                 null, oldValue, user.getUsername());
-        
+
+        sseEmitterService.publishTaskEvent(task, user, "task_updated");
+
         return task;
     }
 
@@ -162,9 +169,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         taskChangeService.store(change);
         
         // Record activity
-        activityService.recordActivity(ActivityType.TASK_UNASSIGNED, user, task.getProject(), task, 
+        activityService.recordActivity(ActivityType.TASK_UNASSIGNED, user, task.getProject(), task,
                 null, oldValue, null);
-        
+
+        sseEmitterService.publishTaskEvent(task, user, "task_updated");
+
         return task;
     }
 
@@ -274,6 +283,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
         // Record activity for subtask creation
         activityService.recordActivity(ActivityType.TASK_CREATED, user, subtask);
+
+        sseEmitterService.publishTaskEvent(subtask, user, "task_created");
+        // Also publish parent update since its computed sprints/status may have changed
+        sseEmitterService.publishTaskEvent(parentTask, user, "task_updated");
 
         return subtask;
     }
@@ -601,6 +614,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             // Record corresponding activity
             recordActivityForChange(change, user, task);
         }
+        if (!changes.isEmpty()) {
+            sseEmitterService.publishTaskEvent(task, user, "task_updated");
+            // If task has a parent, also publish parent update (computed fields may have changed)
+            if (task.getParentTask() != null) {
+                sseEmitterService.publishTaskEvent(task.getParentTask(), user, "task_updated");
+            }
+        }
         return task;
     }
 
@@ -769,6 +789,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if (!isProfessor && task.getStatus() == TaskStatus.DONE) {
                 throw new ServiceException(ErrorConstants.TASK_STATUS_CANNOT_DELETE);
             }
+        }
+
+        // Publish SSE event before deletion (while entity data is still available)
+        User actor = userService.get(userId);
+        sseEmitterService.publishTaskEvent(task, actor, "task_deleted");
+        // If deleting a subtask, also notify about parent update
+        if (task.getParentTask() != null) {
+            sseEmitterService.publishTaskEvent(task.getParentTask(), actor, "task_updated");
         }
 
         // Delete all related entities before deleting the task (foreign key constraints)
