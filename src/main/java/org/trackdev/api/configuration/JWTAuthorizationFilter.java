@@ -38,6 +38,11 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return true;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         // Skip JWT validation if already authenticated by PAT filter
         if (SecurityContextHolder.getContext().getAuthentication() != null
