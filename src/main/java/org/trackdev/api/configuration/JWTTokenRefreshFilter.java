@@ -95,11 +95,12 @@ public class JWTTokenRefreshFilter extends OncePerRequestFilter {
      * Skip token refresh for certain endpoints to avoid unnecessary overhead.
      */
     private boolean shouldSkipRefresh(String requestPath) {
-        return requestPath.startsWith("/auth/logout") 
+        return requestPath.startsWith("/auth/logout")
             || requestPath.startsWith("/auth/login")
             || requestPath.startsWith("/auth/recovery")
             || requestPath.startsWith("/swagger")
-            || requestPath.startsWith("/v3/api-docs");
+            || requestPath.startsWith("/v3/api-docs")
+            || requestPath.matches("/sprints/\\d+/events");
     }
     
     /**
