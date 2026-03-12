@@ -3,7 +3,12 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:30}
+      minimum-idle: ${HIKARI_MIN_IDLE:10}
+      connection-timeout: ${HIKARI_CONNECTION_TIMEOUT:10000}
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create-drop
       # database-platform: org.hibernate.dialect.MariaDBDialect
@@ -81,6 +86,17 @@ trackdev:
     verified-role-id: ${DISCORD_VERIFIED_ROLE_ID:}
     redirect-uri: ${DISCORD_REDIRECT_URI:http://localhost:8080/api/discord/callback}
     public-key: ${DISCORD_PUBLIC_KEY:}
+  sse:
+    enabled: ${SSE_ENABLED:true}
+    max-connections: ${SSE_MAX_CONNECTIONS:500}
+    max-connections-per-user: ${SSE_MAX_CONNECTIONS_PER_USER:5}
+    thread-pool-size: ${SSE_THREAD_POOL_SIZE:4}
+    async-pool-size: ${SSE_ASYNC_POOL_SIZE:10}
+  stress-test:
+    enabled: ${STRESS_TEST_ENABLED:false}
+    user-count: ${STRESS_TEST_USERS:80}
+    project-count: ${STRESS_TEST_PROJECTS:15}
+    password: ${STRESS_TEST_PASSWORD:stress}
 
 management:
   server:

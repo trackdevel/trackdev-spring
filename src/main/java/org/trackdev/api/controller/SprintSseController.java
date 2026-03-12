@@ -24,12 +24,14 @@ public class SprintSseController extends BaseController {
     @Autowired
     private SseEmitterService sseEmitterService;
 
-    // Temporarily disabled — async dispatch causes AuthorizationDeniedException on committed responses
-    @Operation(summary = "Subscribe to sprint events", description = "SSE endpoint for real-time task updates on a sprint board (temporarily disabled)")
+    @Operation(summary = "Subscribe to sprint events",
+            description = "SSE endpoint for real-time task updates. Returns a stream that may "
+                    + "immediately complete with a 'disabled' or 'rejected' event if SSE is turned off "
+                    + "or connection limits are reached.")
     @GetMapping(path = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(Principal principal, @PathVariable(name = "id") Long id) {
-        SseEmitter emitter = new SseEmitter(0L);
-        emitter.complete();
-        return emitter;
+        String userId = super.getUserId(principal);
+        sprintService.checkSprintAccess(id, userId);
+        return sseEmitterService.subscribe(id, userId);
     }
 }

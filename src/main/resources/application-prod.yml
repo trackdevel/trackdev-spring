@@ -3,7 +3,12 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:30}
+      minimum-idle: ${HIKARI_MIN_IDLE:10}
+      connection-timeout: ${HIKARI_CONNECTION_TIMEOUT:10000}
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
       # database-platform: org.hibernate.dialect.MariaDBDialect
@@ -80,6 +85,12 @@ trackdev:
     url: ${WEBHOOK_BASE_URL:https://unisolationist-ronan-ravishingly.ngrok-free.dev}
     # Global webhook secret (deprecated - per-repo secrets are now generated automatically)
     secret: ${WEBHOOK_SECRET:}
+  sse:
+    enabled: ${SSE_ENABLED:true}
+    max-connections: ${SSE_MAX_CONNECTIONS:100}
+    max-connections-per-user: ${SSE_MAX_CONNECTIONS_PER_USER:3}
+    thread-pool-size: ${SSE_THREAD_POOL_SIZE:2}
+    async-pool-size: ${SSE_ASYNC_POOL_SIZE:5}
 
 management:
   server:

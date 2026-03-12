@@ -140,6 +140,18 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     }
 
     /**
+     * Lightweight access check for SSE subscriptions.
+     * Uses REQUIRES_NEW to create a dedicated EntityManager and DB connection that is fully
+     * released when this method returns. This prevents OSIV from holding the connection for
+     * the entire SSE emitter lifetime (up to 30 minutes), which would exhaust the pool.
+     */
+    @Transactional(readOnly = true, propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void checkSprintAccess(Long sprintId, String userId) {
+        Sprint sprint = get(sprintId);
+        accessChecker.checkCanViewProject(sprint.getProject(), userId);
+    }
+
+    /**
      * Get sprint history with authorization check in a single transaction.
      * This ensures atomicity between the auth check and the data retrieval.
      */
