@@ -13,6 +13,8 @@ public class TrackDevProperties {
     private final Cors cors = new Cors();
     private final Frontend frontend = new Frontend();
     private final Discord discord = new Discord();
+    private final Sse sse = new Sse();
+    private final StressTest stressTest = new StressTest();
 
     public Auth getAuth() {
         return auth;
@@ -36,6 +38,14 @@ public class TrackDevProperties {
 
     public Discord getDiscord() {
         return discord;
+    }
+
+    public Sse getSse() {
+        return sse;
+    }
+
+    public StressTest getStressTest() {
+        return stressTest;
     }
 
     public static class Auth {
@@ -221,6 +231,69 @@ public class TrackDevProperties {
         }
     }
 
+    public static class Sse {
+        private boolean enabled = false;
+        private int maxConnections = 500;
+        private int maxConnectionsPerUser = 5;
+        private long emitterTimeoutMs = 1800000; // 30 minutes
+        private long heartbeatIntervalSeconds = 30;
+        private int threadPoolSize = 4;
+        private int asyncPoolSize = 10;
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public int getMaxConnections() { return maxConnections; }
+        public void setMaxConnections(int maxConnections) { this.maxConnections = maxConnections; }
+
+        public int getMaxConnectionsPerUser() { return maxConnectionsPerUser; }
+        public void setMaxConnectionsPerUser(int maxConnectionsPerUser) { this.maxConnectionsPerUser = maxConnectionsPerUser; }
+
+        public long getEmitterTimeoutMs() { return emitterTimeoutMs; }
+        public void setEmitterTimeoutMs(long emitterTimeoutMs) { this.emitterTimeoutMs = emitterTimeoutMs; }
+
+        public long getHeartbeatIntervalSeconds() { return heartbeatIntervalSeconds; }
+        public void setHeartbeatIntervalSeconds(long heartbeatIntervalSeconds) { this.heartbeatIntervalSeconds = heartbeatIntervalSeconds; }
+
+        public int getThreadPoolSize() { return threadPoolSize; }
+        public void setThreadPoolSize(int threadPoolSize) { this.threadPoolSize = threadPoolSize; }
+
+        public int getAsyncPoolSize() { return asyncPoolSize; }
+        public void setAsyncPoolSize(int asyncPoolSize) { this.asyncPoolSize = asyncPoolSize; }
+
+        @Override
+        public String toString() {
+            return "Sse{enabled=" + enabled + ", maxConnections=" + maxConnections +
+                    ", maxConnectionsPerUser=" + maxConnectionsPerUser +
+                    ", threadPoolSize=" + threadPoolSize + ", asyncPoolSize=" + asyncPoolSize + "}";
+        }
+    }
+
+    public static class StressTest {
+        private boolean enabled = false;
+        private int userCount = 80;
+        private int projectCount = 15;
+        private String password = "stress";
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public int getUserCount() { return userCount; }
+        public void setUserCount(int userCount) { this.userCount = userCount; }
+
+        public int getProjectCount() { return projectCount; }
+        public void setProjectCount(int projectCount) { this.projectCount = projectCount; }
+
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+
+        @Override
+        public String toString() {
+            return "StressTest{enabled=" + enabled + ", userCount=" + userCount +
+                    ", projectCount=" + projectCount + "}";
+        }
+    }
+
     @Override
     public String toString() {
         return "TrackDevProperties{" +
@@ -230,6 +303,8 @@ public class TrackDevProperties {
                 ",\n  cors=" + cors +
                 ",\n  frontend=" + frontend +
                 ",\n  discord=" + discord +
+                ",\n  sse=" + sse +
+                ",\n  stressTest=" + stressTest +
                 "\n}";
     }
 }
