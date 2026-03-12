@@ -124,6 +124,9 @@ public class DemoDataSeeder {
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private org.trackdev.api.configuration.TrackDevProperties trackDevProperties;
+
     public void seedDemoData() {
         logger.info("Starting database seeding...");
 
@@ -547,6 +550,175 @@ public class DemoDataSeeder {
         logger.info("  - 7 projects with sprints (1 with empty active sprint for testing)");
         logger.info("  - 1 sample report (PDS 2025)");
         logger.info("  - 1 demo profile with enums and attributes");
+
+        // Conditionally seed stress test data
+        if (trackDevProperties.getStressTest().isEnabled()) {
+            seedStressTestData(workspaceUdG, wsAdminUdG);
+        }
+    }
+
+    // ==========================================================================
+    // STRESS TEST DATA (dev-only, disabled by default)
+    // ==========================================================================
+
+    /**
+     * Seeds large-scale data for SSE/load stress testing.
+     * Creates many users across multiple projects so the stress test scripts
+     * can authenticate as different users and open concurrent SSE connections.
+     *
+     * All stress-test users share the same password (configurable).
+     * Email pattern: stress{N}@trackdev.com (e.g., stress1@trackdev.com)
+     */
+    private void seedStressTestData(Workspace workspace, User wsAdmin) {
+        var config = trackDevProperties.getStressTest();
+        int userCount = config.getUserCount();
+        int projectCount = config.getProjectCount();
+        String sharedPassword = config.getPassword();
+
+        logger.info("=== STRESS TEST DATA ===");
+        logger.info("Creating {} users across {} projects (password: '{}')",
+                userCount, projectCount, sharedPassword);
+
+        // 1. Create a dedicated professor for stress test
+        User stressProfessor = createUserWithWorkspace(
+                "stress-professor",
+                "Stress Test Professor",
+                "stress.professor@trackdev.com",
+                "professor",
+                List.of(UserType.PROFESSOR),
+                workspace
+        );
+
+        // 2. Create a subject and course for stress testing
+        Subject stressSubject = createSubjectWithWorkspace(
+                "Stress Test Subject", "STRESS", wsAdmin, workspace);
+        Course stressCourse = courseService.createCourse(
+                stressSubject.getId(), 2025, null, stressProfessor.getId());
+
+        // 3. Create all stress test students
+        List<User> stressStudents = new ArrayList<>();
+        for (int i = 1; i <= userCount; i++) {
+            String username = "stress-user-" + i;
+            String fullName = "Stress User " + i;
+            String email = "stress" + i + "@trackdev.com";
+            User student = createUserWithWorkspace(
+                    username, fullName, email,
+                    sharedPassword,
+                    List.of(UserType.STUDENT),
+                    workspace
+            );
+            stressStudents.add(student);
+        }
+        logger.info("Created {} stress test students", stressStudents.size());
+
+        // Enroll all students in the stress course
+        for (User student : stressStudents) {
+            stressCourse.addStudent(student);
+        }
+        courseService.save(stressCourse);
+
+        // 4. Create sprint pattern with 4 sprints (2 closed, 1 active, 1 future)
+        LocalDate today = LocalDate.now();
+        LocalDate s3Start = today.minusDays(7);
+        LocalDate s3End = s3Start.plusDays(14);
+        LocalDate s4Start = s3End;
+        LocalDate s4End = s4Start.plusDays(14);
+        LocalDate s2Start = s3Start.minusDays(14);
+        LocalDate s2End = s3Start;
+        LocalDate s1Start = s2Start.minusDays(14);
+        LocalDate s1End = s2Start;
+
+        SprintPattern stressPattern = createSprintPattern(
+                "Stress Pattern", stressCourse, stressProfessor,
+                s1Start, s1End, s2Start, s2End, s3Start, s3End, s4Start, s4End);
+
+        // 5. Distribute students across projects (round-robin)
+        int studentsPerProject = (userCount + projectCount - 1) / projectCount;
+        for (int p = 0; p < projectCount; p++) {
+            int fromIdx = p * studentsPerProject;
+            int toIdx = Math.min(fromIdx + studentsPerProject, userCount);
+            if (fromIdx >= userCount) break;
+
+            List<User> projectStudents = stressStudents.subList(fromIdx, toIdx);
+            String projectName = "stress-project-" + (p + 1);
+
+            createStressTestProject(projectName, projectStudents, stressCourse,
+                    stressProfessor, stressPattern);
+
+            logger.info("Created project '{}' with {} students (stress{}-stress{})",
+                    projectName, projectStudents.size(), fromIdx + 1, toIdx);
+        }
+
+        logger.info("=== STRESS TEST DATA COMPLETE ===");
+        logger.info("Login with: stress1@trackdev.com .. stress{}@trackdev.com (password: '{}')",
+                userCount, sharedPassword);
+    }
+
+    /**
+     * Create a stress-test project with sprints and lightweight tasks.
+     * Each sprint gets 2 stories with 2 subtasks each — enough to test SSE
+     * without making startup too slow.
+     */
+    private void createStressTestProject(String projectName, List<User> students,
+                                          Course course, User professor,
+                                          SprintPattern sprintPattern) {
+        List<String> studentIds = students.stream().map(User::getId).toList();
+        Project project = projectService.createProject(projectName, studentIds, course.getId(), professor.getId());
+        project = projectService.applySprintPattern(project.getId(), sprintPattern.getId(), professor.getId());
+
+        List<Sprint> sprints = sprintRepository.findByProjectIdOrderByPatternItemOrderIndex(project.getId());
+
+        for (int i = 0; i < sprints.size(); i++) {
+            Sprint sprint = sprints.get(i);
+            boolean isFuture = (i == 3);
+            boolean isClosed = (i < 2);
+
+            if (!isFuture) {
+                activateSprint(sprint, professor.getId());
+            }
+            if (isFuture) continue;
+
+            // 2 stories per sprint
+            for (int s = 0; s < 2; s++) {
+                User reporter = students.get(s % students.size());
+                String storyName = "Stress story " + (i + 1) + "-" + (s + 1) + " (" + projectName + ")";
+
+                Task story = taskService.createTask(project.getId(), storyName, null, null, null, reporter.getId());
+
+                User assignee = students.get((s + 1) % students.size());
+                MergePatchTask storyEdit = new MergePatchTask();
+                storyEdit.assignee = Optional.of(assignee.getEmail());
+                storyEdit.rank = Optional.of(s + 1);
+                if (isClosed) {
+                    storyEdit.status = Optional.of(TaskStatus.DONE);
+                } else {
+                    storyEdit.status = Optional.of(s == 0 ? TaskStatus.INPROGRESS : TaskStatus.TODO);
+                }
+                taskService.editTaskInternal(story.getId(), storyEdit, assignee.getId());
+
+                // 2 subtasks per story
+                for (int t = 0; t < 2; t++) {
+                    String subtaskName = "Subtask " + (t + 1) + " of story " + (s + 1);
+                    TaskType type = (t == 0) ? TaskType.TASK : TaskType.BUG;
+                    Task subtask = taskService.createSubTaskInternal(
+                            story.getId(), subtaskName, null, assignee.getId(),
+                            sprint.getId(), type, assignee.getId(), isClosed);
+
+                    MergePatchTask subtaskEdit = new MergePatchTask();
+                    subtaskEdit.assignee = Optional.of(assignee.getEmail());
+                    if (isClosed) {
+                        subtaskEdit.status = Optional.of(TaskStatus.DONE);
+                    } else {
+                        subtaskEdit.status = Optional.of(t == 0 ? TaskStatus.INPROGRESS : TaskStatus.TODO);
+                    }
+                    taskService.editTaskInternal(subtask.getId(), subtaskEdit, assignee.getId());
+                }
+            }
+
+            if (isClosed) {
+                closeSprint(sprint, professor.getId());
+            }
+        }
     }
 
     /**
