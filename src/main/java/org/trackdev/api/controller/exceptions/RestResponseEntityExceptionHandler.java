@@ -308,14 +308,25 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleAsyncRequestTimeoutException(
             AsyncRequestTimeoutException ex, HttpHeaders headers,
             HttpStatusCode status, WebRequest request) {
+        // SSE endpoints have Content-Type text/event-stream — writing a JSON ErrorEntity
+        // would fail with HttpMessageNotWritableException. Let Spring complete silently.
+        if (request instanceof ServletWebRequest servletRequest) {
+            String contentType = servletRequest.getResponse() != null
+                    ? servletRequest.getResponse().getContentType() : null;
+            if (contentType != null && contentType.contains("text/event-stream")) {
+                log.debug("SSE connection timed out: {}", servletRequest.getRequest().getRequestURI());
+                return null;
+            }
+        }
+
         log.warn("Async request timeout");
-        
-        ErrorEntity error = createErrorEntity("Request timeout", HttpStatus.SERVICE_UNAVAILABLE, 
+
+        ErrorEntity error = createErrorEntity("Request timeout", HttpStatus.SERVICE_UNAVAILABLE,
                 "The request timed out", "REQUEST_TIMEOUT", request);
         Map<String, Object> details = new HashMap<>();
         details.put("exceptionType", ex.getClass().getSimpleName());
         error.setDetails(details);
-        
+
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
