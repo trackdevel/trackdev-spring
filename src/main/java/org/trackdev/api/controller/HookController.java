@@ -165,18 +165,21 @@ public class HookController extends BaseController {
         // Extract task keys from PR body for linking
         String prBody = pr.body != null ? pr.body : "";
         Set<String> taskKeys = extractTaskKeys(prBody);
-        
+
+        // Unlink tasks whose keys are no longer in the PR description
+        pullRequestService.unlinkRemovedTasks(pullRequest.getUrl(), taskKeys);
+
         if (taskKeys.isEmpty()) {
             log.debug("No task keys found in PR #{}", pr.number);
             return ResponseEntity.ok(new WebhookResponse("ok", "No task keys found in PR description"));
         }
-        
+
         log.info("Found task keys in PR #{}: {}", pr.number, taskKeys);
-        
+
         // Link PR to each matching task (PR already created, just need to link)
         List<PullRequestDTO> linkedPRs = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        
+
         for (String taskKey : taskKeys) {
             try {
                 pullRequestService.linkPullRequestToTask(taskKey.toLowerCase(), pullRequest, action, senderLogin);

@@ -17,6 +17,7 @@ import org.trackdev.api.entity.GitHubRepo;
 import org.trackdev.api.entity.PullRequest;
 import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.TaskStatus;
+import org.trackdev.api.entity.TaskType;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.entity.prchanges.PullRequestChange;
 import org.trackdev.api.entity.prchanges.PullRequestClosedChange;
@@ -172,10 +173,55 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     }
 
     /**
+     * Unlink tasks from a PR whose task keys are no longer present in the PR description.
+     * If a task was in DONE state and loses its last PR, it is reverted to INPROGRESS.
+     * If the affected task has a parent USER_STORY in DONE, the parent is reverted to TODO.
+     *
+     * @param prUrl The PR URL (used to reload the PR within this transaction)
+     * @param currentTaskKeys The set of task keys currently found in the PR body
+     */
+    @Transactional
+    public void unlinkRemovedTasks(String prUrl, Set<String> currentTaskKeys) {
+        Optional<PullRequest> optPr = this.repo.findByUrl(prUrl);
+        if (optPr.isEmpty()) return;
+        PullRequest pr = optPr.get();
+
+        Set<String> normalizedKeys = new HashSet<>();
+        for (String key : currentTaskKeys) {
+            normalizedKeys.add(key.toLowerCase());
+        }
+
+        // Copy to avoid ConcurrentModificationException
+        Set<Task> linkedTasks = new HashSet<>(pr.getTasks());
+
+        for (Task task : linkedTasks) {
+            String taskKey = task.getTaskKey();
+            if (taskKey != null && !normalizedKeys.contains(taskKey.toLowerCase())) {
+                task.removePullRequest(pr);
+
+                if (task.getStatus() == TaskStatus.DONE && !task.hasPullRequest()) {
+                    task.forceSetStatus(TaskStatus.INPROGRESS);
+                    log.info("Task {} reverted from DONE to INPROGRESS (last PR unlinked)", taskKey);
+
+                    // If parent USER_STORY was DONE, revert it to TODO
+                    Task parent = task.getParentTask();
+                    if (parent != null && parent.getTaskType() == TaskType.USER_STORY
+                            && parent.getStatus() == TaskStatus.DONE) {
+                        parent.forceSetStatus(TaskStatus.TODO);
+                        log.info("Parent USER_STORY {} reverted from DONE to TODO", parent.getTaskKey());
+                    }
+                }
+
+                log.info("Unlinked PR {} from task {} (key no longer in PR description)", prUrl, taskKey);
+            }
+        }
+    }
+
+    /**
      * Link a pull request to a task by task key.
      * If the PR already exists (by URL), updates it. Otherwise creates a new one.
      * Records change history for tracking.
-     * 
+     *
      * @deprecated Use processWebhookEvent + linkPullRequestToTask instead
      * 
      * @param taskKey The task key (e.g., "a7k-1")

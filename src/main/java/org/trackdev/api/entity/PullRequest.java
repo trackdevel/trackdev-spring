@@ -125,6 +125,10 @@ public class PullRequest extends BaseEntityUUID {
         return this.tasks.contains(task);
     }
 
+    public void removeTask(Task task) {
+        this.tasks.remove(task);
+    }
+
     public String getUrl() {
         return url;
     }
