@@ -395,6 +395,11 @@ public class Task extends BaseEntityLong {
         pr.addTask(this);
     }
 
+    public void removePullRequest(PullRequest pr) {
+        this.pullRequests.remove(pr);
+        pr.removeTask(this);
+    }
+
     public List<TaskChange> getTaskChanges() {
         return taskChanges;
     }
