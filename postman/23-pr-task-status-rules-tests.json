@@ -1,0 +1,2672 @@
+{
+	"name": "23. PR & Task Status Rules Tests",
+	"item": [
+		{
+			"name": "Setup",
+			"item": [
+				{
+					"name": "23.0.1 Login as Professor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.collectionVariables.set('prTestProfToken', jsonData.token);",
+									"    pm.collectionVariables.set('prTestProfId', jsonData.userdata.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{professorEmail}}\",\n    \"password\": \"{{professorPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.3 Find pds25a project and active sprint",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Found pds25a project', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    var projects = jsonData.projects;",
+									"    var pds25a = projects.find(p => p.name === 'pds25a');",
+									"    pm.expect(pds25a, 'pds25a project must exist').to.not.be.undefined;",
+									"    pm.collectionVariables.set('prTestProjectId', pds25a.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.4 Get active sprint for project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Found an active sprint', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    var sprints = jsonData.sprints;",
+									"    // Find an ACTIVE sprint (startDate <= now <= endDate)",
+									"    var now = new Date();",
+									"    var activeSprint = sprints.find(s => {",
+									"        var start = new Date(s.startDate);",
+									"        var end = new Date(s.endDate);",
+									"        return start <= now && end >= now;",
+									"    });",
+									"    pm.expect(activeSprint, 'An active sprint must exist').to.not.be.undefined;",
+									"    pm.collectionVariables.set('prTestSprintId', activeSprint.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{prTestProjectId}}/sprints",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{prTestProjectId}}",
+								"sprints"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.5 Create test task A (for PATCH tests)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A created', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('prTestTaskAId', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"PR-Test Task A\",\n    \"type\": \"TASK\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{prTestProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{prTestProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.6 Create test task B (for webhook tests)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task B created', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('prTestTaskBId', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"PR-Test Task B\",\n    \"type\": \"TASK\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{prTestProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{prTestProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.7 Create test task C (for close-revert tests)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task C created', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('prTestTaskCId', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"PR-Test Task C\",\n    \"type\": \"TASK\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{prTestProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{prTestProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.8 Create test task D (for unlink tests)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task D created', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('prTestTaskDId', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"PR-Test Task D\",\n    \"type\": \"TASK\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{prTestProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{prTestProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.9 Get task A details (to obtain taskKey)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Got task A details', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('taskKey');",
+									"    pm.collectionVariables.set('prTestTaskAKey', jsonData.taskKey);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.10 Get task B details (to obtain taskKey)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Got task B details', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('taskKey');",
+									"    pm.collectionVariables.set('prTestTaskBKey', jsonData.taskKey);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.11 Get task C details (to obtain taskKey)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Got task C details', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('taskKey');",
+									"    pm.collectionVariables.set('prTestTaskCKey', jsonData.taskKey);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskCId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskCId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.12 Get task D details (to obtain taskKey)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Got task D details', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('taskKey');",
+									"    pm.collectionVariables.set('prTestTaskDKey', jsonData.taskKey);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.13 Assign tasks to sprint and move to INPROGRESS (Task A)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A assigned to sprint and set to TODO', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"TODO\",\n    \"activeSprints\": [{{prTestSprintId}}]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.14 Move Task A to INPROGRESS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A moved to INPROGRESS', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('INPROGRESS');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.15 Setup Task B (sprint + INPROGRESS)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task B set to TODO', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"TODO\",\n    \"activeSprints\": [{{prTestSprintId}}]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.16 Move Task B to INPROGRESS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task B moved to INPROGRESS', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.17 Setup Task C (sprint + INPROGRESS)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task C set to TODO', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"TODO\",\n    \"activeSprints\": [{{prTestSprintId}}]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskCId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskCId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.18 Move Task C to INPROGRESS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task C moved to INPROGRESS', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskCId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskCId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.19 Setup Task D (sprint + INPROGRESS)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task D set to TODO', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"TODO\",\n    \"activeSprints\": [{{prTestSprintId}}]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.0.20 Move Task D to INPROGRESS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task D moved to INPROGRESS', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"INPROGRESS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "PATCH Status - No PRs",
+			"item": [
+				{
+					"name": "23.1.1 INPROGRESS → VERIFY fails (no PRs)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Cannot move to VERIFY without PRs', function () {",
+									"    pm.expect(pm.response.code).to.eql(400);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('Pull Request');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VERIFY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.1.2 INPROGRESS → DONE fails (no PRs)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Cannot move to DONE without PRs', function () {",
+									"    pm.expect(pm.response.code).to.eql(400);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('Pull Request');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"DONE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhook - Link open PR + PATCH Status",
+			"item": [
+				{
+					"name": "23.2.1 Webhook: open PR #101 linked to Task A",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskAKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'opened',",
+									"    number: 101,",
+									"    pull_request: {",
+									"        id: 90001,",
+									"        node_id: 'PR_test_101',",
+									"        number: 101,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/101',",
+									"        title: 'Test PR 101',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'open',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.be.oneOf(['ok', 'partial']);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-101"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.2.2 INPROGRESS → VERIFY succeeds (has open PR)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A moved to VERIFY (has open PR)', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('VERIFY');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VERIFY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.2.3 VERIFY → DONE fails (PR is open, not merged)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Cannot move to DONE with open PR', function () {",
+									"    pm.expect(pm.response.code).to.eql(400);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('Pull Request');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"DONE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.2.4 Webhook: merge PR #101",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskAKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'closed',",
+									"    number: 101,",
+									"    pull_request: {",
+									"        id: 90001,",
+									"        node_id: 'PR_test_101',",
+									"        number: 101,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/101',",
+									"        title: 'Test PR 101',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'closed',",
+									"        merged: true,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-101-merge"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.2.4b Set estimation on Task A (in VERIFY)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Estimation points set', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"estimationPoints\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.2.5 VERIFY → DONE succeeds (PR merged, no open PRs)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A moved to DONE (merged PR, no open PRs)', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('DONE');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"DONE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhook - Merged + Closed PR combo",
+			"item": [
+				{
+					"name": "23.3.1 Webhook: open PR #201 linked to Task B",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskBKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'opened',",
+									"    number: 201,",
+									"    pull_request: {",
+									"        id: 90201,",
+									"        node_id: 'PR_test_201',",
+									"        number: 201,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/201',",
+									"        title: 'Test PR 201',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'open',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-201"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.2 Webhook: open PR #202 linked to Task B",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskBKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'opened',",
+									"    number: 202,",
+									"    pull_request: {",
+									"        id: 90202,",
+									"        node_id: 'PR_test_202',",
+									"        number: 202,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/202',",
+									"        title: 'Test PR 202',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'open',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-202"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.3 Webhook: merge PR #201",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskBKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'closed',",
+									"    number: 201,",
+									"    pull_request: {",
+									"        id: 90201,",
+									"        node_id: 'PR_test_201',",
+									"        number: 201,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/201',",
+									"        title: 'Test PR 201',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'closed',",
+									"        merged: true,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-201-merge"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.4 DONE fails (1 merged + 1 open PR)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Move to VERIFY first",
+									"pm.test('Move to VERIFY succeeds', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('VERIFY');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VERIFY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.5 VERIFY → DONE fails (still has open PR #202)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Cannot DONE with open PR remaining', function () {",
+									"    pm.expect(pm.response.code).to.eql(400);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('open');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"DONE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.6 Webhook: close PR #202 (not merged)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskBKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'closed',",
+									"    number: 202,",
+									"    pull_request: {",
+									"        id: 90202,",
+									"        node_id: 'PR_test_202',",
+									"        number: 202,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/202',",
+									"        title: 'Test PR 202',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'closed',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-202-close"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.7 Verify Task B status (1 merged + 1 closed = DONE allowed)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task B still in VERIFY (closed PR does not auto-move to DONE)', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    // Task stays in VERIFY since it has a merged PR (VERIFY rule met)",
+									"    pm.expect(jsonData.status).to.eql('VERIFY');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.7b Set estimation on Task B (in VERIFY)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Estimation points set', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"estimationPoints\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.3.8 VERIFY → DONE succeeds (1 merged + 1 closed, no open)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task B moved to DONE (1 merged + 1 closed PR)', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('DONE');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"DONE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskBId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskBId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhook - Close only PR reverts VERIFY to INPROGRESS",
+			"item": [
+				{
+					"name": "23.4.1 Webhook: open PR #301 linked to Task C",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskCKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'opened',",
+									"    number: 301,",
+									"    pull_request: {",
+									"        id: 90301,",
+									"        node_id: 'PR_test_301',",
+									"        number: 301,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/301',",
+									"        title: 'Test PR 301',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'open',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-301"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.4.2 Move Task C to VERIFY",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task C in VERIFY', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('VERIFY');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VERIFY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskCId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskCId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.4.3 Webhook: close PR #301 (not merged) — only PR on task",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskCKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'closed',",
+									"    number: 301,",
+									"    pull_request: {",
+									"        id: 90301,",
+									"        node_id: 'PR_test_301',",
+									"        number: 301,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/301',",
+									"        title: 'Test PR 301',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'closed',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-301-close"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.4.4 Verify Task C reverted to INPROGRESS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task C reverted from VERIFY to INPROGRESS (only PR was closed)', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('INPROGRESS');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskCId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskCId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.4.5 VERIFY fails (only closed PR, no open/merged)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Cannot VERIFY with only closed PRs', function () {",
+									"    pm.expect(pm.response.code).to.eql(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VERIFY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskCId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskCId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhook - Unlink PR reverts DONE",
+			"item": [
+				{
+					"name": "23.5.1 Webhook: open PR #401 linked to Task D",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskDKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'opened',",
+									"    number: 401,",
+									"    pull_request: {",
+									"        id: 90401,",
+									"        node_id: 'PR_test_401',",
+									"        number: 401,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/401',",
+									"        title: 'Test PR 401',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'open',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-401"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.5.2 Webhook: merge PR #401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskDKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'closed',",
+									"    number: 401,",
+									"    pull_request: {",
+									"        id: 90401,",
+									"        node_id: 'PR_test_401',",
+									"        number: 401,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/401',",
+									"        title: 'Test PR 401',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'closed',",
+									"        merged: true,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-401-merge"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.5.3 Move Task D to VERIFY then DONE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task D moved to VERIFY', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('VERIFY');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"VERIFY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.5.3b Set estimation on Task D (in VERIFY)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Estimation points set', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"estimationPoints\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.5.4 Move Task D to DONE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task D moved to DONE', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('DONE');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"DONE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.5.5 Webhook: edit PR #401 to remove Task D key (unlink)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var payload = JSON.stringify({",
+									"    action: 'edited',",
+									"    number: 401,",
+									"    pull_request: {",
+									"        id: 90401,",
+									"        node_id: 'PR_test_401',",
+									"        number: 401,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/401',",
+									"        title: 'Test PR 401',",
+									"        body: 'No task keys here anymore',",
+									"        state: 'closed',",
+									"        merged: true,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-401-edit"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.5.6 Verify Task D reverted from DONE (PR unlinked)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task D reverted from DONE after PR unlinked', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    // Should revert to INPROGRESS (no PRs left, VERIFY rules not met either)",
+									"    pm.expect(jsonData.status).to.eql('INPROGRESS');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskDId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskDId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhook - Reopen PR reverts DONE to VERIFY",
+			"item": [
+				{
+					"name": "23.6.1 Verify Task A is still DONE from earlier",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A is DONE', function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.json().status).to.eql('DONE');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.6.2 Webhook: reopen PR #101 (was merged, now open again)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var taskKey = pm.collectionVariables.get('prTestTaskAKey');",
+									"var payload = JSON.stringify({",
+									"    action: 'reopened',",
+									"    number: 101,",
+									"    pull_request: {",
+									"        id: 90001,",
+									"        node_id: 'PR_test_101',",
+									"        number: 101,",
+									"        html_url: 'https://github.com/trackdev-test/webhook-test-repo/pull/101',",
+									"        title: 'Test PR 101',",
+									"        body: 'Fixes ' + taskKey,",
+									"        state: 'open',",
+									"        merged: false,",
+									"        user: { id: 1, login: 'test-user' }",
+									"    },",
+									"    repository: { id: 1, full_name: 'trackdev-test/webhook-test-repo' },",
+									"    sender: { id: 1, login: 'test-user' }",
+									"});",
+									"var secret = 'test-webhook-secret-for-postman';",
+									"var signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+									"pm.collectionVariables.set('prTestWebhookPayload', payload);",
+									"pm.collectionVariables.set('prTestWebhookSignature', signature);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Webhook accepted', function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "{{prTestWebhookSignature}}"
+							},
+							{
+								"key": "X-GitHub-Event",
+								"value": "pull_request"
+							},
+							{
+								"key": "X-GitHub-Delivery",
+								"value": "test-delivery-101-reopen"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{prTestWebhookPayload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/hooks/github/pr",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"hooks",
+								"github",
+								"pr"
+							]
+						}
+					}
+				},
+				{
+					"name": "23.6.3 Verify Task A reverted from DONE to VERIFY",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Task A reverted from DONE to VERIFY (PR reopened = open PR)', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('VERIFY');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{prTestProfToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{prTestTaskAId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{prTestTaskAId}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

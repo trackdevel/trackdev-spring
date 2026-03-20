@@ -142,10 +142,11 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         // Always record the change event for this webhook action
         recordPullRequestChange(pr, action, senderLogin, title, prNumber, repoFullName, merged);
 
-        // When a PR is closed (not merged), revert linked VERIFY tasks to INPROGRESS
-        // if this was their only open PR
-        if ("closed".equals(action) && !Boolean.TRUE.equals(merged)) {
-            revertVerifyTasksOnPRClose(pr);
+        // After any state change, enforce status invariants on all linked tasks
+        if (!isNewPR) {
+            for (Task task : pr.getTasks()) {
+                enforceTaskStatusInvariants(task);
+            }
         }
 
         return pr;
@@ -172,16 +173,18 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             // Add this task to the PR's tasks (many-to-many)
             task.addPullRequest(pr);
             this.repo.save(pr);
-            
+
             // Record activity for the new link
             recordPullRequestActivity(pr, task, action, pr.getMerged(), senderLogin);
+
+            // Enforce status invariants after linking (e.g. open PR linked to DONE task)
+            enforceTaskStatusInvariants(task);
         }
     }
 
     /**
      * Unlink tasks from a PR whose task keys are no longer present in the PR description.
-     * If a task was in DONE state and loses its last PR, it is reverted to INPROGRESS.
-     * If the affected task has a parent USER_STORY in DONE, the parent is reverted to TODO.
+     * After unlinking, enforces task status invariants (DONE/VERIFY rules).
      *
      * @param prUrl The PR URL (used to reload the PR within this transaction)
      * @param currentTaskKeys The set of task keys currently found in the PR body
@@ -204,37 +207,54 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
             String taskKey = task.getTaskKey();
             if (taskKey != null && !normalizedKeys.contains(taskKey.toLowerCase())) {
                 task.removePullRequest(pr);
-
-                if (task.getStatus() == TaskStatus.DONE && !task.hasPullRequest()) {
-                    task.forceSetStatus(TaskStatus.INPROGRESS);
-                    log.info("Task {} reverted from DONE to INPROGRESS (last PR unlinked)", taskKey);
-
-                    // If parent USER_STORY was DONE, revert it to TODO
-                    Task parent = task.getParentTask();
-                    if (parent != null && parent.getTaskType() == TaskType.USER_STORY
-                            && parent.getStatus() == TaskStatus.DONE) {
-                        parent.forceSetStatus(TaskStatus.TODO);
-                        log.info("Parent USER_STORY {} reverted from DONE to TODO", parent.getTaskKey());
-                    }
-                }
-
                 log.info("Unlinked PR {} from task {} (key no longer in PR description)", prUrl, taskKey);
+                enforceTaskStatusInvariants(task);
             }
         }
     }
 
     /**
-     * When a PR is closed (not merged), check its linked tasks.
-     * If a task is in VERIFY and this PR was its only open PR (i.e., the task now has
-     * no open PRs left), revert the task to INPROGRESS.
+     * Enforce task status invariants after a PR state change or unlink.
+     * Rules:
+     * - DONE requires at least 1 merged PR and no open PRs
+     * - VERIFY requires at least 1 open or merged PR
+     *
+     * If DONE rules are violated, try VERIFY; if VERIFY rules are also violated, fall back to INPROGRESS.
+     * If VERIFY rules are violated, fall back to INPROGRESS.
+     * Also handles parent USER_STORY revert when a subtask leaves DONE.
      */
-    private void revertVerifyTasksOnPRClose(PullRequest pr) {
-        for (Task task : pr.getTasks()) {
-            if (task.getStatus() == TaskStatus.VERIFY && !task.hasOpenPRs()) {
-                task.forceSetStatus(TaskStatus.INPROGRESS);
-                log.info("Task {} reverted from VERIFY to INPROGRESS (PR closed with no remaining open PRs)",
-                        task.getTaskKey());
+    private void enforceTaskStatusInvariants(Task task) {
+        TaskStatus currentStatus = task.getStatus();
+
+        if (currentStatus == TaskStatus.DONE) {
+            if (!task.hasAtLeastOneMergedPR() || task.hasOpenPRs()) {
+                // DONE rules violated — try VERIFY
+                if (task.canMoveToVerify()) {
+                    task.forceSetStatus(TaskStatus.VERIFY);
+                    log.info("Task {} reverted from DONE to VERIFY (DONE rules no longer met)", task.getTaskKey());
+                } else {
+                    task.forceSetStatus(TaskStatus.INPROGRESS);
+                    log.info("Task {} reverted from DONE to INPROGRESS (DONE and VERIFY rules no longer met)", task.getTaskKey());
+                }
+                revertParentUserStoryIfNeeded(task);
             }
+        } else if (currentStatus == TaskStatus.VERIFY) {
+            if (!task.canMoveToVerify()) {
+                task.forceSetStatus(TaskStatus.INPROGRESS);
+                log.info("Task {} reverted from VERIFY to INPROGRESS (VERIFY rules no longer met)", task.getTaskKey());
+            }
+        }
+    }
+
+    /**
+     * If a subtask leaves DONE and its parent USER_STORY was DONE, revert parent to TODO.
+     */
+    private void revertParentUserStoryIfNeeded(Task task) {
+        Task parent = task.getParentTask();
+        if (parent != null && parent.getTaskType() == TaskType.USER_STORY
+                && parent.getStatus() == TaskStatus.DONE) {
+            parent.forceSetStatus(TaskStatus.TODO);
+            log.info("Parent USER_STORY {} reverted from DONE to TODO", parent.getTaskKey());
         }
     }
 
