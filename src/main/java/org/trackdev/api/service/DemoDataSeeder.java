@@ -116,6 +116,9 @@ public class DemoDataSeeder {
     private PullRequestRepository pullRequestRepository;
 
     @Autowired
+    private org.trackdev.api.repository.GitHubRepoRepository gitHubRepoRepository;
+
+    @Autowired
     private PullRequestService pullRequestService;
 
     @Autowired
@@ -433,6 +436,15 @@ public class DemoDataSeeder {
                 professorPDS.getId()
             );
         }
+
+        // Add a test GitHub repo for webhook API testing (no GitHub API validation)
+        GitHubRepo testRepo = new GitHubRepo("test-webhook-repo",
+                "https://github.com/trackdev-test/webhook-test-repo",
+                "fake-token-for-testing", projectPDS);
+        testRepo.setWebhookSecret("test-webhook-secret-for-postman");
+        testRepo.setWebhookActive(true);
+        gitHubRepoRepository.save(testRepo);
+        logger.info("Created test GitHub repo for webhook testing (owner=trackdev-test, repo=webhook-test-repo)");
 
         // Add hardcoded PRs to done tasks for Alice Johnson in pds25a
         if (environment.getProperty("GITHUB_REPO1_URL") != null) {
