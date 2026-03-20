@@ -138,10 +138,16 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         }
         
         this.repo.save(pr);
-        
+
         // Always record the change event for this webhook action
         recordPullRequestChange(pr, action, senderLogin, title, prNumber, repoFullName, merged);
-        
+
+        // When a PR is closed (not merged), revert linked VERIFY tasks to INPROGRESS
+        // if this was their only open PR
+        if ("closed".equals(action) && !Boolean.TRUE.equals(merged)) {
+            revertVerifyTasksOnPRClose(pr);
+        }
+
         return pr;
     }
 
@@ -213,6 +219,21 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
                 }
 
                 log.info("Unlinked PR {} from task {} (key no longer in PR description)", prUrl, taskKey);
+            }
+        }
+    }
+
+    /**
+     * When a PR is closed (not merged), check its linked tasks.
+     * If a task is in VERIFY and this PR was its only open PR (i.e., the task now has
+     * no open PRs left), revert the task to INPROGRESS.
+     */
+    private void revertVerifyTasksOnPRClose(PullRequest pr) {
+        for (Task task : pr.getTasks()) {
+            if (task.getStatus() == TaskStatus.VERIFY && !task.hasOpenPRs()) {
+                task.forceSetStatus(TaskStatus.INPROGRESS);
+                log.info("Task {} reverted from VERIFY to INPROGRESS (PR closed with no remaining open PRs)",
+                        task.getTaskKey());
             }
         }
     }
