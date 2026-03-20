@@ -251,10 +251,10 @@ public class Task extends BaseEntityLong {
     /**
      * Check if this task can be moved to VERIFY status.
      * Requirements:
-     * - Must have at least one Pull Request associated (open or closed)
+     * - Must have at least one Pull Request that is open or merged
      */
     public boolean canMoveToVerify() {
-        return hasPullRequest();
+        return hasOpenOrMergedPR();
     }
 
     /**
@@ -305,6 +305,16 @@ public class Task extends BaseEntityLong {
      */
     public boolean hasPullRequest() {
         return this.pullRequests != null && !this.pullRequests.isEmpty();
+    }
+
+    /**
+     * Check if at least one associated Pull Request is open or merged.
+     */
+    public boolean hasOpenOrMergedPR() {
+        if (this.pullRequests == null || this.pullRequests.isEmpty()) {
+            return false;
+        }
+        return this.pullRequests.stream().anyMatch(pr -> pr.isMerged() || "open".equals(pr.getState()));
     }
 
     /**
