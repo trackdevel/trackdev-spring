@@ -429,10 +429,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             // Check if task can be moved to DONE
             if (status == TaskStatus.DONE && !task.canMoveToDone()) {
                 // Determine the specific reason for rejection
-                if (!task.hasPullRequest()) {
-                    throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITHOUT_PULL_REQUEST);
-                } else if (!task.areAllPRsMerged()) {
-                    throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PRS);
+                if (!task.hasAtLeastOneMergedPR()) {
+                    throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PR);
+                } else if (task.hasOpenPRs()) {
+                    throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITH_OPEN_PRS);
                 } else if (task.getEstimationPoints() == null || task.getEstimationPoints() <= 0) {
                     throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITHOUT_ESTIMATION);
                 } else if (task.getTaskType() == TaskType.USER_STORY) {
