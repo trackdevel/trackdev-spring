@@ -260,43 +260,43 @@ public class Task extends BaseEntityLong {
     /**
      * Check if this task can be moved to DONE status.
      * Requirements:
-     * - Must have at least one Pull Request associated
-     * - All Pull Requests must be merged
+     * - Must have at least one merged Pull Request
+     * - Must have no open Pull Requests (closed PRs are allowed)
      * - Must have estimation points > 0
      * - For USER_STORY: all subtasks must be DONE with estimation points and PRs
      */
     public boolean canMoveToDone() {
-        // All task types require at least one Pull Request to be marked as DONE
-        if (!hasPullRequest()) {
+        // All task types require at least one merged Pull Request
+        if (!hasAtLeastOneMergedPR()) {
             return false;
         }
-        
-        // All PRs must be merged
-        if (!areAllPRsMerged()) {
+
+        // No open PRs allowed (closed PRs are fine)
+        if (hasOpenPRs()) {
             return false;
         }
-        
+
         // All task types require estimation points > 0 to be marked as DONE
         if (this.estimationPoints == null || this.estimationPoints <= 0) {
             return false;
         }
-        
+
         if (this.type != TaskType.USER_STORY) {
-            return true; // Regular tasks with estimation points and all PRs merged can move to DONE
+            return true; // Regular tasks with estimation points and valid PR state can move to DONE
         }
-        
+
         // USER_STORY: check subtasks
         if (this.childTasks == null || this.childTasks.isEmpty()) {
             return true; // No subtasks, can move to DONE
         }
-        
-        // All subtasks must be DONE, have estimation points, and have all PRs merged
-        return this.childTasks.stream().allMatch(subtask -> 
-            subtask.getStatus() == TaskStatus.DONE && 
-            subtask.getEstimationPoints() != null && 
+
+        // All subtasks must be DONE, have estimation points, at least one merged PR, and no open PRs
+        return this.childTasks.stream().allMatch(subtask ->
+            subtask.getStatus() == TaskStatus.DONE &&
+            subtask.getEstimationPoints() != null &&
             subtask.getEstimationPoints() > 0 &&
-            subtask.hasPullRequest() &&
-            subtask.areAllPRsMerged()
+            subtask.hasAtLeastOneMergedPR() &&
+            !subtask.hasOpenPRs()
         );
     }
 
@@ -308,14 +308,23 @@ public class Task extends BaseEntityLong {
     }
 
     /**
-     * Check if all associated Pull Requests are merged.
-     * Returns true if there are no PRs (vacuously true).
+     * Check if at least one associated Pull Request is merged.
      */
-    public boolean areAllPRsMerged() {
+    public boolean hasAtLeastOneMergedPR() {
         if (this.pullRequests == null || this.pullRequests.isEmpty()) {
-            return true;
+            return false;
         }
-        return this.pullRequests.stream().allMatch(PullRequest::isMerged);
+        return this.pullRequests.stream().anyMatch(PullRequest::isMerged);
+    }
+
+    /**
+     * Check if there are any open Pull Requests.
+     */
+    public boolean hasOpenPRs() {
+        if (this.pullRequests == null || this.pullRequests.isEmpty()) {
+            return false;
+        }
+        return this.pullRequests.stream().anyMatch(pr -> "open".equals(pr.getState()));
     }
 
     /**

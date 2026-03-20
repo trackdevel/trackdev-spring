@@ -46,8 +46,8 @@ public final class ErrorConstants {
     public static final String ONLY_USER_STORY_CAN_HAVE_SUBTASKS = "error.task.subtasks.user.story.only";
     public static final String USER_STORY_CANNOT_BE_DONE_WITH_PENDING_SUBTASKS = "error.task.user.story.pending.subtasks";
     public static final String TASK_CANNOT_BE_DONE_WITHOUT_ESTIMATION = "error.task.done.requires.estimation";
-    public static final String TASK_CANNOT_BE_DONE_WITHOUT_PULL_REQUEST = "error.task.done.requires.pr";
-    public static final String TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PRS = "error.task.done.requires.merged.prs";
+    public static final String TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PR = "error.task.done.requires.merged.pr";
+    public static final String TASK_CANNOT_BE_DONE_WITH_OPEN_PRS = "error.task.done.has.open.prs";
     public static final String TASK_CANNOT_VERIFY_WITHOUT_PULL_REQUEST = "error.task.verify.requires.pr";
     public static final String USER_STORY_WITH_CHILDREN_CANNOT_CHANGE_TYPE = "error.task.user.story.has.children";
     public static final String USER_STORY_ESTIMATION_IS_CALCULATED = "error.task.user.story.estimation.auto";
