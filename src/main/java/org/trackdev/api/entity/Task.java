@@ -438,7 +438,9 @@ public class Task extends BaseEntityLong {
                 default -> false;
             };
             if (!valid) {
-                throw new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
+                EntityException ex = new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
+                ex.setMessageArgs(this.status.name(), status.name());
+                throw ex;
             }
         } else {
             // TASK/BUG transitions: BACKLOG→TODO, TODO→INPROGRESS, INPROGRESS→TODO/VERIFY, VERIFY→DONE
@@ -447,10 +449,13 @@ public class Task extends BaseEntityLong {
                 case TODO -> status == TaskStatus.INPROGRESS;
                 case INPROGRESS -> status == TaskStatus.TODO || status == TaskStatus.VERIFY;
                 case VERIFY -> status == TaskStatus.DONE;
+                case DONE -> status == TaskStatus.VERIFY;
                 default -> false;
             };
             if (!valid) {
-                throw new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
+                EntityException ex = new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
+                ex.setMessageArgs(this.status.name(), status.name());
+                throw ex;
             }
         }
     }
