@@ -9,6 +9,7 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.repository.StudentAttributeListValueRepository;
 import org.trackdev.api.repository.StudentAttributeValueRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -180,6 +181,7 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         }
 
         checkAuthorization(attribute, requestingUser, targetUserId);
+        HtmlSanitizer.validate(value);
         validateAttributeValue(attribute, value);
 
         User targetUser = userService.get(targetUserId);
