@@ -9,6 +9,7 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.repository.PullRequestAttributeListValueRepository;
 import org.trackdev.api.repository.PullRequestAttributeValueRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -154,6 +155,7 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
         }
 
         checkAuthorization(attribute, user, pr);
+        HtmlSanitizer.validate(value);
         validateAttributeValue(attribute, value);
 
         Optional<PullRequestAttributeValue> existing = repo().findByPullRequestIdAndAttributeId(prId, attributeId);
