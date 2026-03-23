@@ -11,6 +11,7 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.model.MergePatchReport;
 import org.trackdev.api.repository.ReportRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,6 +54,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
             throw new ServiceException("Report name cannot exceed " + Report.NAME_LENGTH + " characters");
         }
         
+        HtmlSanitizer.validate(name);
         Report report = new Report(name.trim(), user);
         repo.save(report);
         
@@ -107,6 +109,7 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
                 if (name.length() > Report.NAME_LENGTH) {
                     throw new ServiceException("Report name cannot exceed " + Report.NAME_LENGTH + " characters");
                 }
+                HtmlSanitizer.validate(name);
                 report.setName(name.trim());
             }
         }
