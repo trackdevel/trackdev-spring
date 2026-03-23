@@ -200,5 +200,8 @@ public final class ErrorConstants {
     public static final String PAT_EXPIRATION_IN_PAST = "error.pat.expiration.past";
     public static final String PAT_ALREADY_REVOKED = "error.pat.already.revoked";
 
+    // Input validation errors
+    public static final String INPUT_CONTAINS_HTML = "error.input.contains.html";
+
     public static final String EMPTY = "";
 }

@@ -1,8 +1,10 @@
 package org.trackdev.api.utils;
 
+import org.trackdev.api.controller.exceptions.EntityException;
+
 /**
- * Utility class for sanitizing HTML content to prevent XSS attacks.
- * Escapes potentially dangerous HTML characters in user-provided content.
+ * Utility class for validating user-provided text content to prevent XSS attacks.
+ * Rejects input containing dangerous HTML patterns instead of escaping characters.
  */
 public final class HtmlSanitizer {
 
@@ -11,45 +13,20 @@ public final class HtmlSanitizer {
     }
 
     /**
-     * Sanitizes a string by escaping HTML special characters.
-     * This prevents XSS attacks by converting characters like < > " ' & 
-     * into their HTML entity equivalents.
+     * Validates that a string does not contain dangerous HTML content.
+     * Throws an exception if potentially dangerous patterns are detected.
      *
-     * @param input The input string to sanitize
-     * @return The sanitized string with HTML characters escaped, or null if input is null
+     * @param input The input string to validate
+     * @throws EntityException if the input contains dangerous HTML patterns
      */
-    public static String sanitize(String input) {
-        if (input == null) {
-            return null;
+    public static void validate(String input) {
+        if (input != null && containsHtml(input)) {
+            throw new EntityException(ErrorConstants.INPUT_CONTAINS_HTML);
         }
-        
-        StringBuilder sanitized = new StringBuilder(input.length());
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            switch (c) {
-                case '<':
-                    sanitized.append("&lt;");
-                    break;
-                case '>':
-                    sanitized.append("&gt;");
-                    break;
-                case '"':
-                case '\'':
-                    sanitized.append(c);
-                    break;
-                case '&':
-                    sanitized.append("&amp;");
-                    break;
-                default:
-                    sanitized.append(c);
-            }
-        }
-        return sanitized.toString();
     }
 
     /**
      * Checks if a string contains potentially dangerous HTML content.
-     * Useful for validation without modification.
      *
      * @param input The input string to check
      * @return true if the string contains HTML-like content
@@ -60,7 +37,7 @@ public final class HtmlSanitizer {
         }
         // Check for common XSS patterns
         String lower = input.toLowerCase();
-        return lower.contains("<script") || 
+        return lower.contains("<script") ||
                lower.contains("<img") ||
                lower.contains("javascript:") ||
                lower.contains("onerror") ||

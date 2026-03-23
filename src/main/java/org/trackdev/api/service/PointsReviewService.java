@@ -11,6 +11,7 @@ import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.repository.PointsReviewRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ public class PointsReviewService extends BaseServiceLong<PointsReview, PointsRev
 
     @Transactional
     public ResponseEntity addPointsReview(Integer points, String comment, User user, Task task){
+        HtmlSanitizer.validate(comment);
         if(task.getPointsReviewList().stream().filter(pointsReview1 -> pointsReview1.getUser().getId().equals(user.getId())).count() > 1){
             throw new ServiceException(ErrorConstants.TASK_ALREADY_REVIEWED);
         }

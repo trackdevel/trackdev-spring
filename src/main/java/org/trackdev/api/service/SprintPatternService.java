@@ -11,6 +11,7 @@ import org.trackdev.api.entity.SprintPatternItem;
 import org.trackdev.api.model.SprintPatternRequest;
 import org.trackdev.api.repository.SprintPatternRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.HashSet;
 import java.util.List;
@@ -57,11 +58,13 @@ public class SprintPatternService extends BaseServiceLong<SprintPattern, SprintP
         Course course = courseService.get(courseId);
         accessChecker.checkCanManageCourse(course, userId);
 
+        HtmlSanitizer.validate(request.name);
         SprintPattern pattern = new SprintPattern(request.name, course);
-        
+
         if (request.items != null) {
             int index = 0;
             for (SprintPatternRequest.SprintPatternItemRequest itemReq : request.items) {
+                HtmlSanitizer.validate(itemReq.name);
                 SprintPatternItem item = new SprintPatternItem(
                     itemReq.name,
                     itemReq.startDate,
@@ -85,6 +88,7 @@ public class SprintPatternService extends BaseServiceLong<SprintPattern, SprintP
         SprintPattern pattern = get(patternId);
         accessChecker.checkCanManageCourse(pattern.getCourse(), userId);
 
+        HtmlSanitizer.validate(request.name);
         pattern.setName(request.name);
 
         if (request.items != null) {
@@ -98,7 +102,8 @@ public class SprintPatternService extends BaseServiceLong<SprintPattern, SprintP
             int index = 0;
             for (SprintPatternRequest.SprintPatternItemRequest itemReq : request.items) {
                 int orderIndex = itemReq.orderIndex != null ? itemReq.orderIndex : index;
-                
+                HtmlSanitizer.validate(itemReq.name);
+
                 if (itemReq.id != null && existingItemsMap.containsKey(itemReq.id)) {
                     // Update existing item
                     SprintPatternItem existingItem = existingItemsMap.get(itemReq.id);

@@ -69,9 +69,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Project project = projectService.get(projectId);
         User user = userService.get(userId);
         accessChecker.checkCanViewProject(project, userId);
-        // Sanitize task name to prevent XSS attacks
-        String sanitizedName = HtmlSanitizer.sanitize(name);
-        Task task = new Task(sanitizedName, user);
+        // Validate input to prevent XSS attacks
+        HtmlSanitizer.validate(name);
+        HtmlSanitizer.validate(description);
+        Task task = new Task(name, user);
         // Set type - default to USER_STORY if not provided
         task.setType(type != null ? type : TaskType.USER_STORY);
         // Set description if provided
@@ -203,9 +204,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
         // Any project member (or professor/admin) can create subtasks
         accessChecker.checkCanCreateSubtask(parentTask, userId);
-        // Sanitize subtask name to prevent XSS attacks
-        String sanitizedName = HtmlSanitizer.sanitize(name);
-        Task subtask = new Task(sanitizedName, user);
+        // Validate input to prevent XSS attacks
+        HtmlSanitizer.validate(name);
+        HtmlSanitizer.validate(description);
+        Task subtask = new Task(name, user);
 
         // Set description if provided
         if (description != null && !description.isBlank()) {
@@ -322,17 +324,16 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             String oldName = task.getName();
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
-            // Sanitize task name to prevent XSS attacks
-            String sanitizedName = HtmlSanitizer.sanitize(name);
-            task.setName(sanitizedName);
-            changes.add(new TaskNameChange(user, task, oldName, sanitizedName));
+            // Validate task name to prevent XSS attacks
+            HtmlSanitizer.validate(name);
+            task.setName(name);
+            changes.add(new TaskNameChange(user, task, oldName, name));
         }
         if(editTask.description != null) {
-            // Sanitize description to prevent XSS attacks
-            String sanitizedDescription = editTask.description.isPresent() 
-                    ? HtmlSanitizer.sanitize(editTask.description.get()) 
-                    : null;
-            task.setDescription(sanitizedDescription);
+            // Validate description to prevent XSS attacks
+            String description = editTask.description.orElse(null);
+            HtmlSanitizer.validate(description);
+            task.setDescription(description);
         }
         if(editTask.type != null) {
             TaskType newType = editTask.type.orElseThrow(
@@ -696,10 +697,13 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.name != null) {
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
+            HtmlSanitizer.validate(name);
             task.setName(name);
         }
         if(editTask.description != null) {
-            task.setDescription(editTask.description.orElse(null));
+            String description = editTask.description.orElse(null);
+            HtmlSanitizer.validate(description);
+            task.setDescription(description);
         }
         if(editTask.reporter != null) {
             if (editTask.reporter.isPresent()) {
@@ -1133,6 +1137,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         checkAttributeValueAuthorization(attribute, user, task);
 
         // Validate value based on type
+        HtmlSanitizer.validate(value);
         validateAttributeValue(attribute, value);
 
         // Find or create the attribute value

@@ -7,6 +7,7 @@ import org.trackdev.api.controller.exceptions.EntityNotFound;
 import org.trackdev.api.entity.Workspace;
 import org.trackdev.api.repository.WorkspaceRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,7 @@ public class WorkspaceService extends BaseServiceLong<Workspace, WorkspaceReposi
     @Transactional
     public Workspace createWorkspace(String name, String userId) {
         accessChecker.checkCanCreateWorkspace(userId);
+        HtmlSanitizer.validate(name);
         Workspace workspace = new Workspace(name);
         repo.save(workspace);
         return workspace;
@@ -51,6 +53,7 @@ public class WorkspaceService extends BaseServiceLong<Workspace, WorkspaceReposi
         Workspace workspace = getWorkspace(id);
         accessChecker.checkCanManageWorkspace(workspace, userId);
         if (name != null) {
+            HtmlSanitizer.validate(name);
             workspace.setName(name);
         }
         repo.save(workspace);

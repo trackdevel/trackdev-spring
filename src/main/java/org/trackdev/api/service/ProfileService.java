@@ -9,6 +9,7 @@ import org.trackdev.api.entity.*;
 import org.trackdev.api.model.ProfileRequest;
 import org.trackdev.api.repository.*;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,6 +78,8 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             throw new ServiceException(ErrorConstants.PROFILE_NAME_ALREADY_EXISTS);
         }
 
+        HtmlSanitizer.validate(request.name);
+        HtmlSanitizer.validate(request.description);
         Profile profile = new Profile(request.name, request.description, owner);
         profile = repo.save(profile);
 
@@ -108,6 +111,8 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             throw new ServiceException(ErrorConstants.PROFILE_NAME_ALREADY_EXISTS);
         }
 
+        HtmlSanitizer.validate(request.name);
+        HtmlSanitizer.validate(request.description);
         profile.setName(request.name);
         profile.setDescription(request.description);
 
