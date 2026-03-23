@@ -228,8 +228,12 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
 
         if (currentStatus == TaskStatus.DONE) {
             if (!task.hasAtLeastOneMergedPR() || task.hasOpenPRs()) {
-                // DONE rules violated — try VERIFY
-                if (task.canMoveToVerify()) {
+                // USER_STORY does not use VERIFY/INPROGRESS — revert to TODO
+                if (task.getTaskType() == TaskType.USER_STORY) {
+                    task.forceSetStatus(TaskStatus.TODO);
+                    log.info("USER_STORY {} reverted from DONE to TODO (DONE rules no longer met)", task.getTaskKey());
+                } else if (task.canMoveToVerify()) {
+                    // DONE rules violated — try VERIFY
                     task.forceSetStatus(TaskStatus.VERIFY);
                     log.info("Task {} reverted from DONE to VERIFY (DONE rules no longer met)", task.getTaskKey());
                 } else {

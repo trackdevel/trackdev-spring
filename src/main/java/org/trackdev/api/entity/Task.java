@@ -438,12 +438,18 @@ public class Task extends BaseEntityLong {
                 default -> false;
             };
             if (!valid) {
+                String allowedTransitions = switch (this.status) {
+                    case BACKLOG -> "TODO";
+                    case TODO -> "DONE (automatic when all subtasks are DONE)";
+                    case DONE -> "TODO (automatic when a subtask leaves DONE)";
+                    default -> "none (invalid current state " + this.status.name() + " for USER_STORY)";
+                };
                 EntityException ex = new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
-                ex.setMessageArgs(this.status.name(), status.name());
+                ex.setMessageArgs(this.status.name(), status.name(), this.type.name(), allowedTransitions);
                 throw ex;
             }
         } else {
-            // TASK/BUG transitions: BACKLOG→TODO, TODO→INPROGRESS, INPROGRESS→TODO/VERIFY, VERIFY→DONE
+            // TASK/BUG transitions: BACKLOG→TODO, TODO→INPROGRESS, INPROGRESS→TODO/VERIFY, VERIFY→DONE, DONE→VERIFY
             boolean valid = switch (this.status) {
                 case BACKLOG -> status == TaskStatus.TODO;
                 case TODO -> status == TaskStatus.INPROGRESS;
@@ -453,8 +459,16 @@ public class Task extends BaseEntityLong {
                 default -> false;
             };
             if (!valid) {
+                String allowedTransitions = switch (this.status) {
+                    case BACKLOG -> "TODO";
+                    case TODO -> "INPROGRESS";
+                    case INPROGRESS -> "TODO, VERIFY";
+                    case VERIFY -> "DONE";
+                    case DONE -> "VERIFY";
+                    default -> "none";
+                };
                 EntityException ex = new EntityException(ErrorConstants.INVALID_STATUS_TRANSITION);
-                ex.setMessageArgs(this.status.name(), status.name());
+                ex.setMessageArgs(this.status.name(), status.name(), this.type.name(), allowedTransitions);
                 throw ex;
             }
         }
