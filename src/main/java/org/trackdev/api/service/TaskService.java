@@ -437,6 +437,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITHOUT_ESTIMATION);
                 } else if (task.getTaskType() == TaskType.USER_STORY) {
                     throw new ServiceException(ErrorConstants.USER_STORY_CANNOT_BE_DONE_WITH_PENDING_SUBTASKS);
+                } else {
+                    throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_GENERIC);
                 }
             }
             
