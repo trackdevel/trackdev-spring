@@ -24,9 +24,9 @@ public class CommentService extends BaseServiceLong<Comment, CommentRepository>{
     private UserService userService;
 
     public Comment addComment(String content, User author, Task task) {
-        // Sanitize HTML content to prevent XSS attacks
-        String sanitizedContent = HtmlSanitizer.sanitize(content);
-        Comment comment = new Comment(sanitizedContent, author, task);
+        // Validate content to prevent XSS attacks
+        HtmlSanitizer.validate(content);
+        Comment comment = new Comment(content, author, task);
         repo.save(comment);
         return comment;
     }
@@ -52,9 +52,9 @@ public class CommentService extends BaseServiceLong<Comment, CommentRepository>{
             throw new ServiceException(ErrorConstants.CANNOT_EDIT_OTHERS_COMMENT);
         }
         
-        // Sanitize and update content
-        String sanitizedContent = HtmlSanitizer.sanitize(newContent);
-        comment.setContent(sanitizedContent);
+        // Validate content to prevent XSS attacks
+        HtmlSanitizer.validate(newContent);
+        comment.setContent(newContent);
         return repo.save(comment);
     }
 
