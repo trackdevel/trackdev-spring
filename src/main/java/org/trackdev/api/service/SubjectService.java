@@ -10,6 +10,7 @@ import org.trackdev.api.entity.Subject;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.repository.SubjectRepository;
 import org.trackdev.api.utils.ErrorConstants;
+import org.trackdev.api.utils.HtmlSanitizer;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +46,8 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
     public Subject createSubject(String name, String acronym, String loggedInUserId) {
         User owner = userService.get(loggedInUserId);
         accessChecker.checkCanCreateSubject(owner);
+        HtmlSanitizer.validate(name);
+        HtmlSanitizer.validate(acronym);
         Subject subject = new Subject(name, acronym, owner);
         // Set workspace from owner's workspace (required for workspace admins)
         if (owner.getWorkspace() != null) {
@@ -59,9 +62,11 @@ public class SubjectService extends BaseServiceLong<Subject, SubjectRepository> 
         Subject subject = getSubject(id);
         accessChecker.checkCanManageSubject(subject, loggedInUserId);
         if (name != null) {
+            HtmlSanitizer.validate(name);
             subject.setName(name);
         }
         if (acronym != null) {
+            HtmlSanitizer.validate(acronym);
             subject.setAcronym(acronym);
         }
         repo.save(subject);
