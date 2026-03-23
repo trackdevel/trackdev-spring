@@ -59,8 +59,8 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
         repo.save(conversation);
 
         // Create the first message
-        String sanitizedContent = HtmlSanitizer.sanitize(message);
-        PointsReviewMessage firstMessage = new PointsReviewMessage(sanitizedContent, initiator, conversation);
+        HtmlSanitizer.validate(message);
+        PointsReviewMessage firstMessage = new PointsReviewMessage(message, initiator, conversation);
         conversation.addMessage(firstMessage);
         messageRepository.save(firstMessage);
 
@@ -156,8 +156,8 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
         accessChecker.checkCanPostInPointsReview(conversation, userId);
 
         User author = userService.get(userId);
-        String sanitizedContent = HtmlSanitizer.sanitize(content);
-        PointsReviewMessage message = new PointsReviewMessage(sanitizedContent, author, conversation);
+        HtmlSanitizer.validate(content);
+        PointsReviewMessage message = new PointsReviewMessage(content, author, conversation);
         conversation.addMessage(message);
         messageRepository.save(message);
 
@@ -176,8 +176,8 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
 
         accessChecker.checkCanEditPointsReviewMessage(message, userId);
 
-        String sanitizedContent = HtmlSanitizer.sanitize(content);
-        message.setContent(sanitizedContent);
+        HtmlSanitizer.validate(content);
+        message.setContent(content);
         return messageRepository.save(message);
     }
 
