@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.ServiceException;
+import org.trackdev.api.utils.HtmlSanitizer;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.SprintStatus;
@@ -86,6 +87,7 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         if(editSprint.name != null) {
             String name = editSprint.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
+            HtmlSanitizer.validate(name);
             if(!name.equals(sprint.getName())) {
                 sprint.setName(name);
                 changes.add(new SprintNameChange(user, sprint, name));
