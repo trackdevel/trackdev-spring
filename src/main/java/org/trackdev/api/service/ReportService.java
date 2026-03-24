@@ -307,8 +307,8 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
             result.setMagnitude(report.getMagnitude().name());
         }
         
-        // Get project tasks
-        Collection<Task> allTasks = project.getTasks();
+        // Get all project tasks including subtasks
+        Collection<Task> allTasks = project.getAllTasks();
         if (allTasks == null) {
             allTasks = Collections.emptyList();
         }
