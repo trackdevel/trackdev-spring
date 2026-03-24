@@ -805,8 +805,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         User actor = userService.get(userId);
         sseEmitterService.publishTaskEvent(task, actor, "task_deleted");
         // If deleting a subtask, also notify about parent update
-        if (task.getParentTask() != null) {
-            sseEmitterService.publishTaskEvent(task.getParentTask(), actor, "task_updated");
+        Task parentTask = task.getParentTask();
+        if (parentTask != null) {
+            sseEmitterService.publishTaskEvent(parentTask, actor, "task_updated");
         }
 
         // Delete all related entities before deleting the task (foreign key constraints)
@@ -821,7 +822,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         task.setActiveSprints(new ArrayList<>());
 
         // If task is a parent (USER_STORY), delete child tasks and their related entities
-        if (task.getParentTask() == null){
+        if (parentTask == null){
             Collection<Task> removeTask = task.getChildTasks();
             for (Task childTask : removeTask) {
                 commentService.deleteByTask(childTask);
@@ -837,6 +838,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
         // Finally, delete the task itself
         repo.delete(task);
+
+        // If deleting a subtask, check if parent USER_STORY should auto-complete
+        if (parentTask != null && parentTask.getTaskType() == TaskType.USER_STORY
+                && parentTask.getStatus() != TaskStatus.DONE && parentTask.areAllSubtasksDone()) {
+            TaskStatus parentOldStatus = parentTask.getStatus();
+            parentTask.setStatus(TaskStatus.DONE);
+            repo.save(parentTask);
+            TaskChange change = new TaskStatusChange(actor, parentTask,
+                    parentOldStatus.toString(), TaskStatus.DONE.toString());
+            taskChangeService.store(change);
+        }
     }
 
     /**
