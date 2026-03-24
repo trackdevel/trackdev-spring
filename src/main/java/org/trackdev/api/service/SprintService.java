@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.ServiceException;
 import org.trackdev.api.utils.HtmlSanitizer;
+import org.trackdev.api.configuration.UserType;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Sprint;
 import org.trackdev.api.entity.SprintStatus;
+import org.trackdev.api.entity.Task;
 import org.trackdev.api.entity.User;
 import org.trackdev.api.entity.sprintchanges.*;
 import org.trackdev.api.model.MergePatchSprint;
@@ -200,13 +202,59 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
     /*
      * NOTE: Sprint status is now computed dynamically via Sprint.getEffectiveStatus()
      * based on startDate/endDate. No scheduled job is needed.
-     * 
+     *
      * The rules are:
      * 1. If manually set to CLOSED → always CLOSED (manual close sticks)
      * 2. Before startDate → DRAFT
      * 3. Between startDate and endDate → ACTIVE
      * 4. After endDate → CLOSED
-     * 
+     *
      * The stored status field is only used for manual overrides (e.g., force-close).
      */
+
+    /**
+     * Freeze a sprint and all its non-USER_STORY tasks (PROFESSOR only).
+     */
+    @Transactional
+    public Sprint freezeSprint(Long sprintId, String userId) {
+        Sprint sprint = get(sprintId);
+        User user = userService.get(userId);
+
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_FREEZE_SPRINT);
+        }
+        accessChecker.checkCanManageProject(sprint.getProject(), userId);
+
+        sprint.setFrozen(true);
+        for (Task task : sprint.getActiveTasks()) {
+            if (!"USER_STORY".equals(task.getType())) {
+                task.setFrozen(true);
+            }
+        }
+        repo().save(sprint);
+        return sprint;
+    }
+
+    /**
+     * Unfreeze a sprint and all its non-USER_STORY tasks (PROFESSOR only).
+     */
+    @Transactional
+    public Sprint unfreezeSprint(Long sprintId, String userId) {
+        Sprint sprint = get(sprintId);
+        User user = userService.get(userId);
+
+        if (!user.isUserType(UserType.PROFESSOR)) {
+            throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_FREEZE_SPRINT);
+        }
+        accessChecker.checkCanManageProject(sprint.getProject(), userId);
+
+        sprint.setFrozen(false);
+        for (Task task : sprint.getActiveTasks()) {
+            if (!"USER_STORY".equals(task.getType())) {
+                task.setFrozen(false);
+            }
+        }
+        repo().save(sprint);
+        return sprint;
+    }
 }
