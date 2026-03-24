@@ -312,7 +312,14 @@ public class ReportService extends BaseServiceLong<Report, ReportRepository> {
         if (allTasks == null) {
             allTasks = Collections.emptyList();
         }
-        
+
+        // Filter tasks by type: when element is TASK, only include TASK and BUG (exclude USER_STORY)
+        if (report.getElement() == ReportElement.TASK) {
+            allTasks = allTasks.stream()
+                .filter(task -> task.getTaskType() == TaskType.TASK || task.getTaskType() == TaskType.BUG)
+                .collect(Collectors.toList());
+        }
+
         // Filter tasks by status if filters are provided
         final Collection<Task> filteredTasks;
         if (statusFilters != null && !statusFilters.isEmpty()) {
