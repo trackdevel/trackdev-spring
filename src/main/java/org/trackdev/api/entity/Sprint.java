@@ -49,6 +49,9 @@ public class Sprint extends BaseEntityLong {
     @Column(name = "sprint_pattern_item_id", insertable = false, updatable = false)
     private Long sprintPatternItemId;
 
+    @Column(name = "frozen")
+    private Boolean frozen = false;
+
     //--- CONSTRUCTOR
 
     public Sprint() {}
@@ -170,6 +173,18 @@ public class Sprint extends BaseEntityLong {
 
     public Long getSprintPatternItemId() {
         return sprintPatternItemId;
+    }
+
+    public Boolean getFrozen() {
+        return frozen != null ? frozen : false;
+    }
+
+    public boolean isFrozen() {
+        return Boolean.TRUE.equals(frozen);
+    }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
     }
 
     //--- METHODS
