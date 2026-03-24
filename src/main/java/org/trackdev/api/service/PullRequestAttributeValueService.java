@@ -155,7 +155,9 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
         }
 
         checkAuthorization(attribute, user, pr);
-        HtmlSanitizer.validate(value);
+        if (attribute.getType() != AttributeType.TEXT) {
+            HtmlSanitizer.validate(value);
+        }
         validateAttributeValue(attribute, value);
 
         Optional<PullRequestAttributeValue> existing = repo().findByPullRequestIdAndAttributeId(prId, attributeId);
@@ -163,9 +165,17 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
         PullRequestAttributeValue attributeValue;
         if (existing.isPresent()) {
             attributeValue = existing.get();
-            attributeValue.setValue(value);
         } else {
-            attributeValue = new PullRequestAttributeValue(pr, attribute, value);
+            attributeValue = new PullRequestAttributeValue(pr, attribute, null);
+        }
+
+        // Store in the appropriate column based on type
+        if (attribute.getType() == AttributeType.TEXT) {
+            attributeValue.setTextValue(value);
+            attributeValue.setValue(null);
+        } else {
+            attributeValue.setValue(value);
+            attributeValue.setTextValue(null);
         }
 
         return save(attributeValue);
@@ -383,6 +393,7 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
                 }
                 break;
             case STRING:
+            case TEXT:
             default:
                 break;
         }
