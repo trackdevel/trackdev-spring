@@ -8,6 +8,7 @@ import org.trackdev.api.dto.EnumValueEntryDTO;
 import org.trackdev.api.dto.ListItemDTO;
 import org.trackdev.api.dto.StudentAttributeListValueDTO;
 import org.trackdev.api.dto.StudentAttributeValueDTO;
+import org.trackdev.api.entity.AttributeType;
 import org.trackdev.api.entity.EnumValueEntry;
 import org.trackdev.api.entity.ProfileAttribute;
 import org.trackdev.api.entity.StudentAttributeListValue;
@@ -23,11 +24,19 @@ public interface StudentAttributeValueMapper {
     @Mapping(target = "attributeName", source = "attribute.name")
     @Mapping(target = "attributeType", source = "attribute.type")
     @Mapping(target = "attributeAppliedBy", source = "attribute.appliedBy")
+    @Mapping(target = "value", expression = "java(getEffectiveValue(entity))")
     @Mapping(target = "enumValues", expression = "java(getEnumValues(entity))")
     StudentAttributeValueDTO toDTO(StudentAttributeValue entity);
 
     @IterableMapping(qualifiedByName = "toDTO")
     List<StudentAttributeValueDTO> toDTOList(List<StudentAttributeValue> entities);
+
+    default String getEffectiveValue(StudentAttributeValue entity) {
+        if (entity.getAttribute() != null && entity.getAttribute().getType() == AttributeType.TEXT) {
+            return entity.getTextValue();
+        }
+        return entity.getValue();
+    }
 
     default EnumValueEntryDTO[] getEnumValues(StudentAttributeValue entity) {
         if (entity.getAttribute() != null &&
