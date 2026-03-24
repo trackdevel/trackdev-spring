@@ -41,6 +41,9 @@ public class TaskAttributeValue extends BaseEntityLong {
     @Column(length = VALUE_LENGTH)
     private String value;
 
+    @Column(name = "text_value", columnDefinition = "TEXT")
+    private String textValue;
+
     public TaskAttributeValue() {}
 
     public TaskAttributeValue(Task task, ProfileAttribute attribute, String value) {
@@ -79,5 +82,13 @@ public class TaskAttributeValue extends BaseEntityLong {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getTextValue() {
+        return textValue;
+    }
+
+    public void setTextValue(String textValue) {
+        this.textValue = textValue;
     }
 }

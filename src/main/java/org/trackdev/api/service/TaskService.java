@@ -1137,7 +1137,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         checkAttributeValueAuthorization(attribute, user, task);
 
         // Validate value based on type
-        HtmlSanitizer.validate(value);
+        if (attribute.getType() != AttributeType.TEXT) {
+            HtmlSanitizer.validate(value);
+        }
         validateAttributeValue(attribute, value);
 
         // Find or create the attribute value
@@ -1147,9 +1149,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         TaskAttributeValue attributeValue;
         if (existingValue.isPresent()) {
             attributeValue = existingValue.get();
-            attributeValue.setValue(value);
         } else {
-            attributeValue = new TaskAttributeValue(task, attribute, value);
+            attributeValue = new TaskAttributeValue(task, attribute, null);
+        }
+
+        // Store in the appropriate column based on type
+        if (attribute.getType() == AttributeType.TEXT) {
+            attributeValue.setTextValue(value);
+            attributeValue.setValue(null);
+        } else {
+            attributeValue.setValue(value);
+            attributeValue.setTextValue(null);
         }
 
         return taskAttributeValueService.save(attributeValue);
@@ -1253,8 +1263,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 }
                 break;
             case STRING:
+            case TEXT:
             default:
-                // No validation needed for strings
+                // No validation needed for strings or text
                 break;
         }
     }

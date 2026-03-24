@@ -181,7 +181,9 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         }
 
         checkAuthorization(attribute, requestingUser, targetUserId);
-        HtmlSanitizer.validate(value);
+        if (attribute.getType() != AttributeType.TEXT) {
+            HtmlSanitizer.validate(value);
+        }
         validateAttributeValue(attribute, value);
 
         User targetUser = userService.get(targetUserId);
@@ -190,9 +192,17 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         StudentAttributeValue attributeValue;
         if (existing.isPresent()) {
             attributeValue = existing.get();
-            attributeValue.setValue(value);
         } else {
-            attributeValue = new StudentAttributeValue(targetUser, attribute, value);
+            attributeValue = new StudentAttributeValue(targetUser, attribute, null);
+        }
+
+        // Store in the appropriate column based on type
+        if (attribute.getType() == AttributeType.TEXT) {
+            attributeValue.setTextValue(value);
+            attributeValue.setValue(null);
+        } else {
+            attributeValue.setValue(value);
+            attributeValue.setTextValue(null);
         }
 
         return save(attributeValue);
@@ -409,6 +419,7 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
                 }
                 break;
             case STRING:
+            case TEXT:
             default:
                 break;
         }

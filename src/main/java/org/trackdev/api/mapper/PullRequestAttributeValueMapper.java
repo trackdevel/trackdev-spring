@@ -8,6 +8,7 @@ import org.trackdev.api.dto.EnumValueEntryDTO;
 import org.trackdev.api.dto.ListItemDTO;
 import org.trackdev.api.dto.PullRequestAttributeListValueDTO;
 import org.trackdev.api.dto.PullRequestAttributeValueDTO;
+import org.trackdev.api.entity.AttributeType;
 import org.trackdev.api.entity.EnumValueEntry;
 import org.trackdev.api.entity.ProfileAttribute;
 import org.trackdev.api.entity.PullRequestAttributeListValue;
@@ -23,11 +24,19 @@ public interface PullRequestAttributeValueMapper {
     @Mapping(target = "attributeName", source = "attribute.name")
     @Mapping(target = "attributeType", source = "attribute.type")
     @Mapping(target = "attributeAppliedBy", source = "attribute.appliedBy")
+    @Mapping(target = "value", expression = "java(getEffectiveValue(entity))")
     @Mapping(target = "enumValues", expression = "java(getEnumValues(entity))")
     PullRequestAttributeValueDTO toDTO(PullRequestAttributeValue entity);
 
     @IterableMapping(qualifiedByName = "toDTO")
     List<PullRequestAttributeValueDTO> toDTOList(List<PullRequestAttributeValue> entities);
+
+    default String getEffectiveValue(PullRequestAttributeValue entity) {
+        if (entity.getAttribute() != null && entity.getAttribute().getType() == AttributeType.TEXT) {
+            return entity.getTextValue();
+        }
+        return entity.getValue();
+    }
 
     default EnumValueEntryDTO[] getEnumValues(PullRequestAttributeValue entity) {
         if (entity.getAttribute() != null &&
