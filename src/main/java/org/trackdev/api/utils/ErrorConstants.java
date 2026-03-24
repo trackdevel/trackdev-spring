@@ -104,6 +104,7 @@ public final class ErrorConstants {
     public static final String SPRINT_END_DATE_BEFORE_START = "error.sprint.end.before.start";
     public static final String SPRINT_PATTERN_ALREADY_APPLIED = "error.sprint.pattern.already.applied";
     public static final String SPRINT_PATTERN_NOT_IN_COURSE = "error.sprint.pattern.not.in.course";
+    public static final String ONLY_PROFESSOR_CAN_FREEZE_SPRINT = "error.sprint.freeze.professor.only";
     
     // Workspace errors
     public static final String WORKSPACE_NOT_EXIST = "error.workspace.not.found";
