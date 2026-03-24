@@ -8,5 +8,6 @@ public enum AttributeType {
     ENUM,
     INTEGER,
     FLOAT,
-    LIST
+    LIST,
+    TEXT
 }
