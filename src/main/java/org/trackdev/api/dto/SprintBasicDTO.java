@@ -15,4 +15,5 @@ public class SprintBasicDTO {
     private ZonedDateTime endDate;
     private String status;
     private String statusText;
+    private Boolean frozen;
 }
