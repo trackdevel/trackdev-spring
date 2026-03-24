@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.trackdev.api.dto.EnumValueEntryDTO;
 import org.trackdev.api.dto.TaskAttributeValueDTO;
+import org.trackdev.api.entity.AttributeType;
 import org.trackdev.api.entity.EnumValueEntry;
 import org.trackdev.api.entity.TaskAttributeValue;
 
@@ -18,11 +19,19 @@ public interface TaskAttributeValueMapper {
     @Mapping(target = "attributeName", source = "attribute.name")
     @Mapping(target = "attributeType", source = "attribute.type")
     @Mapping(target = "attributeAppliedBy", source = "attribute.appliedBy")
+    @Mapping(target = "value", expression = "java(getEffectiveValue(entity))")
     @Mapping(target = "enumValues", expression = "java(getEnumValues(entity))")
     TaskAttributeValueDTO toDTO(TaskAttributeValue entity);
 
     @IterableMapping(qualifiedByName = "toDTO")
     List<TaskAttributeValueDTO> toDTOList(List<TaskAttributeValue> entities);
+
+    default String getEffectiveValue(TaskAttributeValue entity) {
+        if (entity.getAttribute() != null && entity.getAttribute().getType() == AttributeType.TEXT) {
+            return entity.getTextValue();
+        }
+        return entity.getValue();
+    }
 
     default EnumValueEntryDTO[] getEnumValues(TaskAttributeValue entity) {
         if (entity.getAttribute() != null &&
