@@ -93,4 +93,18 @@ public class SprintController extends CrudController<Sprint, SprintService> {
         return okNoContent();
     }
 
+    @Operation(summary = "Freeze a sprint", description = "Freeze a sprint and all its non-USER_STORY tasks (PROFESSOR only)")
+    @PostMapping(path = "/{id}/freeze")
+    public SprintBasicDTO freezeSprint(Principal principal, @PathVariable(name = "id") Long id) {
+        String userId = super.getUserId(principal);
+        return sprintMapper.toBasicDTO(service.freezeSprint(id, userId));
+    }
+
+    @Operation(summary = "Unfreeze a sprint", description = "Unfreeze a sprint and all its non-USER_STORY tasks (PROFESSOR only)")
+    @PostMapping(path = "/{id}/unfreeze")
+    public SprintBasicDTO unfreezeSprint(Principal principal, @PathVariable(name = "id") Long id) {
+        String userId = super.getUserId(principal);
+        return sprintMapper.toBasicDTO(service.unfreezeSprint(id, userId));
+    }
+
 }
