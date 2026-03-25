@@ -1,1 +1,0 @@
-ALTER TABLE profile_attributes MODIFY COLUMN `type` enum('ENUM', 'FLOAT', 'INTEGER', 'STRING', 'LIST', 'TEXT', 'NUMERIC_TEXT') NOT NULL;
