@@ -25,6 +25,7 @@ public interface PullRequestAttributeValueMapper {
     @Mapping(target = "attributeType", source = "attribute.type")
     @Mapping(target = "attributeAppliedBy", source = "attribute.appliedBy")
     @Mapping(target = "value", expression = "java(getEffectiveValue(entity))")
+    @Mapping(target = "textValue", expression = "java(getEffectiveTextValue(entity))")
     @Mapping(target = "enumValues", expression = "java(getEnumValues(entity))")
     PullRequestAttributeValueDTO toDTO(PullRequestAttributeValue entity);
 
@@ -36,6 +37,13 @@ public interface PullRequestAttributeValueMapper {
             return entity.getTextValue();
         }
         return entity.getValue();
+    }
+
+    default String getEffectiveTextValue(PullRequestAttributeValue entity) {
+        if (entity.getAttribute() != null && entity.getAttribute().getType() == AttributeType.NUMERIC_TEXT) {
+            return entity.getTextValue();
+        }
+        return null;
     }
 
     default EnumValueEntryDTO[] getEnumValues(PullRequestAttributeValue entity) {
