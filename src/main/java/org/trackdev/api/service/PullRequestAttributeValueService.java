@@ -133,7 +133,7 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
      * Set or update an attribute value for a pull request.
      */
     @Transactional
-    public PullRequestAttributeValue setPullRequestAttributeValue(String prId, Long attributeId, String value, String userId) {
+    public PullRequestAttributeValue setPullRequestAttributeValue(String prId, Long attributeId, String value, String textValue, String userId) {
         PullRequest pr = pullRequestService.get(prId);
         User user = userService.get(userId);
         accessChecker.checkCanViewPullRequest(pr, userId);
@@ -155,7 +155,7 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
         }
 
         checkAuthorization(attribute, user, pr);
-        if (attribute.getType() != AttributeType.TEXT) {
+        if (attribute.getType() != AttributeType.TEXT && attribute.getType() != AttributeType.NUMERIC_TEXT) {
             HtmlSanitizer.validate(value);
         }
         validateAttributeValue(attribute, value);
@@ -173,6 +173,9 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
         if (attribute.getType() == AttributeType.TEXT) {
             attributeValue.setTextValue(value);
             attributeValue.setValue(null);
+        } else if (attribute.getType() == AttributeType.NUMERIC_TEXT) {
+            attributeValue.setValue(value);
+            attributeValue.setTextValue(textValue);
         } else {
             attributeValue.setValue(value);
             attributeValue.setTextValue(null);
@@ -368,6 +371,7 @@ public class PullRequestAttributeValueService extends BaseServiceLong<PullReques
                 }
                 break;
             case FLOAT:
+            case NUMERIC_TEXT:
                 try {
                     double floatVal = Double.parseDouble(value);
                     if (attribute.getMinValue() != null && !attribute.getMinValue().isBlank()) {

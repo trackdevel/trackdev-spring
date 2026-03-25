@@ -17,4 +17,8 @@ public interface StudentAttributeListValueRepository extends BaseRepositoryLong<
     boolean existsByAttributeId(Long attributeId);
 
     boolean existsByAttributeIdAndEnumValue(Long attributeId, String enumValue);
+
+    long countByAttributeId(Long attributeId);
+
+    void deleteByAttributeId(Long attributeId);
 }

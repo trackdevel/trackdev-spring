@@ -1119,7 +1119,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
      * Authorization depends on the attribute's appliedBy field.
      */
     @Transactional
-    public TaskAttributeValue setTaskAttributeValue(Long taskId, Long attributeId, String value, String userId) {
+    public TaskAttributeValue setTaskAttributeValue(Long taskId, Long attributeId, String value, String textValue, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
 
@@ -1149,7 +1149,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         checkAttributeValueAuthorization(attribute, user, task);
 
         // Validate value based on type
-        if (attribute.getType() != AttributeType.TEXT) {
+        if (attribute.getType() != AttributeType.TEXT && attribute.getType() != AttributeType.NUMERIC_TEXT) {
             HtmlSanitizer.validate(value);
         }
         validateAttributeValue(attribute, value);
@@ -1169,6 +1169,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if (attribute.getType() == AttributeType.TEXT) {
             attributeValue.setTextValue(value);
             attributeValue.setValue(null);
+        } else if (attribute.getType() == AttributeType.NUMERIC_TEXT) {
+            attributeValue.setValue(value);
+            attributeValue.setTextValue(textValue);
         } else {
             attributeValue.setValue(value);
             attributeValue.setTextValue(null);
@@ -1248,6 +1251,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 }
                 break;
             case FLOAT:
+            case NUMERIC_TEXT:
                 try {
                     double floatVal = Double.parseDouble(value);
                     if (attribute.getMinValue() != null && !attribute.getMinValue().isBlank()) {

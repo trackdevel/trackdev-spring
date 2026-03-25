@@ -18,4 +18,10 @@ public interface TaskAttributeValueRepository extends BaseRepositoryLong<TaskAtt
     boolean existsByAttributeId(Long attributeId);
 
     boolean existsByAttributeIdAndValue(Long attributeId, String value);
+
+    long countByAttributeId(Long attributeId);
+
+    List<TaskAttributeValue> findByAttributeId(Long attributeId);
+
+    void deleteByAttributeId(Long attributeId);
 }

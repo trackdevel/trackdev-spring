@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.trackdev.api.controller.exceptions.EntityNotFound;
 import org.trackdev.api.controller.exceptions.ServiceException;
+import org.trackdev.api.dto.AttributeUsageDTO;
 import org.trackdev.api.entity.*;
 import org.trackdev.api.model.ProfileRequest;
 import org.trackdev.api.repository.*;
@@ -40,6 +41,9 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
     @Autowired
     private StudentAttributeListValueRepository studentAttributeListValueRepository;
+
+    @Autowired
+    private PullRequestAttributeListValueRepository pullRequestAttributeListValueRepository;
 
     public Profile getProfile(Long id) {
         return repo.findById(id)
@@ -230,6 +234,25 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             return;
         }
 
+        // Handle NUMERIC_TEXT type constraints
+        if (attrRequest.type == AttributeType.NUMERIC_TEXT) {
+            if (attrRequest.target != AttributeTarget.TASK && attrRequest.target != AttributeTarget.STUDENT) {
+                throw new ServiceException("NUMERIC_TEXT attributes can only target TASK or STUDENT");
+            }
+            attribute.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+            // Visibility: only PROFESSOR_ONLY or ASSIGNED_STUDENT
+            AttributeVisibility visibility = attrRequest.visibility != null ? attrRequest.visibility : AttributeVisibility.PROFESSOR_ONLY;
+            if (visibility != AttributeVisibility.PROFESSOR_ONLY && visibility != AttributeVisibility.ASSIGNED_STUDENT) {
+                throw new ServiceException("NUMERIC_TEXT attributes visibility must be PROFESSOR_ONLY or ASSIGNED_STUDENT");
+            }
+            attribute.setVisibility(visibility);
+            attribute.setMinValue(attrRequest.minValue);
+            attribute.setMaxValue(attrRequest.maxValue);
+            attribute.setDefaultValue(null);
+            profile.addAttribute(attribute);
+            return;
+        }
+
         // Handle enum reference
         if (attrRequest.type == AttributeType.ENUM) {
             if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
@@ -385,6 +408,16 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                     existing.setDefaultValue(null);
                     existing.setMinValue(null);
                     existing.setMaxValue(null);
+                } else if (existing.getType() == AttributeType.NUMERIC_TEXT || attrRequest.type == AttributeType.NUMERIC_TEXT) {
+                    // NUMERIC_TEXT: enforce visibility and allow min/max
+                    AttributeVisibility visibility = attrRequest.visibility != null ? attrRequest.visibility : existing.getVisibility();
+                    if (visibility != AttributeVisibility.PROFESSOR_ONLY && visibility != AttributeVisibility.ASSIGNED_STUDENT) {
+                        visibility = AttributeVisibility.PROFESSOR_ONLY;
+                    }
+                    existing.setVisibility(visibility);
+                    existing.setMinValue(attrRequest.minValue);
+                    existing.setMaxValue(attrRequest.maxValue);
+                    existing.setDefaultValue(null);
                 } else {
                     existing.setDefaultValue(attrRequest.defaultValue);
                     existing.setMinValue(attrRequest.minValue);
@@ -415,6 +448,18 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         existing.setDefaultValue(null);
                         existing.setMinValue(null);
                         existing.setMaxValue(null);
+                    } else if (attrRequest.type == AttributeType.NUMERIC_TEXT) {
+                        if (attrRequest.target != AttributeTarget.TASK && attrRequest.target != AttributeTarget.STUDENT) {
+                            throw new ServiceException("NUMERIC_TEXT attributes can only target TASK or STUDENT");
+                        }
+                        existing.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+                        AttributeVisibility visibility = attrRequest.visibility != null ? attrRequest.visibility : AttributeVisibility.PROFESSOR_ONLY;
+                        if (visibility != AttributeVisibility.PROFESSOR_ONLY && visibility != AttributeVisibility.ASSIGNED_STUDENT) {
+                            visibility = AttributeVisibility.PROFESSOR_ONLY;
+                        }
+                        existing.setVisibility(visibility);
+                        existing.setEnumRef(null);
+                        existing.setDefaultValue(null);
                     } else {
                         // Only TASK-targeted attributes can have STUDENT appliedBy
                         if (attrRequest.target != AttributeTarget.TASK) {
@@ -442,5 +487,104 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
 
         // Remove attributes not in request
         profile.getAttributes().removeIf(a -> a.getId() != null && !requestedIds.contains(a.getId()));
+    }
+
+    /**
+     * Get usage information for a profile attribute: total count + first 10 samples.
+     */
+    public AttributeUsageDTO getAttributeUsage(Long profileId, Long attributeId, String userId) {
+        Profile profile = getProfile(profileId);
+        accessChecker.checkCanManageProfile(profile, userId);
+
+        ProfileAttribute attribute = attributeRepository.findById(attributeId)
+                .orElseThrow(() -> new EntityNotFound("Attribute not found"));
+        if (!attribute.getProfileId().equals(profileId)) {
+            throw new ServiceException("Attribute does not belong to this profile");
+        }
+
+        long totalCount = 0;
+        List<AttributeUsageDTO.AttributeUsageSampleDTO> samples = new ArrayList<>();
+
+        // Task attribute values
+        long taskCount = taskAttributeValueRepository.countByAttributeId(attributeId);
+        totalCount += taskCount;
+        if (samples.size() < 10) {
+            List<TaskAttributeValue> taskValues = taskAttributeValueRepository.findByAttributeId(attributeId);
+            for (TaskAttributeValue tv : taskValues) {
+                if (samples.size() >= 10) break;
+                String entityName = tv.getTask().getTaskKey() != null
+                        ? tv.getTask().getTaskKey() : tv.getTask().getName();
+                String value = attribute.getType() == AttributeType.TEXT ? tv.getTextValue() : tv.getValue();
+                samples.add(new AttributeUsageDTO.AttributeUsageSampleDTO("TASK", entityName, value));
+            }
+        }
+
+        // Student attribute values
+        long studentCount = studentAttributeValueRepository.countByAttributeId(attributeId);
+        totalCount += studentCount;
+        if (samples.size() < 10) {
+            List<StudentAttributeValue> studentValues = studentAttributeValueRepository.findByAttributeId(attributeId);
+            for (StudentAttributeValue sv : studentValues) {
+                if (samples.size() >= 10) break;
+                String entityName = sv.getUser().getFullName() != null
+                        ? sv.getUser().getFullName() : sv.getUser().getUsername();
+                String value = attribute.getType() == AttributeType.TEXT ? sv.getTextValue() : sv.getValue();
+                samples.add(new AttributeUsageDTO.AttributeUsageSampleDTO("STUDENT", entityName, value));
+            }
+        }
+
+        // Pull request attribute values
+        long prCount = pullRequestAttributeValueRepository.countByAttributeId(attributeId);
+        totalCount += prCount;
+        if (samples.size() < 10) {
+            List<PullRequestAttributeValue> prValues = pullRequestAttributeValueRepository.findByAttributeId(attributeId);
+            for (PullRequestAttributeValue pv : prValues) {
+                if (samples.size() >= 10) break;
+                PullRequest pr = pv.getPullRequest();
+                String entityName = pr.getRepoFullName() != null && pr.getPrNumber() != null
+                        ? pr.getRepoFullName() + "#" + pr.getPrNumber() : pr.getId();
+                String value = attribute.getType() == AttributeType.TEXT ? pv.getTextValue() : pv.getValue();
+                samples.add(new AttributeUsageDTO.AttributeUsageSampleDTO("PULL_REQUEST", entityName, value));
+            }
+        }
+
+        // Student list attribute values (count distinct users)
+        long studentListCount = studentAttributeListValueRepository.countByAttributeId(attributeId);
+        totalCount += studentListCount;
+
+        // Pull request list attribute values (count distinct PRs)
+        long prListCount = pullRequestAttributeListValueRepository.countByAttributeId(attributeId);
+        totalCount += prListCount;
+
+        AttributeUsageDTO dto = new AttributeUsageDTO();
+        dto.setTotalCount(totalCount);
+        dto.setSamples(samples);
+        return dto;
+    }
+
+    /**
+     * Delete a single attribute from a profile, cascading to all its instantiated values.
+     */
+    @Transactional
+    public void deleteAttribute(Long profileId, Long attributeId, String userId) {
+        Profile profile = getProfile(profileId);
+        accessChecker.checkCanManageProfile(profile, userId);
+
+        ProfileAttribute attribute = attributeRepository.findById(attributeId)
+                .orElseThrow(() -> new EntityNotFound("Attribute not found"));
+        if (!attribute.getProfileId().equals(profileId)) {
+            throw new ServiceException("Attribute does not belong to this profile");
+        }
+
+        // Delete all instantiated values first
+        taskAttributeValueRepository.deleteByAttributeId(attributeId);
+        studentAttributeValueRepository.deleteByAttributeId(attributeId);
+        pullRequestAttributeValueRepository.deleteByAttributeId(attributeId);
+        studentAttributeListValueRepository.deleteByAttributeId(attributeId);
+        pullRequestAttributeListValueRepository.deleteByAttributeId(attributeId);
+
+        // Remove from profile and delete the attribute
+        profile.getAttributes().removeIf(a -> a.getId().equals(attributeId));
+        repo.save(profile);
     }
 }

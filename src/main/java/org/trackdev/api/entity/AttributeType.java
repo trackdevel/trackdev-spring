@@ -9,5 +9,6 @@ public enum AttributeType {
     INTEGER,
     FLOAT,
     LIST,
-    TEXT
+    TEXT,
+    NUMERIC_TEXT
 }

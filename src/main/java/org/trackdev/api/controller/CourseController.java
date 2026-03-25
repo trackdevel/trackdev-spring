@@ -297,7 +297,7 @@ public class CourseController extends BaseController {
             @PathVariable(name = "attributeId") Long attributeId,
             @RequestBody SetAttributeValueRequest request) {
         String requestingUserId = super.getUserId(principal);
-        StudentAttributeValue value = studentAttributeValueService.setStudentAttributeValue(courseId, userId, attributeId, request.value, requestingUserId);
+        StudentAttributeValue value = studentAttributeValueService.setStudentAttributeValue(courseId, userId, attributeId, request.value, request.textValue, requestingUserId);
         return studentAttributeValueMapper.toDTO(value);
     }
 
@@ -370,6 +370,7 @@ public class CourseController extends BaseController {
 
     static class SetAttributeValueRequest {
         public String value;
+        public String textValue;
     }
 
     static class SetListAttributeValuesRequest {
