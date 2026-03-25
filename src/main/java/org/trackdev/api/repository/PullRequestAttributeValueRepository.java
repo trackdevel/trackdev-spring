@@ -18,4 +18,10 @@ public interface PullRequestAttributeValueRepository extends BaseRepositoryLong<
     boolean existsByAttributeId(Long attributeId);
 
     boolean existsByAttributeIdAndValue(Long attributeId, String value);
+
+    long countByAttributeId(Long attributeId);
+
+    List<PullRequestAttributeValue> findByAttributeId(Long attributeId);
+
+    void deleteByAttributeId(Long attributeId);
 }
