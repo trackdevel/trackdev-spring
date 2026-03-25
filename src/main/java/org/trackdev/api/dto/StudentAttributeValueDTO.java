@@ -16,5 +16,6 @@ public class StudentAttributeValueDTO {
     private AttributeType attributeType;
     private AttributeAppliedBy attributeAppliedBy;
     private String value;
+    private String textValue;
     private EnumValueEntryDTO[] enumValues;
 }
