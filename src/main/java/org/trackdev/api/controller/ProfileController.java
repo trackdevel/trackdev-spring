@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
+import org.trackdev.api.dto.AttributeUsageDTO;
 import org.trackdev.api.dto.IdResponseDTO;
 import org.trackdev.api.dto.ProfileCompleteDTO;
 import org.trackdev.api.dto.ProfilesResponseDTO;
@@ -101,5 +102,28 @@ public class ProfileController extends CrudController<Profile, ProfileService> {
         String userId = super.getUserId(principal);
         service.deleteProfile(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get attribute usage", description = "Get the number of instantiated values for an attribute, with a sample of the first 10")
+    @GetMapping(path = "/{profileId}/attributes/{attributeId}/usage")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public AttributeUsageDTO getAttributeUsage(
+            Principal principal,
+            @PathVariable(name = "profileId") Long profileId,
+            @PathVariable(name = "attributeId") Long attributeId) {
+        String userId = super.getUserId(principal);
+        return service.getAttributeUsage(profileId, attributeId, userId);
+    }
+
+    @Operation(summary = "Delete attribute", description = "Delete an attribute from a profile, cascading to all its instantiated values")
+    @DeleteMapping(path = "/{profileId}/attributes/{attributeId}")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAttribute(
+            Principal principal,
+            @PathVariable(name = "profileId") Long profileId,
+            @PathVariable(name = "attributeId") Long attributeId) {
+        String userId = super.getUserId(principal);
+        service.deleteAttribute(profileId, attributeId, userId);
     }
 }
