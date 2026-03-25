@@ -134,7 +134,7 @@ public class PullRequestController extends BaseController {
             @RequestBody SetAttributeValueRequest request,
             Principal principal) {
         String userId = getUserId(principal);
-        PullRequestAttributeValue value = pullRequestAttributeValueService.setPullRequestAttributeValue(prId, attributeId, request.value, userId);
+        PullRequestAttributeValue value = pullRequestAttributeValueService.setPullRequestAttributeValue(prId, attributeId, request.value, request.textValue, userId);
         return pullRequestAttributeValueMapper.toDTO(value);
     }
 
@@ -222,6 +222,7 @@ public class PullRequestController extends BaseController {
 
     static class SetAttributeValueRequest {
         public String value;
+        public String textValue;
     }
 
     static class SetListAttributeValuesRequest {
