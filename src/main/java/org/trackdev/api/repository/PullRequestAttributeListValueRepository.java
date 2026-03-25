@@ -17,4 +17,8 @@ public interface PullRequestAttributeListValueRepository extends BaseRepositoryL
     boolean existsByAttributeId(Long attributeId);
 
     boolean existsByAttributeIdAndEnumValue(Long attributeId, String enumValue);
+
+    long countByAttributeId(Long attributeId);
+
+    void deleteByAttributeId(Long attributeId);
 }
