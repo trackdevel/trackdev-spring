@@ -153,7 +153,7 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
      * Set or update an attribute value for a student in a course.
      */
     @Transactional
-    public StudentAttributeValue setStudentAttributeValue(Long courseId, String targetUserId, Long attributeId, String value, String requestingUserId) {
+    public StudentAttributeValue setStudentAttributeValue(Long courseId, String targetUserId, Long attributeId, String value, String textValue, String requestingUserId) {
         Course course = courseService.getCourse(courseId, requestingUserId);
         User requestingUser = userService.get(requestingUserId);
 
@@ -181,7 +181,7 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         }
 
         checkAuthorization(attribute, requestingUser, targetUserId);
-        if (attribute.getType() != AttributeType.TEXT) {
+        if (attribute.getType() != AttributeType.TEXT && attribute.getType() != AttributeType.NUMERIC_TEXT) {
             HtmlSanitizer.validate(value);
         }
         validateAttributeValue(attribute, value);
@@ -200,6 +200,9 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         if (attribute.getType() == AttributeType.TEXT) {
             attributeValue.setTextValue(value);
             attributeValue.setValue(null);
+        } else if (attribute.getType() == AttributeType.NUMERIC_TEXT) {
+            attributeValue.setValue(value);
+            attributeValue.setTextValue(textValue);
         } else {
             attributeValue.setValue(value);
             attributeValue.setTextValue(null);
@@ -394,6 +397,7 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
                 }
                 break;
             case FLOAT:
+            case NUMERIC_TEXT:
                 try {
                     double floatVal = Double.parseDouble(value);
                     if (attribute.getMinValue() != null && !attribute.getMinValue().isBlank()) {
