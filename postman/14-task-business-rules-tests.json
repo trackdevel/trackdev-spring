@@ -569,6 +569,240 @@
 							]
 						}
 					}
+				},
+				{
+					"name": "14.3.2 Create task for assignee/reporter change test",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 201', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"pm.test('Save task ID for assignee/reporter change test', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.collectionVariables.set('assigneeChangeTestTaskId', jsonData.id);",
+									"    console.log('Created assigneeChangeTestTaskId: ' + jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{udgStudentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Assignee change test task\",\n    \"type\": \"TASK\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects/{{udgProjectId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"projects",
+								"{{udgProjectId}}",
+								"tasks"
+							]
+						}
+					}
+				},
+				{
+					"name": "14.3.3 Self-assign task to student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Task is now assigned to the student', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('assignee');",
+									"    pm.expect(jsonData.assignee).to.not.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{udgStudentToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{assigneeChangeTestTaskId}}/assign",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{assigneeChangeTestTaskId}}",
+								"assign"
+							]
+						}
+					}
+				},
+				{
+					"name": "14.3.4 Student cannot change assignee via PATCH",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 - student cannot change assignee', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error message indicates only professor can change assignee', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData.message.toLowerCase()).to.include('professor');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{udgStudentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"assignee\": \"udg.student2@trackdev.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{assigneeChangeTestTaskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{assigneeChangeTestTaskId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "14.3.5 Student cannot change reporter via PATCH",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 - student cannot change reporter', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error message indicates only professor can change reporter', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData.message.toLowerCase()).to.include('professor');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{udgStudentToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reporter\": \"udg.student2@trackdev.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{assigneeChangeTestTaskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{assigneeChangeTestTaskId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "14.3.6 Professor CAN change assignee via PATCH",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 - professor can change assignee', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{professorUdGToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"assignee\": \"udg.student2@trackdev.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{assigneeChangeTestTaskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tasks",
+								"{{assigneeChangeTestTaskId}}"
+							]
+						}
+					}
 				}
 			]
 		},
