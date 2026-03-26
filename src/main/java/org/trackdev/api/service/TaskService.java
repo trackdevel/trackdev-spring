@@ -82,6 +82,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Set assignee if provided
         if (assigneeId != null && !assigneeId.isBlank()) {
             User assignee = userService.get(assigneeId);
+            // Students can only assign tasks to themselves
+            if (!accessChecker.isProfessorForProject(project, userId) && !assignee.getId().equals(userId)) {
+                throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_CHANGE_ASSIGNEE);
+            }
             task.setAssignee(assignee);
         }
 
@@ -228,6 +232,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             if (!parentTask.getProject().isMember(assignee)) {
                 throw new ServiceException(ErrorConstants.UNAUTHORIZED);
             }
+            // Students can only assign subtasks to themselves
+            if (!accessChecker.isProfessorForProject(parentTask.getProject(), userId) && !assignee.getId().equals(userId)) {
+                throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_CHANGE_ASSIGNEE);
+            }
             subtask.setAssignee(assignee);
         }
         
@@ -363,6 +371,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
         }
         if(editTask.reporter != null) {
+            // Only professors can change the reporter
+            if (!accessChecker.isProfessorForTask(task, userId)) {
+                throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_CHANGE_REPORTER);
+            }
             User reporterUser = null;
             if (editTask.reporter.isPresent()) {
                 reporterUser = userService.getByEmail(editTask.reporter.get());
@@ -373,6 +385,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
         }
         if(editTask.assignee != null) {
+            // Only professors can change the assignee via edit
+            if (!accessChecker.isProfessorForTask(task, userId)) {
+                throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_CHANGE_ASSIGNEE);
+            }
             User assigneeUser = null;
             String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
             if(editTask.assignee.isPresent()) {
