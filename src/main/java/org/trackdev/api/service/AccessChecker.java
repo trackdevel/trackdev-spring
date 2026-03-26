@@ -837,11 +837,19 @@ public class AccessChecker {
      * This includes course owner, subject owner, or admin.
      */
     public boolean isProfessorForTask(org.trackdev.api.entity.Task task, String userId) {
+        return isProfessorForProject(task.getProject(), userId);
+    }
+
+    /**
+     * Check if user is a professor with access to the project.
+     * This includes course owner, subject owner, or admin.
+     */
+    public boolean isProfessorForProject(Project project, String userId) {
         User user = userService.get(userId);
         if (user.isUserType(UserType.ADMIN)) {
             return true;
         }
-        Course course = task.getProject().getCourse();
+        Course course = project.getCourse();
         if (course.getOwnerId().equals(userId)) {
             return true;
         }
