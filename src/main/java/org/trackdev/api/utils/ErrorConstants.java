@@ -43,6 +43,8 @@ public final class ErrorConstants {
     public static final String ONLY_ASSIGNEE_CAN_MODIFY_STATUS = "error.task.status.only.assignee";
     public static final String ONLY_ASSIGNEE_CAN_EDIT_TASK = "error.task.edit.only.assignee";
     public static final String TASK_ALREADY_ASSIGNED = "error.task.already.assigned";
+    public static final String ONLY_PROFESSOR_CAN_CHANGE_ASSIGNEE = "error.task.assignee.professor.only";
+    public static final String ONLY_PROFESSOR_CAN_CHANGE_REPORTER = "error.task.reporter.professor.only";
     public static final String ONLY_USER_STORY_CAN_HAVE_SUBTASKS = "error.task.subtasks.user.story.only";
     public static final String USER_STORY_CANNOT_BE_DONE_WITH_PENDING_SUBTASKS = "error.task.user.story.pending.subtasks";
     public static final String TASK_CANNOT_BE_DONE_WITHOUT_ESTIMATION = "error.task.done.requires.estimation";
