@@ -988,7 +988,8 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             TaskStatus status,
             String assigneeId,
             Long projectId,
-            String sortOrder) {
+            String sortOrder,
+            String search) {
         Collection<Project> accessibleProjects = projectService.getProjectsForUser(userId);
         if (accessibleProjects.isEmpty()) {
             return org.springframework.data.domain.Page.empty();
@@ -1022,6 +1023,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
         if (assigneeId != null && !assigneeId.isBlank()) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("assignee").get("id"), assigneeId));
+        }
+
+        if (search != null && !search.isBlank()) {
+            String pattern = "%" + search.toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                cb.like(cb.lower(root.get("name")), pattern),
+                cb.like(cb.lower(root.get("taskKey")), pattern)
+            ));
         }
 
         return repo.findAll(spec, pageable);

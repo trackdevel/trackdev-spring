@@ -284,9 +284,10 @@ public class TaskController extends CrudController<Task, TaskService> {
             @RequestParam(name = "status", required = false) TaskStatus status,
             @RequestParam(name = "assigneeId", required = false) String assigneeId,
             @RequestParam(name = "projectId", required = false) Long projectId,
-            @RequestParam(name = "sortOrder", defaultValue = "desc") String sortOrder) {
+            @RequestParam(name = "sortOrder", defaultValue = "desc") String sortOrder,
+            @RequestParam(name = "search", required = false) String search) {
         String userId = super.getUserId(principal);
-        var tasksPage = service.getMyTasks(userId, page, size, type, status, assigneeId, projectId, sortOrder);
+        var tasksPage = service.getMyTasks(userId, page, size, type, status, assigneeId, projectId, sortOrder, search);
         return new PagedTasksResponseDTO(
                 taskMapper.toBasicDTOList(tasksPage.getContent()),
                 tasksPage.getTotalElements(),
