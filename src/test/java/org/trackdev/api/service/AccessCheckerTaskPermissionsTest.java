@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
  * - canEditType: USER_STORY and BUG cannot change type
  * - canEditEstimation: Only TASK/BUG can edit (USER_STORY is computed)
  * - canDelete: USER_STORY needs all subtasks in TODO, TASK/BUG needs BACKLOG/TODO/INPROGRESS
- * - canSelfAssign: Only unassigned, only students, only project members
+ * - canSelfAssign: Only unassigned students; in closed sprints, DONE tasks are blocked but non-DONE tasks can be claimed
  * - canUnassign: Only assignee or professor
  * - canAddSubtask: Only USER_STORY, only project members or professor
  * - canFreeze: Only professors
@@ -700,11 +700,30 @@ class AccessCheckerTaskPermissionsTest {
         }
 
         @Test
-        @DisplayName("Task in PAST sprint should NOT allow self-assign")
-        void taskInPastSprint_shouldNotAllowSelfAssign() {
+        @DisplayName("Unassigned non-DONE task in PAST sprint SHOULD allow student self-assign")
+        void unassignedNotDoneTaskInPastSprint_shouldAllowStudentSelfAssign() {
             taskTask.setAssignee(null);
+            // status is TODO by default — not DONE
+            ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
+            assertTrue(accessChecker.canSelfAssign(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("Unassigned DONE task in PAST sprint should NOT allow self-assign")
+        void unassignedDoneTaskInPastSprint_shouldNotAllowSelfAssign() {
+            taskTask.setAssignee(null);
+            ReflectionTestUtils.setField(taskTask, "status", TaskStatus.DONE);
             ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
             assertFalse(accessChecker.canSelfAssign(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("Unassigned DONE task in ACTIVE sprint SHOULD allow self-assign")
+        void unassignedDoneTaskInActiveSprint_shouldAllowSelfAssign() {
+            taskTask.setAssignee(null);
+            ReflectionTestUtils.setField(taskTask, "status", TaskStatus.DONE);
+            // activeSprints default is activeSprint — no sprint override needed
+            assertTrue(accessChecker.canSelfAssign(taskTask, "student-id"));
         }
 
         @Test
