@@ -424,9 +424,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             
-            // Check if task is in a future sprint - cannot change status from TODO
             TaskStatus currentStatus = task.getStatus();
-            if (currentStatus == TaskStatus.TODO && status != TaskStatus.TODO) {
+            boolean isProfessor = accessChecker.isProfessorForTask(task, userId);
+
+            // Students only: cannot change status from TODO if task is in a future sprint
+            if (!isProfessor && currentStatus == TaskStatus.TODO && status != TaskStatus.TODO) {
                 Collection<Sprint> activeSprints = task.getActiveSprints();
                 if (activeSprints != null && !activeSprints.isEmpty()) {
                     // Check if ALL sprints are in DRAFT (future) status
@@ -437,14 +439,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     }
                 }
             }
-            
-            // Check if task can be moved to VERIFY
-            if (status == TaskStatus.VERIFY && !task.canMoveToVerify()) {
+
+            // Students only: cannot move to VERIFY without at least one PR
+            if (!isProfessor && status == TaskStatus.VERIFY && !task.canMoveToVerify()) {
                 throw new ServiceException(ErrorConstants.TASK_CANNOT_VERIFY_WITHOUT_PULL_REQUEST);
             }
-            
-            // Check if task can be moved to DONE
-            if (status == TaskStatus.DONE && !task.canMoveToDone()) {
+
+            // Students only: DONE requires merged PR, estimation points, and no open PRs
+            if (!isProfessor && status == TaskStatus.DONE && !task.canMoveToDone()) {
                 // Determine the specific reason for rejection
                 if (!task.hasAtLeastOneMergedPR()) {
                     throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PR);
@@ -460,7 +462,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
             
             TaskStatus oldStatus = task.getStatus();
-            task.setStatus(status);
+            // Professors bypass the transition graph and can move tasks to any status
+            if (isProfessor) {
+                task.forceSetStatus(status);
+            } else {
+                task.setStatus(status);
+            }
             changes.add(new TaskStatusChange(user, task, oldStatus.toString(), status.toString()));
             
             // If this is a subtask being set to DONE, check if parent USER_STORY should auto-complete

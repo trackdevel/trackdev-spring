@@ -287,6 +287,13 @@ class AccessCheckerTaskPermissionsTest {
             taskTask.setFrozen(true);
             assertTrue(accessChecker.canEditStatus(taskTask, "professor-id"));
         }
+
+        @Test
+        @DisplayName("TASK not assigned to professor SHOULD still be editable by professor")
+        void taskNotAssignedToProfessor_statusShouldBeEditableByProfessor() {
+            taskTask.setAssignee(otherStudentUser);
+            assertTrue(accessChecker.canEditStatus(taskTask, "professor-id"));
+        }
     }
 
     // =============================================================================
