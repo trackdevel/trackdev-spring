@@ -559,11 +559,6 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 throw new ServiceException(ErrorConstants.CANNOT_REASSIGN_DONE_TASK);
             }
             
-            // Task in FUTURE sprint can only be moved to backlog (not to another sprint)
-            if (!sprintsIds.isEmpty() && accessChecker.isTaskInFutureSprintOnly(task)) {
-                throw new ServiceException(ErrorConstants.TASK_IN_FUTURE_SPRINT_ONLY_TO_BACKLOG);
-            }
-            
             // Validate sprint is active or future (not closed)
             Collection<Sprint> sprints = sprintService.getSprintsByIds(sprintsIds);
             for (Sprint sprint : sprints) {
