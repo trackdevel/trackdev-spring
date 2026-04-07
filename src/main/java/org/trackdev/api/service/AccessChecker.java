@@ -1036,8 +1036,9 @@ public class AccessChecker {
         if (task.isFrozen()) {
             return false;
         }
-        // If in past sprint only, cannot self-assign
-        if (isTaskInPastSprintOnly(task)) {
+        // If in past sprint only, cannot self-assign unless task is not DONE
+        // (unassigned, non-DONE tasks in a closed sprint can still be claimed by members)
+        if (isTaskInPastSprintOnly(task) && task.getStatus() == TaskStatus.DONE) {
             return false;
         }
         // Must be a project member
