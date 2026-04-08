@@ -100,6 +100,14 @@ public class Task extends BaseEntityLong {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TaskChange> taskChanges = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tasks_linked_tasks",
+        joinColumns = @JoinColumn(name = "task_id"),
+        inverseJoinColumns = @JoinColumn(name = "linked_task_id")
+    )
+    private Set<Task> linkedTasks = new HashSet<>();
+
     // -- CONSTRUCTORS
 
     public Task() {}
@@ -417,6 +425,18 @@ public class Task extends BaseEntityLong {
     public void removePullRequest(PullRequest pr) {
         this.pullRequests.remove(pr);
         pr.removeTask(this);
+    }
+
+    public Set<Task> getLinkedTasks() {
+        return linkedTasks;
+    }
+
+    public void addLinkedTask(Task other) {
+        this.linkedTasks.add(other);
+    }
+
+    public void removeLinkedTask(Task other) {
+        this.linkedTasks.remove(other);
     }
 
     public List<TaskChange> getTaskChanges() {
