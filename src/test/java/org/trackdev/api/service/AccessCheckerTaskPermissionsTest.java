@@ -736,6 +736,52 @@ class AccessCheckerTaskPermissionsTest {
     }
 
     // =============================================================================
+    // canManageLinks Tests
+    // =============================================================================
+
+    @Nested
+    @DisplayName("canManageLinks")
+    class CanManageLinksTests {
+
+        @Test
+        @DisplayName("Assignee SHOULD be able to manage links")
+        void assignee_canManageLinks() {
+            taskTask.setAssignee(studentUser);
+            assertTrue(accessChecker.canManageLinks(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("Non-assignee student should NOT manage links")
+        void nonAssigneeStudent_cannotManageLinks() {
+            taskTask.setAssignee(studentUser);
+            assertFalse(accessChecker.canManageLinks(taskTask, "other-student-id"));
+        }
+
+        @Test
+        @DisplayName("Professor SHOULD be able to manage links regardless of assignee")
+        void professor_canManageLinks() {
+            taskTask.setAssignee(studentUser);
+            assertTrue(accessChecker.canManageLinks(taskTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("Frozen task should NOT allow assignee to manage links")
+        void frozenTask_assigneeCannotManageLinks() {
+            taskTask.setAssignee(studentUser);
+            taskTask.setFrozen(true);
+            assertFalse(accessChecker.canManageLinks(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("Task in PAST sprint should still allow assignee to manage links")
+        void taskInPastSprint_assigneeCanStillManageLinks() {
+            taskTask.setAssignee(studentUser);
+            ReflectionTestUtils.setField(taskTask, "activeSprints", List.of(closedSprint));
+            assertTrue(accessChecker.canManageLinks(taskTask, "student-id"));
+        }
+    }
+
+    // =============================================================================
     // canUnassign Tests
     // =============================================================================
 
