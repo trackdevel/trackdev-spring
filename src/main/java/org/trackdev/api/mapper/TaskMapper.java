@@ -15,6 +15,7 @@ import org.trackdev.api.entity.TaskStatus;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Mapper(componentModel = "spring", uses = {UserMapper.class, SprintMapper.class, CommentMapper.class, ProjectMapper.class, PullRequestMapper.class})
 public interface TaskMapper {
@@ -91,6 +92,9 @@ public interface TaskMapper {
     @Mapping(target = "canStartPointsReview", ignore = true)
     @Mapping(target = "canViewPointsReviews", ignore = true)
     @Mapping(target = "pointsReviewConversationCount", ignore = true)
+    // Linked tasks - set in controller using shallow mapping
+    @Mapping(target = "linkedTasks", ignore = true)
+    @Mapping(target = "canManageLinks", ignore = true)
     TaskDetailDTO toDetailDTO(Task task);
 
     /**
@@ -112,6 +116,10 @@ public interface TaskMapper {
     @Named("childTasksToBasicDTO")
     @IterableMapping(qualifiedByName = "taskToShallowBasicDTO")
     Collection<TaskBasicDTO> childTasksToBasicDTO(Collection<Task> tasks);
+
+    @Named("linkedTasksToShallowDTOs")
+    @IterableMapping(qualifiedByName = "taskToShallowBasicDTO")
+    List<TaskBasicDTO> toShallowLinkedTaskDTOs(Set<Task> tasks);
 
     @IterableMapping(qualifiedByName = "taskToBasicDTO")
     List<TaskBasicDTO> toBasicDTOList(List<Task> tasks);

@@ -182,6 +182,52 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         return task;
     }
 
+    /**
+     * Link two tasks together (bidirectional).
+     * Only the assignee or a professor can manage links.
+     */
+    @Transactional
+    public Task addLinkedTask(Long taskId, Long linkedTaskId, String userId) {
+        if (taskId.equals(linkedTaskId)) {
+            throw new ServiceException(ErrorConstants.TASK_SELF_LINK);
+        }
+        Task task = get(taskId);
+        Task linkedTask = get(linkedTaskId);
+
+        if (!accessChecker.canManageLinks(task, userId)) {
+            throw new ServiceException(ErrorConstants.CANNOT_MANAGE_LINKS);
+        }
+
+        if (task.getLinkedTasks().contains(linkedTask)) {
+            throw new ServiceException(ErrorConstants.TASK_ALREADY_LINKED);
+        }
+
+        task.addLinkedTask(linkedTask);
+        linkedTask.addLinkedTask(task);
+        repo.save(task);
+        repo.save(linkedTask);
+        return task;
+    }
+
+    /**
+     * Remove a bidirectional link between two tasks.
+     * Only the assignee or a professor can manage links.
+     */
+    @Transactional
+    public void removeLinkedTask(Long taskId, Long linkedTaskId, String userId) {
+        Task task = get(taskId);
+        Task linkedTask = get(linkedTaskId);
+
+        if (!accessChecker.canManageLinks(task, userId)) {
+            throw new ServiceException(ErrorConstants.CANNOT_MANAGE_LINKS);
+        }
+
+        task.removeLinkedTask(linkedTask);
+        linkedTask.removeLinkedTask(task);
+        repo.save(task);
+        repo.save(linkedTask);
+    }
+
     @Transactional
     public Task createSubTask(Long taskId, String name, String description, String userId, Long sprintId, TaskType type, String assigneeId) {
         return createSubTaskInternal(taskId, name, description, userId, sprintId, type, assigneeId, false);
