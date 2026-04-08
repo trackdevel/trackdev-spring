@@ -1072,6 +1072,24 @@ public class AccessChecker {
     }
 
     /**
+     * Compute canManageLinks permission.
+     * Only the assignee (or a professor) can add/remove linked tasks.
+     * Not blocked by closed sprint — linking is informational, not a work-state change.
+     */
+    public boolean canManageLinks(org.trackdev.api.entity.Task task, String userId) {
+        boolean isProfessor = isProfessorForTask(task, userId);
+        // If frozen, only professor can manage links
+        if (task.isFrozen() && !isProfessor) {
+            return false;
+        }
+        if (isProfessor) {
+            return true;
+        }
+        // Only the assignee can manage links
+        return isTaskAssignee(task, userId);
+    }
+
+    /**
      * Compute canAddSubtask permission.
      * Only USER_STORY can have subtasks. Any project member can add.
      */
