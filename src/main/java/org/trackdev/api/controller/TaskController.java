@@ -94,12 +94,15 @@ public class TaskController extends CrudController<Task, TaskService> {
     @GetMapping(path = "/{id}")
     public TaskDetailDTO getTask(Principal principal, @PathVariable(name = "id") Long id) {
         String userId = super.getUserId(principal);
-        // Authorization check is now inside the service method
         Task task = service.getTask(id, userId);
+        return buildTaskDetailDTO(task, userId);
+    }
+
+    private TaskDetailDTO buildTaskDetailDTO(Task task, String userId) {
         List<PointsReview> pointsReview = pointsReviewService.getPointsReview(userId);
         TaskDetailDTO dto = taskMapper.toDetailDTO(task);
         dto.setPointsReview(pointsReview);
-        
+
         // Compute all permission flags based on current user context
         dto.setCanEdit(accessChecker.canEditTask(task, userId));
         dto.setCanEditStatus(accessChecker.canEditStatus(task, userId));
@@ -112,12 +115,15 @@ public class TaskController extends CrudController<Task, TaskService> {
         dto.setCanAddSubtask(accessChecker.canAddSubtask(task, userId));
         dto.setCanFreeze(accessChecker.canFreeze(task, userId));
         dto.setCanComment(accessChecker.canComment(task, userId));
+        dto.setCanManageLinks(accessChecker.canManageLinks(task, userId));
+        dto.setLinkedTasks(taskMapper.toShallowLinkedTaskDTOs(task.getLinkedTasks()));
 
         // Points review flags
+        Long taskId = task.getId();
         dto.setCanStartPointsReview(accessChecker.canStartPointsReview(task, userId)
-                && !pointsReviewConversationService.hasExistingConversation(id, userId));
+                && !pointsReviewConversationService.hasExistingConversation(taskId, userId));
         dto.setCanViewPointsReviews(accessChecker.canViewPointsReviews(task, userId));
-        dto.setPointsReviewConversationCount(pointsReviewConversationService.countConversationsForTask(id));
+        dto.setPointsReviewConversationCount(pointsReviewConversationService.countConversationsForTask(taskId));
 
         return dto;
     }
@@ -241,6 +247,26 @@ public class TaskController extends CrudController<Task, TaskService> {
         String userId = super.getUserId(principal);
         Task task = service.unassignTask(id, userId);
         return taskMapper.toCompleteDTO(task);
+    }
+
+    @Operation(summary = "Link a task to another task", description = "Creates a bidirectional link between two tasks. Only the assignee or professor can manage links.")
+    @PutMapping("/{id}/linked-tasks/{linkedTaskId}")
+    public TaskDetailDTO addLinkedTask(Principal principal,
+                                       @PathVariable(name = "id") Long id,
+                                       @PathVariable(name = "linkedTaskId") Long linkedTaskId) {
+        String userId = super.getUserId(principal);
+        Task task = service.addLinkedTask(id, linkedTaskId, userId);
+        return buildTaskDetailDTO(task, userId);
+    }
+
+    @Operation(summary = "Unlink a task from another task", description = "Removes the bidirectional link between two tasks. Only the assignee or professor can manage links.")
+    @DeleteMapping("/{id}/linked-tasks/{linkedTaskId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeLinkedTask(Principal principal,
+                                  @PathVariable(name = "id") Long id,
+                                  @PathVariable(name = "linkedTaskId") Long linkedTaskId) {
+        String userId = super.getUserId(principal);
+        service.removeLinkedTask(id, linkedTaskId, userId);
     }
 
     @Operation(summary = "Get list of tasks status", description = "Get list of tasks status")
