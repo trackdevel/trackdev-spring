@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import org.trackdev.api.entity.PointsReview;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * DTO for Task detail view - includes project and points review at root level
@@ -51,6 +52,16 @@ public class TaskDetailDTO extends TaskWithProjectDTO {
     
     /** Whether the current user can add comments */
     private boolean canComment;
+
+    /** Whether the current user can add/remove linked tasks */
+    private boolean canManageLinks;
+
+    // =============================================================================
+    // LINKED TASKS
+    // =============================================================================
+
+    /** Tasks linked to this task (informational, bidirectional links) */
+    private List<TaskBasicDTO> linkedTasks = new ArrayList<>();
 
     // =============================================================================
     // POINTS REVIEW FLAGS
