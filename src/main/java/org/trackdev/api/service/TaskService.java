@@ -335,10 +335,22 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
 
-        // If parent USER_STORY was DONE, revert to TODO since it now has a non-DONE subtask
-        if (parentTask.getStatus() == TaskStatus.DONE) {
-            parentTask.setStatus(TaskStatus.TODO);
+        // Reconcile parent USER_STORY status with the new subtask:
+        // - If the subtask enters a sprint, the parent cannot remain BACKLOG (domain invariant:
+        //   a USER_STORY with a sprinted subtask must be at least TODO).
+        // - If the parent was already DONE, adding any non-DONE subtask reverts it to TODO.
+        TaskStatus parentOldStatus = parentTask.getStatus();
+        TaskStatus parentNewStatus = parentOldStatus;
+        if (targetSprint != null && parentOldStatus == TaskStatus.BACKLOG) {
+            parentNewStatus = TaskStatus.TODO;
+        } else if (parentOldStatus == TaskStatus.DONE) {
+            parentNewStatus = TaskStatus.TODO;
+        }
+        if (parentNewStatus != parentOldStatus) {
+            parentTask.setStatus(parentNewStatus);
             repo.save(parentTask);
+            taskChangeService.store(new TaskStatusChange(user, parentTask,
+                    parentOldStatus.toString(), parentNewStatus.toString()));
         }
 
         // Record activity for subtask creation
