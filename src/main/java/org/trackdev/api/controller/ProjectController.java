@@ -80,6 +80,9 @@ public class ProjectController extends BaseController {
     @Autowired
     org.trackdev.api.service.TaskService taskService;
 
+    @Autowired
+    org.trackdev.api.service.ProjectExportService projectExportService;
+
     @Operation(summary = "Get all projects", description = "Get all projects")
     @GetMapping
     public ProjectsResponseDTO getProjects(Principal principal) {
@@ -275,6 +278,32 @@ public class ProjectController extends BaseController {
             ));
         }
         return summaries;
+    }
+
+    // ============== Project Export Endpoints (professor/admin only) ==============
+
+    @Operation(summary = "Export project team", description = "Full team info for the project including profile attribute values. Only course owners (professors) and admins can access.")
+    @GetMapping(path = "/{projectId}/export/team")
+    public org.trackdev.api.dto.export.TeamExportDTO exportTeam(Principal principal,
+                                                                @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        return projectExportService.exportTeam(projectId, userId);
+    }
+
+    @Operation(summary = "Export project tasks", description = "All tasks (all sprints, all types, including subtasks) with relations and profile attribute values. Only course owners (professors) and admins can access.")
+    @GetMapping(path = "/{projectId}/export/tasks")
+    public org.trackdev.api.dto.export.TasksExportDTO exportTasks(Principal principal,
+                                                                  @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        return projectExportService.exportTasks(projectId, userId);
+    }
+
+    @Operation(summary = "Export project pull requests", description = "All pull requests linked to any task in the project with author, task references, and profile attribute values. Only course owners (professors) and admins can access.")
+    @GetMapping(path = "/{projectId}/export/pull-requests")
+    public org.trackdev.api.dto.export.PullRequestsExportDTO exportPullRequests(Principal principal,
+                                                                                 @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        return projectExportService.exportPullRequests(projectId, userId);
     }
 
     // ============== Project Reports Endpoints ==============
