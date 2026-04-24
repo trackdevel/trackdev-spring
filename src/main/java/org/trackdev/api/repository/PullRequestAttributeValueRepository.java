@@ -2,12 +2,15 @@ package org.trackdev.api.repository;
 
 import org.trackdev.api.entity.PullRequestAttributeValue;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface PullRequestAttributeValueRepository extends BaseRepositoryLong<PullRequestAttributeValue> {
 
     List<PullRequestAttributeValue> findByPullRequestId(String pullRequestId);
+
+    List<PullRequestAttributeValue> findByPullRequestIdIn(Collection<String> pullRequestIds);
 
     Optional<PullRequestAttributeValue> findByPullRequestIdAndAttributeId(String pullRequestId, Long attributeId);
 
