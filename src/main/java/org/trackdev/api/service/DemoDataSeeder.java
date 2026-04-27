@@ -1079,6 +1079,16 @@ public class DemoDataSeeder {
                 new TaskStatus[]{TaskStatus.DONE, TaskStatus.DONE},
                 new int[]{3, 5});
         }
+        // Bulk sprint-change test fixtures (Sprint 1): TODO + INPROGRESS subtasks
+        // Used to manually verify the new "Change sprint" bulk action on the
+        // filtered task list. Created before closeSprint so they remain in a
+        // CLOSED sprint with non-DONE statuses, exercising the past-sprint
+        // escape rule.
+        createHardcodedStory(project, sprint1, alice, professor,
+            "Bulk sprint test - sprint 1",
+            new String[]{"Bulk-test sprint 1 task A", "Bulk-test sprint 1 task B"},
+            new TaskStatus[]{TaskStatus.TODO, TaskStatus.INPROGRESS},
+            new int[]{0, 0});
         closeSprint(sprint1, professor.getId());
 
         // Sprint 2 (closed): Mix of DONE and VERIFY with estimation points
@@ -1089,6 +1099,12 @@ public class DemoDataSeeder {
                 new TaskStatus[]{TaskStatus.DONE, TaskStatus.VERIFY},
                 new int[]{5, 8});
         }
+        // Bulk sprint-change test fixtures (Sprint 2): TODO + INPROGRESS subtasks
+        createHardcodedStory(project, sprint2, alice, professor,
+            "Bulk sprint test - sprint 2",
+            new String[]{"Bulk-test sprint 2 task A", "Bulk-test sprint 2 task B"},
+            new TaskStatus[]{TaskStatus.TODO, TaskStatus.INPROGRESS},
+            new int[]{0, 0});
         closeSprint(sprint2, professor.getId());
 
         // Sprint 3 (active): Mix including DONE subtasks for points review testing
