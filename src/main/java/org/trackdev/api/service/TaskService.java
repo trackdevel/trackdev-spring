@@ -638,9 +638,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
 
             String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
             String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
-            task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
+            // Write only this task's rows in the join table. Mutating Sprint.activeTasks
+            // (the owning side of the @ManyToMany) instead would race under concurrent
+            // bulk moves into the same sprint — Hibernate rewrites the whole collection.
+            sprintService.replaceSprintAssignmentsForTask(task.getId(), sprintsIds);
             task.setActiveSprints(sprints);
-            sprints.stream().forEach(sprint -> sprint.addTask(task, user));
             changes.add(new TaskActiveSprintsChange(user, task, oldValues, newValues));
 
             // Auto-transition BACKLOG → TODO when assigning to a sprint
@@ -652,11 +654,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             // For USER_STORY: cascade sprint assignment to all subtasks
             if (task.getTaskType() == TaskType.USER_STORY && task.getChildTasks() != null) {
                 for (Task subtask : task.getChildTasks()) {
-                    // Remove from old sprints
-                    subtask.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(subtask));
-                    // Assign to new sprints
+                    // Per-row writes for the same reason as above.
+                    sprintService.replaceSprintAssignmentsForTask(subtask.getId(), sprintsIds);
                     subtask.setActiveSprints(new ArrayList<>(sprints));
-                    sprints.stream().forEach(sprint -> sprint.addTask(subtask, user));
                     // Auto-transition subtasks BACKLOG → TODO
                     if (subtask.getStatus() == TaskStatus.BACKLOG) {
                         subtask.forceSetStatus(TaskStatus.TODO);
