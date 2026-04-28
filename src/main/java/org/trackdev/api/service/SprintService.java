@@ -257,4 +257,18 @@ public class SprintService extends BaseServiceLong<Sprint, SprintRepository> {
         repo().save(sprint);
         return sprint;
     }
+
+    /**
+     * Replace the sprint assignments for a single task by writing only that task's
+     * rows in the join table. Avoids Hibernate's collection-rewrite strategy on
+     * Sprint.activeTasks (the owning side of the @ManyToMany), which races under
+     * concurrent task updates that target the same sprint.
+     */
+    @Transactional
+    public void replaceSprintAssignmentsForTask(Long taskId, Collection<Long> sprintIds) {
+        repo().clearSprintAssignmentsForTask(taskId);
+        for (Long sprintId : sprintIds) {
+            repo().addSprintAssignmentForTask(sprintId, taskId);
+        }
+    }
 }
