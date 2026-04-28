@@ -1,5 +1,6 @@
 package org.trackdev.api.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,25 @@ import java.util.List;
 
 @Component
 public interface SprintRepository extends BaseRepositoryLong<Sprint> {
+
+    /**
+     * Remove all sprint assignments for a single task by writing only that task's
+     * rows in the join table. Avoids Hibernate's collection-rewrite strategy on
+     * Sprint.activeTasks, which races under concurrent task updates that target
+     * the same sprint.
+     */
+    @Modifying
+    @Query(nativeQuery = true, value = "DELETE FROM sprints_active_tasks WHERE task_id = :taskId")
+    void clearSprintAssignmentsForTask(@Param("taskId") Long taskId);
+
+    /**
+     * Add a single (sprint, task) row to the join table. Per-row write so two
+     * concurrent task moves into the same sprint don't collide.
+     */
+    @Modifying
+    @Query(nativeQuery = true, value = "INSERT INTO sprints_active_tasks (sprint_id, task_id) VALUES (:sprintId, :taskId)")
+    void addSprintAssignmentForTask(@Param("sprintId") Long sprintId, @Param("taskId") Long taskId);
+
 
     @Query(nativeQuery = true, value = "SELECT * FROM sprints WHERE end_date < sysdate() AND status != 2")
     Collection<Sprint> sprintsToClose();
