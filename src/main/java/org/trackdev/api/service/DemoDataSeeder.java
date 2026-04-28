@@ -1083,11 +1083,27 @@ public class DemoDataSeeder {
         // Used to manually verify the new "Change sprint" bulk action on the
         // filtered task list. Created before closeSprint so they remain in a
         // CLOSED sprint with non-DONE statuses, exercising the past-sprint
-        // escape rule.
+        // escape rule. Multiple stories so several non-DONE subtasks can be
+        // multi-selected and moved to another sprint in one go.
         createHardcodedStory(project, sprint1, alice, professor,
             "Bulk sprint test - sprint 1",
             new String[]{"Bulk-test sprint 1 task A", "Bulk-test sprint 1 task B"},
             new TaskStatus[]{TaskStatus.TODO, TaskStatus.INPROGRESS},
+            new int[]{0, 0});
+        createHardcodedStory(project, sprint1, alice, professor,
+            "Bulk sprint test - sprint 1 (alice extra)",
+            new String[]{"Bulk-test sprint 1 task C", "Bulk-test sprint 1 task D"},
+            new TaskStatus[]{TaskStatus.TODO, TaskStatus.TODO},
+            new int[]{0, 0});
+        createHardcodedStory(project, sprint1, bob, professor,
+            "Bulk sprint test - sprint 1 (bob)",
+            new String[]{"Bulk-test sprint 1 task E", "Bulk-test sprint 1 task F"},
+            new TaskStatus[]{TaskStatus.TODO, TaskStatus.INPROGRESS},
+            new int[]{0, 0});
+        createHardcodedStory(project, sprint1, carol, professor,
+            "Bulk sprint test - sprint 1 (carol)",
+            new String[]{"Bulk-test sprint 1 task G", "Bulk-test sprint 1 task H"},
+            new TaskStatus[]{TaskStatus.TODO, TaskStatus.TODO},
             new int[]{0, 0});
         closeSprint(sprint1, professor.getId());
 
