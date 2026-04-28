@@ -119,15 +119,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
 
         accessChecker.checkCanSelfAssignTask(task, userId);
-        
+
         String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
         task.setAssignee(user);
         repo.save(task);
-        
+
         // Record the change
         TaskChange change = new TaskAssigneeChange(user, task, oldValue, user.getUsername());
         taskChangeService.store(change);
-        
+
         // Record activity
         activityService.recordActivity(ActivityType.TASK_ASSIGNED, user, task.getProject(), task,
                 null, oldValue, user.getUsername());
@@ -159,20 +159,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             boolean isCourseOwner = course.getOwnerId().equals(userId);
             boolean isSubjectOwner = subject.getOwnerId().equals(userId);
             boolean isAdmin = user.isUserType(org.trackdev.api.configuration.UserType.ADMIN);
-            
+
             if (!isCourseOwner && !isSubjectOwner && !isAdmin) {
                 throw new ServiceException(ErrorConstants.UNAUTHORIZED);
             }
         }
-        
+
         String oldValue = task.getAssignee() != null ? task.getAssignee().getUsername() : null;
         task.setAssignee(null);
         repo.save(task);
-        
+
         // Record the change
         TaskChange change = new TaskAssigneeChange(user, task, oldValue, null);
         taskChangeService.store(change);
-        
+
         // Record activity
         activityService.recordActivity(ActivityType.TASK_UNASSIGNED, user, task.getProject(), task,
                 null, oldValue, null);
@@ -271,7 +271,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             subtask.setType(TaskType.TASK);
         }
         subtask.setParentTask(parentTask);
-        
+
         // Set assignee if provided
         if (assigneeId != null && !assigneeId.isBlank()) {
             User assignee = userService.get(assigneeId);
@@ -284,7 +284,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             }
             subtask.setAssignee(assignee);
         }
-        
+
         // Determine the target sprint FIRST, then set status based on sprint assignment
         // Assign subtask to ONE sprint only:
         // - If sprintId is provided (created from Sprint view):
@@ -294,14 +294,14 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // - If sprintId is null (created from Task view), use the newest sprint from parent USER_STORY
         Sprint targetSprint = null;
         ZonedDateTime now = ZonedDateTime.now();
-        
+
         if (sprintId != null) {
             Sprint requestedSprint = sprintService.get(sprintId);
             // Verify the sprint belongs to the same project
             if (!requestedSprint.getProject().getId().equals(parentTask.getProject().getId())) {
                 throw new ServiceException(ErrorConstants.SPRINT_NOT_IN_PROJECT);
             }
-            
+
             // If the requested sprint is in the past, find the active sprint for this project
             // (unless allowPastSprint is true for demo data seeding)
             if (!allowPastSprint && requestedSprint.getEndDate() != null && requestedSprint.getEndDate().isBefore(now)) {
@@ -319,7 +319,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 .max((s1, s2) -> s1.getStartDate().compareTo(s2.getStartDate()))
                 .orElse(null);
         }
-        
+
         // Set subtask status based on sprint assignment:
         // - If subtask will be assigned to a sprint, status is TODO (never BACKLOG with sprint)
         // - If no sprint assigned, status is BACKLOG
@@ -330,7 +330,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         } else {
             subtask.setStatus(TaskStatus.BACKLOG);
         }
-        
+
         parentTask.getProject().addTask(subtask);  // This sets project, taskNumber, and taskKey
         parentTask.addChildTask(subtask);
         this.repo.save(subtask);
@@ -367,12 +367,12 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task editTask(Long id, MergePatchTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
-        
+
         // Frozen tasks can only be edited by professors
         if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
-        
+
         accessChecker.checkCanViewProject(task.getProject(), userId);
 
         // Check if user can edit task fields (name, description, estimation, sprints, type)
@@ -405,26 +405,26 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             TaskType newType = editTask.type.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
             TaskType oldType = task.getTaskType();
-            
+
             // Validate type change according to entity constraints
             if (oldType != newType) {
                 // USER_STORY cannot change type (regardless of having children)
                 if (oldType == TaskType.USER_STORY) {
                     throw new ServiceException(ErrorConstants.USER_STORY_CANNOT_CHANGE_TYPE);
                 }
-                
+
                 // BUG cannot change type
                 if (oldType == TaskType.BUG) {
                     throw new ServiceException(ErrorConstants.BUG_CANNOT_CHANGE_TYPE);
                 }
-                
+
                 // Subtasks (tasks with parent) can only be TASK or BUG
                 if (task.getParentTask() != null && newType == TaskType.USER_STORY) {
                     throw new ServiceException(ErrorConstants.SUBTASK_MUST_BE_TASK_OR_BUG);
                 }
-                
+
                 task.setType(newType);
-                changes.add(new TaskTypeChange(user, task, 
+                changes.add(new TaskTypeChange(user, task,
                         oldType != null ? oldType.toString() : null, newType.toString()));
             }
         }
@@ -481,7 +481,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             accessChecker.checkCanModifyTaskStatus(task, userId);
             TaskStatus status = editTask.status.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
-            
+
             TaskStatus currentStatus = task.getStatus();
             boolean isProfessor = accessChecker.isProfessorForTask(task, userId);
 
@@ -518,7 +518,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     throw new ServiceException(ErrorConstants.TASK_CANNOT_BE_DONE_GENERIC);
                 }
             }
-            
+
             TaskStatus oldStatus = task.getStatus();
             // Professors bypass the transition graph and can move tasks to any status
             if (isProfessor) {
@@ -527,7 +527,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 task.setStatus(status);
             }
             changes.add(new TaskStatusChange(user, task, oldStatus.toString(), status.toString()));
-            
+
             // If this is a subtask being set to DONE, check if parent USER_STORY should auto-complete
             if (status == TaskStatus.DONE && task.getParentTask() != null) {
                 Task parentTask = task.getParentTask();
@@ -567,19 +567,19 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if(editTask.activeSprints != null){
             Collection<Long> sprintsIds = editTask.activeSprints.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
-            
+
             // Moving to backlog (removing from sprint) validations
             if (sprintsIds.isEmpty()) {
                 // Subtasks cannot be moved to backlog individually - must move parent USER_STORY
                 if (task.getTaskType() != TaskType.USER_STORY && task.getParentTask() != null) {
                     throw new ServiceException(ErrorConstants.SUBTASK_CANNOT_MOVE_TO_BACKLOG);
                 }
-                
+
                 // TASK/BUG (without parent) can only move to backlog if status is TODO
                 if (task.getTaskType() != TaskType.USER_STORY && task.getStatus() != TaskStatus.TODO) {
                     throw new ServiceException(ErrorConstants.TASK_BEGUN_CANNOT_MOVE_TO_BACKLOG);
                 }
-                
+
                 // USER_STORY can only move to backlog if ALL subtasks are in TODO status
                 if (task.getTaskType() == TaskType.USER_STORY) {
                     Collection<Task> childTasks = task.getChildTasks();
@@ -592,7 +592,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     }
                 }
             }
-            
+
             // USER_STORY can only be assigned to sprint if ALL subtasks are unassigned from any sprint
             // When assigned, all subtasks will be automatically assigned to the same sprint
             // This check only applies when ASSIGNING to a sprint (not when removing/moving to backlog)
@@ -613,17 +613,17 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     }
                 }
             }
-            
+
             // TASK/BUG can only be in one sprint
             if (sprintsIds.size() > 1) {
                 throw new ServiceException(ErrorConstants.TASK_CAN_ONLY_BE_IN_ONE_SPRINT);
             }
-            
+
             // Cannot reassign if task is DONE
             if (task.getStatus() == TaskStatus.DONE && !sprintsIds.isEmpty()) {
                 throw new ServiceException(ErrorConstants.CANNOT_REASSIGN_DONE_TASK);
             }
-            
+
             // Validate sprint is active or future (not closed)
             Collection<Sprint> sprints = sprintService.getSprintsByIds(sprintsIds);
             for (Sprint sprint : sprints) {
@@ -635,7 +635,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     throw new ServiceException(ErrorConstants.SPRINT_NOT_IN_PROJECT);
                 }
             }
-            
+
             String oldValues = task.getActiveSprints().stream().map(Sprint::getName).collect(Collectors.joining(","));
             String newValues = sprints.stream().map(Sprint::getName).collect(Collectors.joining(","));
             task.getActiveSprints().stream().forEach(sprint -> sprint.removeTask(task));
@@ -664,17 +664,20 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                     repo.save(subtask);
                 }
             }
-            
-            // For TASK/BUG with parent: add new sprints to parent USER_STORY
+
+            // For TASK/BUG with parent: reconcile parent USER_STORY status.
+            // Domain invariant: a USER_STORY cannot remain in BACKLOG once any subtask is in a sprint.
+            // Note: parent.getActiveSprints() is computed from children, so the sprint membership
+            // is already reflected via the subtask update above — only the parent's status needs
+            // to be brought back into compliance with the invariant.
             if (task.getTaskType() != TaskType.USER_STORY && task.getParentTask() != null) {
                 Task parentTask = task.getParentTask();
-                for (Sprint sprint : sprints) {
-                    if (!parentTask.getActiveSprints().contains(sprint)) {
-                        parentTask.getActiveSprints().add(sprint);
-                        sprint.addTask(parentTask, user);
-                    }
+                if (!sprintsIds.isEmpty() && parentTask.getStatus() == TaskStatus.BACKLOG) {
+                    parentTask.forceSetStatus(TaskStatus.TODO);
+                    changes.add(new TaskStatusChange(user, parentTask,
+                            TaskStatus.BACKLOG.toString(), TaskStatus.TODO.toString()));
+                    repo.save(parentTask);
                 }
-                repo.save(parentTask);
             }
         }
         if (editTask.comment != null) {
@@ -714,7 +717,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         ActivityType activityType = null;
         String oldValue = null;
         String newValue = null;
-        
+
         if (change instanceof TaskStatusChange statusChange) {
             activityType = ActivityType.TASK_STATUS_CHANGED;
             oldValue = statusChange.getOldValue();
@@ -754,9 +757,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             oldValue = oldSprints;
             newValue = newSprints;
         }
-        
+
         if (activityType != null) {
-            activityService.recordActivity(activityType, actor, task.getProject(), task, 
+            activityService.recordActivity(activityType, actor, task.getProject(), task,
                     null, oldValue, newValue);
         }
     }
@@ -769,7 +772,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task editTaskInternal(Long id, MergePatchTask editTask, String userId) {
         Task task = get(id);
         User user = userService.get(userId);
-        
+
         if(editTask.name != null) {
             String name = editTask.name.orElseThrow(
                     () -> new ServiceException(ErrorConstants.CAN_NOT_BE_NULL));
@@ -1000,7 +1003,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public List<TaskChange> getTaskHistory(Long taskId, String userId, String search) {
         Task task = get(taskId);
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
+
         // Simply return the task changes from the relationship
         // The 'search' parameter is ignored for now - can be added later if needed
         return task.getTaskChanges();
@@ -1103,15 +1106,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task freezeTask(Long taskId, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
-        
+
         // Only professors can freeze tasks
         if (!user.isUserType(UserType.PROFESSOR)) {
             throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_FREEZE_TASK);
         }
-        
+
         // Check if professor has access to this project's course
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
+
         task.setFrozen(true);
         repo.save(task);
         return task;
@@ -1124,15 +1127,15 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     public Task unfreezeTask(Long taskId, String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
-        
+
         // Only professors can unfreeze tasks
         if (!user.isUserType(UserType.PROFESSOR)) {
             throw new ServiceException(ErrorConstants.ONLY_PROFESSOR_CAN_FREEZE_TASK);
         }
-        
+
         // Check if professor has access to this project's course
         accessChecker.checkCanViewProject(task.getProject(), userId);
-        
+
         task.setFrozen(false);
         repo.save(task);
         return task;
