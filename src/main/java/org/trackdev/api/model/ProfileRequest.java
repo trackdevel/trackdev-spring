@@ -79,9 +79,14 @@ public class ProfileRequest {
         public AttributeVisibility visibility;
 
         /**
-         * Reference to enum by name (required when type is ENUM)
+         * Reference to enum by name (required when type is ENUM, or first slot of ENUM_PAIR).
          */
         public String enumRefName;
+
+        /**
+         * Reference to second enum by name (required when type is ENUM_PAIR; must differ from enumRefName).
+         */
+        public String enumRefName2;
 
         /**
          * Default value for this attribute when not explicitly set on a task.
