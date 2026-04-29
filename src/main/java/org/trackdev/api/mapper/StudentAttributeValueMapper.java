@@ -25,8 +25,10 @@ public interface StudentAttributeValueMapper {
     @Mapping(target = "attributeType", source = "attribute.type")
     @Mapping(target = "attributeAppliedBy", source = "attribute.appliedBy")
     @Mapping(target = "value", expression = "java(getEffectiveValue(entity))")
+    @Mapping(target = "valueB", source = "valueB")
     @Mapping(target = "textValue", expression = "java(getEffectiveTextValue(entity))")
     @Mapping(target = "enumValues", expression = "java(getEnumValues(entity))")
+    @Mapping(target = "enumValues2", expression = "java(getEnumValues2(entity))")
     StudentAttributeValueDTO toDTO(StudentAttributeValue entity);
 
     @IterableMapping(qualifiedByName = "toDTO")
@@ -50,6 +52,17 @@ public interface StudentAttributeValueMapper {
         if (entity.getAttribute() != null &&
             entity.getAttribute().getEnumRef() != null) {
             return entity.getAttribute().getEnumRef().getValues().stream()
+                    .map(this::toEnumValueEntryDTO)
+                    .toArray(EnumValueEntryDTO[]::new);
+        }
+        return null;
+    }
+
+    default EnumValueEntryDTO[] getEnumValues2(StudentAttributeValue entity) {
+        if (entity.getAttribute() != null &&
+            entity.getAttribute().getType() == AttributeType.ENUM_PAIR &&
+            entity.getAttribute().getEnumRef2() != null) {
+            return entity.getAttribute().getEnumRef2().getValues().stream()
                     .map(this::toEnumValueEntryDTO)
                     .toArray(EnumValueEntryDTO[]::new);
         }
