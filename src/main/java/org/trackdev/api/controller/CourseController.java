@@ -297,7 +297,8 @@ public class CourseController extends BaseController {
             @PathVariable(name = "attributeId") Long attributeId,
             @RequestBody SetAttributeValueRequest request) {
         String requestingUserId = super.getUserId(principal);
-        StudentAttributeValue value = studentAttributeValueService.setStudentAttributeValue(courseId, userId, attributeId, request.value, request.textValue, requestingUserId);
+        StudentAttributeValue value = studentAttributeValueService.setStudentAttributeValue(
+                courseId, userId, attributeId, request.value, request.valueB, request.textValue, requestingUserId);
         return studentAttributeValueMapper.toDTO(value);
     }
 
@@ -370,6 +371,8 @@ public class CourseController extends BaseController {
 
     static class SetAttributeValueRequest {
         public String value;
+        /** Second value, used when the attribute type is ENUM_PAIR. */
+        public String valueB;
         public String textValue;
     }
 
