@@ -1207,7 +1207,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
      * Authorization depends on the attribute's appliedBy field.
      */
     @Transactional
-    public TaskAttributeValue setTaskAttributeValue(Long taskId, Long attributeId, String value, String textValue, String userId) {
+    public TaskAttributeValue setTaskAttributeValue(Long taskId, Long attributeId,
+                                                     String value, String valueB, String textValue,
+                                                     String userId) {
         Task task = get(taskId);
         User user = userService.get(userId);
 
@@ -1239,8 +1241,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         // Validate value based on type
         if (attribute.getType() != AttributeType.TEXT && attribute.getType() != AttributeType.NUMERIC_TEXT) {
             HtmlSanitizer.validate(value);
+            HtmlSanitizer.validate(valueB);
         }
-        validateAttributeValue(attribute, value);
+        validateAttributeValue(attribute, value, valueB);
 
         // Find or create the attribute value
         Optional<TaskAttributeValue> existingValue =
@@ -1257,12 +1260,19 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         if (attribute.getType() == AttributeType.TEXT) {
             attributeValue.setTextValue(value);
             attributeValue.setValue(null);
+            attributeValue.setValueB(null);
         } else if (attribute.getType() == AttributeType.NUMERIC_TEXT) {
             attributeValue.setValue(value);
             attributeValue.setTextValue(textValue);
+            attributeValue.setValueB(null);
+        } else if (attribute.getType() == AttributeType.ENUM_PAIR) {
+            attributeValue.setValue(value);
+            attributeValue.setValueB(valueB);
+            attributeValue.setTextValue(null);
         } else {
             attributeValue.setValue(value);
             attributeValue.setTextValue(null);
+            attributeValue.setValueB(null);
         }
 
         return taskAttributeValueService.save(attributeValue);
@@ -1311,9 +1321,27 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     }
 
     /**
-     * Validate the value based on attribute type, including min/max for numeric types.
+     * Validate the value based on attribute type, including min/max for numeric types
+     * and ENUM_PAIR pair validation.
      */
-    private void validateAttributeValue(ProfileAttribute attribute, String value) {
+    private void validateAttributeValue(ProfileAttribute attribute, String value, String valueB) {
+        if (attribute.getType() == AttributeType.ENUM_PAIR) {
+            if ((value == null || value.isBlank()) && (valueB == null || valueB.isBlank())) {
+                return; // both empty == clear
+            }
+            if (value == null || value.isBlank() || valueB == null || valueB.isBlank()) {
+                throw new ServiceException(ErrorConstants.ATTRIBUTE_ENUM_PAIR_VALUE_INVALID);
+            }
+            ProfileEnum first = attribute.getEnumRef();
+            ProfileEnum second = attribute.getEnumRef2();
+            if (first == null || second == null
+                    || !first.getValueStrings().contains(value)
+                    || !second.getValueStrings().contains(valueB)) {
+                throw new ServiceException(ErrorConstants.ATTRIBUTE_ENUM_PAIR_VALUE_INVALID);
+            }
+            return;
+        }
+
         if (value == null || value.isBlank()) {
             return; // Allow empty values
         }
