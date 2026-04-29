@@ -163,6 +163,11 @@ public final class ErrorConstants {
     public static final String PROFILE_ATTRIBUTE_IMMUTABLE_TARGET = "error.profile.attribute.immutable.target";
     public static final String PROFILE_ATTRIBUTE_IMMUTABLE_APPLIED_BY = "error.profile.attribute.immutable.applied.by";
     public static final String PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF = "error.profile.attribute.immutable.enum.ref";
+    public static final String PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF_2 = "error.profile.attribute.immutable.enum.ref.2";
+    public static final String PROFILE_ENUM_PAIR_REQUIRES_TWO_ENUMS = "error.profile.attribute.enum.pair.requires.two.enums";
+    public static final String PROFILE_ENUM_PAIR_DISTINCT_REQUIRED = "error.profile.attribute.enum.pair.distinct.required";
+    public static final String PROFILE_ENUM_PAIR_INVALID_TARGET = "error.profile.attribute.enum.pair.invalid.target";
+    public static final String ATTRIBUTE_ENUM_PAIR_VALUE_INVALID = "error.attribute.enum.pair.value.invalid";
     public static final String ATTRIBUTE_VALUE_BELOW_MIN = "error.attribute.value.below.min";
     public static final String ATTRIBUTE_VALUE_ABOVE_MAX = "error.attribute.value.above.max";
     public static final String LIST_ATTRIBUTE_MUST_TARGET_STUDENT = "error.profile.attribute.list.must.target.student";

@@ -37,9 +37,16 @@ public class TaskAttributeValue extends BaseEntityLong {
      * For STRING type: stores the string value
      * For INTEGER type: stores the integer as string
      * For FLOAT type: stores the float as string
+     * For ENUM_PAIR: stores the value of the FIRST enum (slot 1).
      */
     @Column(length = VALUE_LENGTH)
     private String value;
+
+    /**
+     * Second value, only used by ENUM_PAIR (slot 2).
+     */
+    @Column(name = "value_b", length = VALUE_LENGTH)
+    private String valueB;
 
     @Column(name = "text_value", columnDefinition = "TEXT")
     private String textValue;
@@ -82,6 +89,14 @@ public class TaskAttributeValue extends BaseEntityLong {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getValueB() {
+        return valueB;
+    }
+
+    public void setValueB(String valueB) {
+        this.valueB = valueB;
     }
 
     public String getTextValue() {

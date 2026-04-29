@@ -16,6 +16,10 @@ public class StudentAttributeValueDTO {
     private AttributeType attributeType;
     private AttributeAppliedBy attributeAppliedBy;
     private String value;
+    /** Second value, only populated when attributeType is ENUM_PAIR. */
+    private String valueB;
     private String textValue;
     private EnumValueEntryDTO[] enumValues;
+    /** Possible values for the second enum slot — populated only when attributeType is ENUM_PAIR. */
+    private EnumValueEntryDTO[] enumValues2;
 }

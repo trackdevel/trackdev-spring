@@ -22,6 +22,10 @@ public class ProfileAttributeDTO {
     private Long enumRefId;
     private String enumRefName;
     private List<EnumValueEntryDTO> enumValues;
+    /** Second enum, only populated when type is ENUM_PAIR. */
+    private Long enumRef2Id;
+    private String enumRef2Name;
+    private List<EnumValueEntryDTO> enumValues2;
     private String defaultValue;
     private String minValue;
     private String maxValue;

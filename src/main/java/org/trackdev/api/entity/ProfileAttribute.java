@@ -48,7 +48,7 @@ public class ProfileAttribute extends BaseEntityLong {
     private Long profileId;
 
     /**
-     * Reference to ProfileEnum when type is ENUM.
+     * Reference to ProfileEnum when type is ENUM, LIST (optional), or ENUM_PAIR (first slot).
      * Must belong to the same profile.
      */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,6 +57,17 @@ public class ProfileAttribute extends BaseEntityLong {
 
     @Column(name = "enum_ref_id", insertable = false, updatable = false)
     private Long enumRefId;
+
+    /**
+     * Second enum reference, only used by ENUM_PAIR (second slot).
+     * Must belong to the same profile and be distinct from {@link #enumRef}.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "enum_ref_id_2")
+    private ProfileEnum enumRef2;
+
+    @Column(name = "enum_ref_id_2", insertable = false, updatable = false)
+    private Long enumRef2Id;
 
     /**
      * Default value for this attribute when not explicitly set.
@@ -148,6 +159,18 @@ public class ProfileAttribute extends BaseEntityLong {
 
     public Long getEnumRefId() {
         return enumRefId;
+    }
+
+    public ProfileEnum getEnumRef2() {
+        return enumRef2;
+    }
+
+    public void setEnumRef2(ProfileEnum enumRef2) {
+        this.enumRef2 = enumRef2;
+    }
+
+    public Long getEnumRef2Id() {
+        return enumRef2Id;
     }
 
     public String getDefaultValue() {

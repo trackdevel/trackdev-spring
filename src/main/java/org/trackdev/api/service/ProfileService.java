@@ -149,13 +149,15 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
     /**
      * Check if an enum value string is referenced by any attribute value
      * across all attribute value tables for attributes that use the given enum.
+     * Considers both the primary enum slot (enumRef) and the second slot (enumRef2)
+     * used by ENUM_PAIR attributes.
      */
     private boolean enumValueIsInUse(Profile profile, Long enumId, String value) {
-        List<ProfileAttribute> referencingAttrs = profile.getAttributes().stream()
+        List<ProfileAttribute> primaryAttrs = profile.getAttributes().stream()
                 .filter(a -> a.getEnumRef() != null && a.getEnumRef().getId().equals(enumId))
                 .toList();
 
-        for (ProfileAttribute attr : referencingAttrs) {
+        for (ProfileAttribute attr : primaryAttrs) {
             Long attrId = attr.getId();
             if (attr.getType() == AttributeType.LIST) {
                 if (studentAttributeListValueRepository.existsByAttributeIdAndEnumValue(attrId, value)) {
@@ -167,6 +169,21 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         || pullRequestAttributeValueRepository.existsByAttributeIdAndValue(attrId, value)) {
                     return true;
                 }
+            }
+        }
+
+        // Second slot of ENUM_PAIR
+        List<ProfileAttribute> secondaryAttrs = profile.getAttributes().stream()
+                .filter(a -> a.getType() == AttributeType.ENUM_PAIR
+                        && a.getEnumRef2() != null
+                        && a.getEnumRef2().getId().equals(enumId))
+                .toList();
+
+        for (ProfileAttribute attr : secondaryAttrs) {
+            Long attrId = attr.getId();
+            if (studentAttributeValueRepository.existsByAttributeIdAndValueB(attrId, value)
+                    || taskAttributeValueRepository.existsByAttributeIdAndValueB(attrId, value)) {
+                return true;
             }
         }
         return false;
@@ -253,7 +270,38 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             return;
         }
 
-        // Handle enum reference
+        // Handle ENUM_PAIR type constraints
+        if (attrRequest.type == AttributeType.ENUM_PAIR) {
+            if (attrRequest.target != AttributeTarget.TASK && attrRequest.target != AttributeTarget.STUDENT) {
+                throw new ServiceException(ErrorConstants.PROFILE_ENUM_PAIR_INVALID_TARGET);
+            }
+            if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()
+                    || attrRequest.enumRefName2 == null || attrRequest.enumRefName2.isBlank()) {
+                throw new ServiceException(ErrorConstants.PROFILE_ENUM_PAIR_REQUIRES_TWO_ENUMS);
+            }
+            if (attrRequest.enumRefName.equals(attrRequest.enumRefName2)) {
+                throw new ServiceException(ErrorConstants.PROFILE_ENUM_PAIR_DISTINCT_REQUIRED);
+            }
+            ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
+            ProfileEnum enumRef2 = findEnumByName(profile, attrRequest.enumRefName2);
+            attribute.setEnumRef(enumRef);
+            attribute.setEnumRef2(enumRef2);
+
+            // Only TASK-targeted attributes can be applied by STUDENT
+            if (attrRequest.target != AttributeTarget.TASK) {
+                attribute.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+            } else {
+                attribute.setAppliedBy(attrRequest.appliedBy != null ? attrRequest.appliedBy : AttributeAppliedBy.PROFESSOR);
+            }
+            attribute.setVisibility(attrRequest.visibility != null ? attrRequest.visibility : AttributeVisibility.PROFESSOR_ONLY);
+            attribute.setDefaultValue(null);
+            attribute.setMinValue(null);
+            attribute.setMaxValue(null);
+            profile.addAttribute(attribute);
+            return;
+        }
+
+        // Handle enum reference (single ENUM)
         if (attrRequest.type == AttributeType.ENUM) {
             if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()) {
                 throw new ServiceException(ErrorConstants.PROFILE_ENUM_REF_REQUIRED);
@@ -392,24 +440,30 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                     if (existing.getAppliedBy() != requestedAppliedBy) {
                         throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_APPLIED_BY);
                     }
-                    if (existing.getType() == AttributeType.ENUM || existing.getType() == AttributeType.LIST) {
+                    if (existing.getType() == AttributeType.ENUM
+                            || existing.getType() == AttributeType.LIST
+                            || existing.getType() == AttributeType.ENUM_PAIR) {
                         String existingEnumName = existing.getEnumRef() != null ? existing.getEnumRef().getName() : null;
                         if (!Objects.equals(existingEnumName, attrRequest.enumRefName)) {
                             throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF);
+                        }
+                    }
+                    if (existing.getType() == AttributeType.ENUM_PAIR) {
+                        String existingEnum2Name = existing.getEnumRef2() != null ? existing.getEnumRef2().getName() : null;
+                        if (!Objects.equals(existingEnum2Name, attrRequest.enumRefName2)) {
+                            throw new ServiceException(ErrorConstants.PROFILE_ATTRIBUTE_IMMUTABLE_ENUM_REF_2);
                         }
                     }
                 }
 
                 // Update allowed fields (always allowed)
                 existing.setName(attrRequest.name);
-                // LIST attributes: force PROFESSOR_ONLY visibility, ignore other mutable fields
                 if (existing.getType() == AttributeType.LIST || attrRequest.type == AttributeType.LIST) {
                     existing.setVisibility(AttributeVisibility.PROFESSOR_ONLY);
                     existing.setDefaultValue(null);
                     existing.setMinValue(null);
                     existing.setMaxValue(null);
                 } else if (existing.getType() == AttributeType.NUMERIC_TEXT || attrRequest.type == AttributeType.NUMERIC_TEXT) {
-                    // NUMERIC_TEXT: enforce visibility and allow min/max
                     AttributeVisibility visibility = attrRequest.visibility != null ? attrRequest.visibility : existing.getVisibility();
                     if (visibility != AttributeVisibility.PROFESSOR_ONLY && visibility != AttributeVisibility.ASSIGNED_STUDENT) {
                         visibility = AttributeVisibility.PROFESSOR_ONLY;
@@ -418,6 +472,13 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                     existing.setMinValue(attrRequest.minValue);
                     existing.setMaxValue(attrRequest.maxValue);
                     existing.setDefaultValue(null);
+                } else if (existing.getType() == AttributeType.ENUM_PAIR || attrRequest.type == AttributeType.ENUM_PAIR) {
+                    if (attrRequest.visibility != null) {
+                        existing.setVisibility(attrRequest.visibility);
+                    }
+                    existing.setDefaultValue(null);
+                    existing.setMinValue(null);
+                    existing.setMaxValue(null);
                 } else {
                     existing.setDefaultValue(attrRequest.defaultValue);
                     existing.setMinValue(attrRequest.minValue);
@@ -432,7 +493,6 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                     existing.setType(attrRequest.type);
                     existing.setTarget(attrRequest.target);
 
-                    // LIST type enforcement
                     if (attrRequest.type == AttributeType.LIST) {
                         if (attrRequest.target != AttributeTarget.STUDENT) {
                             throw new ServiceException(ErrorConstants.LIST_ATTRIBUTE_MUST_TARGET_STUDENT);
@@ -445,6 +505,7 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         } else {
                             existing.setEnumRef(null);
                         }
+                        existing.setEnumRef2(null);
                         existing.setDefaultValue(null);
                         existing.setMinValue(null);
                         existing.setMaxValue(null);
@@ -459,9 +520,33 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         }
                         existing.setVisibility(visibility);
                         existing.setEnumRef(null);
+                        existing.setEnumRef2(null);
                         existing.setDefaultValue(null);
+                    } else if (attrRequest.type == AttributeType.ENUM_PAIR) {
+                        if (attrRequest.target != AttributeTarget.TASK && attrRequest.target != AttributeTarget.STUDENT) {
+                            throw new ServiceException(ErrorConstants.PROFILE_ENUM_PAIR_INVALID_TARGET);
+                        }
+                        if (attrRequest.enumRefName == null || attrRequest.enumRefName.isBlank()
+                                || attrRequest.enumRefName2 == null || attrRequest.enumRefName2.isBlank()) {
+                            throw new ServiceException(ErrorConstants.PROFILE_ENUM_PAIR_REQUIRES_TWO_ENUMS);
+                        }
+                        if (attrRequest.enumRefName.equals(attrRequest.enumRefName2)) {
+                            throw new ServiceException(ErrorConstants.PROFILE_ENUM_PAIR_DISTINCT_REQUIRED);
+                        }
+                        ProfileEnum enumRef = findEnumByName(profile, attrRequest.enumRefName);
+                        ProfileEnum enumRef2 = findEnumByName(profile, attrRequest.enumRefName2);
+                        existing.setEnumRef(enumRef);
+                        existing.setEnumRef2(enumRef2);
+                        if (attrRequest.target == AttributeTarget.TASK) {
+                            existing.setAppliedBy(attrRequest.appliedBy != null ? attrRequest.appliedBy : AttributeAppliedBy.PROFESSOR);
+                        } else {
+                            existing.setAppliedBy(AttributeAppliedBy.PROFESSOR);
+                        }
+                        existing.setVisibility(attrRequest.visibility != null ? attrRequest.visibility : AttributeVisibility.PROFESSOR_ONLY);
+                        existing.setDefaultValue(null);
+                        existing.setMinValue(null);
+                        existing.setMaxValue(null);
                     } else {
-                        // Only TASK-targeted attributes can have STUDENT appliedBy
                         if (attrRequest.target != AttributeTarget.TASK) {
                             existing.setAppliedBy(AttributeAppliedBy.PROFESSOR);
                         } else if (attrRequest.appliedBy != null) {
@@ -477,6 +562,7 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                         } else {
                             existing.setEnumRef(null);
                         }
+                        existing.setEnumRef2(null);
                     }
                 }
             } else {
@@ -505,7 +591,6 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
         long totalCount = 0;
         List<AttributeUsageDTO.AttributeUsageSampleDTO> samples = new ArrayList<>();
 
-        // Task attribute values
         long taskCount = taskAttributeValueRepository.countByAttributeId(attributeId);
         totalCount += taskCount;
         if (samples.size() < 10) {
@@ -514,12 +599,11 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                 if (samples.size() >= 10) break;
                 String entityName = tv.getTask().getTaskKey() != null
                         ? tv.getTask().getTaskKey() : tv.getTask().getName();
-                String value = attribute.getType() == AttributeType.TEXT ? tv.getTextValue() : tv.getValue();
+                String value = formatValueForUsage(attribute, tv.getValue(), tv.getValueB(), tv.getTextValue());
                 samples.add(new AttributeUsageDTO.AttributeUsageSampleDTO("TASK", entityName, value));
             }
         }
 
-        // Student attribute values
         long studentCount = studentAttributeValueRepository.countByAttributeId(attributeId);
         totalCount += studentCount;
         if (samples.size() < 10) {
@@ -528,12 +612,11 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
                 if (samples.size() >= 10) break;
                 String entityName = sv.getUser().getFullName() != null
                         ? sv.getUser().getFullName() : sv.getUser().getUsername();
-                String value = attribute.getType() == AttributeType.TEXT ? sv.getTextValue() : sv.getValue();
+                String value = formatValueForUsage(attribute, sv.getValue(), sv.getValueB(), sv.getTextValue());
                 samples.add(new AttributeUsageDTO.AttributeUsageSampleDTO("STUDENT", entityName, value));
             }
         }
 
-        // Pull request attribute values
         long prCount = pullRequestAttributeValueRepository.countByAttributeId(attributeId);
         totalCount += prCount;
         if (samples.size() < 10) {
@@ -548,11 +631,9 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             }
         }
 
-        // Student list attribute values (count distinct users)
         long studentListCount = studentAttributeListValueRepository.countByAttributeId(attributeId);
         totalCount += studentListCount;
 
-        // Pull request list attribute values (count distinct PRs)
         long prListCount = pullRequestAttributeListValueRepository.countByAttributeId(attributeId);
         totalCount += prListCount;
 
@@ -560,6 +641,18 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
         dto.setTotalCount(totalCount);
         dto.setSamples(samples);
         return dto;
+    }
+
+    private String formatValueForUsage(ProfileAttribute attribute, String value, String valueB, String textValue) {
+        if (attribute.getType() == AttributeType.TEXT) {
+            return textValue;
+        }
+        if (attribute.getType() == AttributeType.ENUM_PAIR) {
+            String a = value == null ? "" : value;
+            String b = valueB == null ? "" : valueB;
+            return a + " / " + b;
+        }
+        return value;
     }
 
     /**
@@ -576,14 +669,12 @@ public class ProfileService extends BaseServiceLong<Profile, ProfileRepository> 
             throw new ServiceException("Attribute does not belong to this profile");
         }
 
-        // Delete all instantiated values first
         taskAttributeValueRepository.deleteByAttributeId(attributeId);
         studentAttributeValueRepository.deleteByAttributeId(attributeId);
         pullRequestAttributeValueRepository.deleteByAttributeId(attributeId);
         studentAttributeListValueRepository.deleteByAttributeId(attributeId);
         pullRequestAttributeListValueRepository.deleteByAttributeId(attributeId);
 
-        // Remove from profile and delete the attribute
         profile.getAttributes().removeIf(a -> a.getId().equals(attributeId));
         repo.save(profile);
     }

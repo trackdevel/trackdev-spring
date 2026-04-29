@@ -19,6 +19,8 @@ public interface StudentAttributeValueRepository extends BaseRepositoryLong<Stud
 
     boolean existsByAttributeIdAndValue(Long attributeId, String value);
 
+    boolean existsByAttributeIdAndValueB(Long attributeId, String valueB);
+
     long countByAttributeId(Long attributeId);
 
     List<StudentAttributeValue> findByAttributeId(Long attributeId);
