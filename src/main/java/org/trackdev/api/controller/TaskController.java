@@ -369,7 +369,8 @@ public class TaskController extends CrudController<Task, TaskService> {
             @PathVariable(name = "attributeId") Long attributeId,
             @RequestBody SetAttributeValueRequest request) {
         String userId = super.getUserId(principal);
-        TaskAttributeValue value = service.setTaskAttributeValue(taskId, attributeId, request.value, request.textValue, userId);
+        TaskAttributeValue value = service.setTaskAttributeValue(
+                taskId, attributeId, request.value, request.valueB, request.textValue, userId);
         return taskAttributeValueMapper.toDTO(value);
     }
 
@@ -404,6 +405,8 @@ public class TaskController extends CrudController<Task, TaskService> {
 
     static class SetAttributeValueRequest {
         public String value;
+        /** Second value, used when the attribute type is ENUM_PAIR. */
+        public String valueB;
         public String textValue;
     }
 }
