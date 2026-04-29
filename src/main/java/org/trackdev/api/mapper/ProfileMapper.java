@@ -49,6 +49,8 @@ public interface ProfileMapper {
     @Named("attributeToDTO")
     @Mapping(target = "enumRefName", source = "enumRef.name")
     @Mapping(target = "enumValues", source = "attribute", qualifiedByName = "getEnumValuesFromAttribute")
+    @Mapping(target = "enumRef2Name", source = "enumRef2.name")
+    @Mapping(target = "enumValues2", source = "attribute", qualifiedByName = "getEnumValues2FromAttribute")
     ProfileAttributeDTO attributeToDTO(ProfileAttribute attribute);
 
     @Named("attributesToDTO")
@@ -59,6 +61,16 @@ public interface ProfileMapper {
     default List<EnumValueEntryDTO> getEnumValuesFromAttribute(ProfileAttribute attribute) {
         if (attribute.getEnumRef() != null) {
             return attribute.getEnumRef().getValues().stream()
+                    .map(this::enumValueEntryToDTO)
+                    .toList();
+        }
+        return Collections.emptyList();
+    }
+
+    @Named("getEnumValues2FromAttribute")
+    default List<EnumValueEntryDTO> getEnumValues2FromAttribute(ProfileAttribute attribute) {
+        if (attribute.getEnumRef2() != null) {
+            return attribute.getEnumRef2().getValues().stream()
                     .map(this::enumValueEntryToDTO)
                     .toList();
         }
