@@ -153,7 +153,9 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
      * Set or update an attribute value for a student in a course.
      */
     @Transactional
-    public StudentAttributeValue setStudentAttributeValue(Long courseId, String targetUserId, Long attributeId, String value, String textValue, String requestingUserId) {
+    public StudentAttributeValue setStudentAttributeValue(Long courseId, String targetUserId, Long attributeId,
+                                                          String value, String valueB, String textValue,
+                                                          String requestingUserId) {
         Course course = courseService.getCourse(courseId, requestingUserId);
         User requestingUser = userService.get(requestingUserId);
 
@@ -183,8 +185,9 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         checkAuthorization(attribute, requestingUser, targetUserId);
         if (attribute.getType() != AttributeType.TEXT && attribute.getType() != AttributeType.NUMERIC_TEXT) {
             HtmlSanitizer.validate(value);
+            HtmlSanitizer.validate(valueB);
         }
-        validateAttributeValue(attribute, value);
+        validateAttributeValue(attribute, value, valueB);
 
         User targetUser = userService.get(targetUserId);
         Optional<StudentAttributeValue> existing = repo().findByUserIdAndAttributeId(targetUserId, attributeId);
@@ -200,12 +203,19 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         if (attribute.getType() == AttributeType.TEXT) {
             attributeValue.setTextValue(value);
             attributeValue.setValue(null);
+            attributeValue.setValueB(null);
         } else if (attribute.getType() == AttributeType.NUMERIC_TEXT) {
             attributeValue.setValue(value);
             attributeValue.setTextValue(textValue);
+            attributeValue.setValueB(null);
+        } else if (attribute.getType() == AttributeType.ENUM_PAIR) {
+            attributeValue.setValue(value);
+            attributeValue.setValueB(valueB);
+            attributeValue.setTextValue(null);
         } else {
             attributeValue.setValue(value);
             attributeValue.setTextValue(null);
+            attributeValue.setValueB(null);
         }
 
         return save(attributeValue);
@@ -374,7 +384,25 @@ public class StudentAttributeValueService extends BaseServiceLong<StudentAttribu
         }
     }
 
-    private void validateAttributeValue(ProfileAttribute attribute, String value) {
+    private void validateAttributeValue(ProfileAttribute attribute, String value, String valueB) {
+        if (attribute.getType() == AttributeType.ENUM_PAIR) {
+            if (value == null || value.isBlank() || valueB == null || valueB.isBlank()) {
+                // Allow clearing both halves at once (treat as delete intent at higher level)
+                if ((value == null || value.isBlank()) && (valueB == null || valueB.isBlank())) {
+                    return;
+                }
+                throw new ServiceException(ErrorConstants.ATTRIBUTE_ENUM_PAIR_VALUE_INVALID);
+            }
+            ProfileEnum first = attribute.getEnumRef();
+            ProfileEnum second = attribute.getEnumRef2();
+            if (first == null || second == null
+                    || !first.getValueStrings().contains(value)
+                    || !second.getValueStrings().contains(valueB)) {
+                throw new ServiceException(ErrorConstants.ATTRIBUTE_ENUM_PAIR_VALUE_INVALID);
+            }
+            return;
+        }
+
         if (value == null || value.isBlank()) {
             return;
         }
