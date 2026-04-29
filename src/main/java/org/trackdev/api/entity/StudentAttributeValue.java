@@ -33,9 +33,16 @@ public class StudentAttributeValue extends BaseEntityLong {
 
     /**
      * The actual value stored as a string.
+     * For ENUM_PAIR: stores the value of the FIRST enum (slot 1).
      */
     @Column(length = VALUE_LENGTH)
     private String value;
+
+    /**
+     * Second value, only used by ENUM_PAIR (slot 2).
+     */
+    @Column(name = "value_b", length = VALUE_LENGTH)
+    private String valueB;
 
     @Column(name = "text_value", columnDefinition = "TEXT")
     private String textValue;
@@ -78,6 +85,14 @@ public class StudentAttributeValue extends BaseEntityLong {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getValueB() {
+        return valueB;
+    }
+
+    public void setValueB(String valueB) {
+        this.valueB = valueB;
     }
 
     public String getTextValue() {
