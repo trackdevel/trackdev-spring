@@ -10,5 +10,6 @@ public enum AttributeType {
     FLOAT,
     LIST,
     TEXT,
-    NUMERIC_TEXT
+    NUMERIC_TEXT,
+    ENUM_PAIR
 }
