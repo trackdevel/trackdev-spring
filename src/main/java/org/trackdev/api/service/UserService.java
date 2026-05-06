@@ -16,6 +16,7 @@ import org.trackdev.api.entity.GithubInfo;
 import org.trackdev.api.entity.Project;
 import org.trackdev.api.entity.Role;
 import org.trackdev.api.entity.User;
+import org.trackdev.api.repository.UserPushTokenRepository;
 import org.trackdev.api.repository.UserRepository;
 import org.trackdev.api.utils.ErrorConstants;
 
@@ -48,7 +49,11 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
     @Autowired
     @Lazy
     private CourseService courseService;
-    
+
+    @Autowired
+    private UserPushTokenRepository userPushTokenRepository;
+
+
     public User matchPassword(String email, String password) {
         User user = this.getByEmail(email);
 
@@ -281,7 +286,14 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         if(color != null) color.ifPresent(user::setColor);
         if(capitalLetters != null) capitalLetters.ifPresent(user::setCapitalLetters);
         if(changePassword != null && !modifier.getId().equals(user.getId())) changePassword.ifPresent(user::setChangePassword);
-        if(enabled != null && modifier.isUserType(UserType.ADMIN)) enabled.ifPresent(user::setEnabled);
+        if(enabled != null && modifier.isUserType(UserType.ADMIN)) {
+            enabled.ifPresent(newEnabled -> {
+                user.setEnabled(newEnabled);
+                if (Boolean.FALSE.equals(newEnabled)) {
+                    userPushTokenRepository.deleteByUser(user);
+                }
+            });
+        }
         if(timezone != null) timezone.ifPresent(user::setTimezone);
         
         // Handle githubUsername - allow manual setting without token
@@ -448,12 +460,15 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
             throw new ServiceException(ErrorConstants.CANNOT_DELETE_USER_HAS_OWNED_COURSES);
         }
         
+        // Remove all push notification tokens for this user
+        userPushTokenRepository.deleteByUser(user);
+
         // Remove from all project memberships (ManyToMany will handle)
         for (Project project : user.getProjects()) {
             project.getMembers().remove(user);
         }
         user.getProjects().clear();
-        
+
         // Delete the user (cascade will handle GithubInfo, PointsReview)
         repo().delete(user);
     }
