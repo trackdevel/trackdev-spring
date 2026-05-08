@@ -64,6 +64,7 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "  DISCORD_GUILD_ID=your_discord_guild_id"
     echo "  DISCORD_VERIFIED_ROLE_ID=your_discord_verified_role_id"
     echo "  DISCORD_REDIRECT_URI=http://localhost:8080/api/discord/callback"
+    echo "  FIREBASE_SERVICE_ACCOUNT_JSON=/absolute/path/to/firebase-service-account.json  # leave unset to disable FCM"
     exit 1
 fi
 
