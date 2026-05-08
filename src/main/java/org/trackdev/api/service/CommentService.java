@@ -23,11 +23,15 @@ public class CommentService extends BaseServiceLong<Comment, CommentRepository>{
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private FcmNotificationService fcmNotificationService;
+
     public Comment addComment(String content, User author, Task task) {
         // Validate content to prevent XSS attacks
         HtmlSanitizer.validate(content);
         Comment comment = new Comment(content, author, task);
         repo.save(comment);
+        fcmNotificationService.notifyComment(comment);
         return comment;
     }
 

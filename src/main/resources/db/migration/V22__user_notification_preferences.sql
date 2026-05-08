@@ -1,0 +1,4 @@
+ALTER TABLE `users`
+    ADD COLUMN `notify_comments` BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN `notify_points_review` BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN `notify_team_activity` BOOLEAN NOT NULL DEFAULT TRUE;

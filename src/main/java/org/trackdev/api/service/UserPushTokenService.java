@@ -11,6 +11,7 @@ import org.trackdev.api.repository.UserPushTokenRepository;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,5 +63,20 @@ public class UserPushTokenService
         }
         repo().deleteByToken(token);
         log.info("Push token unregistered for user: {}", userId);
+    }
+
+    @Transactional
+    public void deleteStaleTokens(Collection<String> tokens) {
+        for (String t : tokens) {
+            repo().deleteByToken(t);
+        }
+        if (!tokens.isEmpty()) {
+            log.info("Removed {} stale push token(s) reported by FCM", tokens.size());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserPushToken> findByUser(User user) {
+        return repo().findByUserOrderByLastSeenAtDesc(user);
     }
 }

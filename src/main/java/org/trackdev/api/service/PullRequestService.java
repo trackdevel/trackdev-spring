@@ -64,6 +64,9 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
     @Autowired
     GitHubRepoService gitHubRepoService;
 
+    @Autowired
+    FcmNotificationService fcmNotificationService;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -378,8 +381,12 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         }
         
         if (activityType != null && task != null) {
-            activityService.recordActivity(activityType, actor, task.getProject(), task, 
+            activityService.recordActivity(activityType, actor, task.getProject(), task,
                     message, null, action);
+        }
+
+        if (activityType == ActivityType.PR_MERGED && task != null) {
+            fcmNotificationService.notifyPrMerged(pr, task, actor);
         }
     }
 

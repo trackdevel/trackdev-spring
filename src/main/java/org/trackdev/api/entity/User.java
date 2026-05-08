@@ -112,6 +112,18 @@ public class User extends BaseEntityUUID {
   @Column(length = TIMEZONE_LENGTH)
   private String timezone = DEFAULT_TIMEZONE;
 
+  @NotNull
+  @Column(name = "notify_comments", nullable = false)
+  private Boolean notifyComments = true;
+
+  @NotNull
+  @Column(name = "notify_points_review", nullable = false)
+  private Boolean notifyPointsReview = true;
+
+  @NotNull
+  @Column(name = "notify_team_activity", nullable = false)
+  private Boolean notifyTeamActivity = true;
+
   @Transient
   private Random random = new Random();
 
@@ -194,6 +206,21 @@ public class User extends BaseEntityUUID {
   public String getTimezone() { return timezone != null ? timezone : DEFAULT_TIMEZONE; }
 
   public void setTimezone(String timezone) { this.timezone = timezone != null ? timezone : DEFAULT_TIMEZONE; }
+
+  public Boolean getNotifyComments() { return notifyComments != null ? notifyComments : Boolean.TRUE; }
+  public void setNotifyComments(Boolean notifyComments) {
+    this.notifyComments = notifyComments != null ? notifyComments : Boolean.TRUE;
+  }
+
+  public Boolean getNotifyPointsReview() { return notifyPointsReview != null ? notifyPointsReview : Boolean.TRUE; }
+  public void setNotifyPointsReview(Boolean notifyPointsReview) {
+    this.notifyPointsReview = notifyPointsReview != null ? notifyPointsReview : Boolean.TRUE;
+  }
+
+  public Boolean getNotifyTeamActivity() { return notifyTeamActivity != null ? notifyTeamActivity : Boolean.TRUE; }
+  public void setNotifyTeamActivity(Boolean notifyTeamActivity) {
+    this.notifyTeamActivity = notifyTeamActivity != null ? notifyTeamActivity : Boolean.TRUE;
+  }
 
   public String setGithubToken(String githubToken) { return githubInfo.setGithubToken(githubToken); }
 

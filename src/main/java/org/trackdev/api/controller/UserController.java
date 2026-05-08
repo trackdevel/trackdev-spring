@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.trackdev.api.controller.exceptions.ControllerException;
 import org.trackdev.api.controller.exceptions.ServiceException;
+import org.trackdev.api.dto.NotificationPreferencesDTO;
 import org.trackdev.api.dto.UserWithGithubTokenDTO;
 import org.trackdev.api.dto.UserWithProjectsDTO;
 import org.trackdev.api.dto.UsersResponseDTO;
@@ -184,6 +185,39 @@ public class UserController extends BaseController {
         String userId = super.getUserId(principal);
         // All operations in a single transaction
         return new AdminCheckResponse(userService.isUserAdmin(userId));
+    }
+
+    @Operation(summary = "Get my notification preferences",
+               description = "Returns the authenticated user's push-notification preference flags.")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/me/notification-preferences")
+    public NotificationPreferencesDTO getMyNotificationPreferences(Principal principal) {
+        String userId = super.getUserId(principal);
+        User user = userService.get(userId);
+        return new NotificationPreferencesDTO(
+                user.getNotifyComments(),
+                user.getNotifyPointsReview(),
+                user.getNotifyTeamActivity());
+    }
+
+    @Operation(summary = "Update my notification preferences",
+               description = "Updates one or more push-notification preference flags. " +
+                             "Null fields are left unchanged.")
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping(path = "/me/notification-preferences")
+    public NotificationPreferencesDTO updateMyNotificationPreferences(
+            Principal principal,
+            @RequestBody NotificationPreferencesDTO request) {
+        String userId = super.getUserId(principal);
+        User updated = userService.updateNotificationPreferences(
+                userId,
+                request.getNotifyComments(),
+                request.getNotifyPointsReview(),
+                request.getNotifyTeamActivity());
+        return new NotificationPreferencesDTO(
+                updated.getNotifyComments(),
+                updated.getNotifyPointsReview(),
+                updated.getNotifyTeamActivity());
     }
 
     static class RegisterU {

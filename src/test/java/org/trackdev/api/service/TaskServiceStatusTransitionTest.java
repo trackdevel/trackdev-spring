@@ -35,6 +35,7 @@ class TaskServiceStatusTransitionTest {
     @Mock private TaskChangeService taskChangeService;
     @Mock private ActivityService activityService;
     @Mock private SseEmitterService sseEmitterService;
+    @Mock private FcmNotificationService fcmNotificationService;
 
     private TaskService taskService;
 
@@ -51,6 +52,7 @@ class TaskServiceStatusTransitionTest {
         ReflectionTestUtils.setField(taskService, "taskChangeService", taskChangeService);
         ReflectionTestUtils.setField(taskService, "activityService", activityService);
         ReflectionTestUtils.setField(taskService, "sseEmitterService", sseEmitterService);
+        ReflectionTestUtils.setField(taskService, "fcmNotificationService", fcmNotificationService);
 
         professor = new User();
         ReflectionTestUtils.setField(professor, "id", "professor-id");

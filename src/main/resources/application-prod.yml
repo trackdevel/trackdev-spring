@@ -91,6 +91,10 @@ trackdev:
     max-connections-per-user: ${SSE_MAX_CONNECTIONS_PER_USER:3}
     thread-pool-size: ${SSE_THREAD_POOL_SIZE:2}
     async-pool-size: ${SSE_ASYNC_POOL_SIZE:5}
+  # Firebase Cloud Messaging configuration. FIREBASE_SERVICE_ACCOUNT_JSON must be the
+  # filesystem path to the admin SDK service-account JSON file. Empty = FCM disabled.
+  firebase:
+    service-account-path: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
 
 management:
   server:

@@ -15,6 +15,7 @@ public class TrackDevProperties {
     private final Discord discord = new Discord();
     private final Sse sse = new Sse();
     private final StressTest stressTest = new StressTest();
+    private final Firebase firebase = new Firebase();
 
     public Auth getAuth() {
         return auth;
@@ -46,6 +47,10 @@ public class TrackDevProperties {
 
     public StressTest getStressTest() {
         return stressTest;
+    }
+
+    public Firebase getFirebase() {
+        return firebase;
     }
 
     public static class Auth {
@@ -294,6 +299,25 @@ public class TrackDevProperties {
         }
     }
 
+    public static class Firebase {
+        private String serviceAccountPath;
+
+        public String getServiceAccountPath() { return serviceAccountPath; }
+        public void setServiceAccountPath(String serviceAccountPath) {
+            this.serviceAccountPath = serviceAccountPath;
+        }
+
+        public boolean isConfigured() {
+            return serviceAccountPath != null && !serviceAccountPath.isBlank();
+        }
+
+        @Override
+        public String toString() {
+            return "Firebase{configured=" + isConfigured()
+                    + ", serviceAccountPath='" + serviceAccountPath + "'}";
+        }
+    }
+
     @Override
     public String toString() {
         return "TrackDevProperties{" +
@@ -305,6 +329,7 @@ public class TrackDevProperties {
                 ",\n  discord=" + discord +
                 ",\n  sse=" + sse +
                 ",\n  stressTest=" + stressTest +
+                ",\n  firebase=" + firebase +
                 "\n}";
     }
 }
