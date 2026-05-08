@@ -30,6 +30,7 @@ TrackDev API is a robust backend designed to support educational project managem
 - **Secure Authentication**: JWT-based authentication with sliding session refresh
 - **Change Tracking**: Audit trail for task modifications and project activity
 - **Search & Filtering**: RSQL-based query parsing for advanced search capabilities
+- **Push Notifications**: Firebase Cloud Messaging (FCM) delivery to registered mobile devices, with per-user preference flags
 - **API Documentation**: Interactive Swagger UI with comprehensive endpoint documentation
 
 ## 📦 Project Structure
@@ -141,6 +142,16 @@ trackdev.discord.bot-token=your_bot_token
 trackdev.discord.guild-id=your_guild_id
 trackdev.discord.verified-role-id=your_role_id
 trackdev.discord.redirect-uri=http://localhost:8080/api/discord/callback
+
+# Firebase Cloud Messaging (optional — leave unset to disable push notifications)
+# Path to the admin SDK service-account JSON file
+trackdev.firebase.service-account-path=/absolute/path/to/firebase-service-account.json
+```
+
+When using `scripts/run-server.sh` with a `.env` file, the equivalent variable is:
+
+```
+FIREBASE_SERVICE_ACCOUNT_JSON=/absolute/path/to/firebase-service-account.json
 ```
 
 ### Step 3: Run the Server
@@ -211,6 +222,66 @@ curl -X POST http://localhost:8080/auth/login \
 }
 ```
 
+## 📲 Push Notifications (FCM)
+
+The backend can deliver push notifications to mobile devices via Firebase Cloud Messaging. Notifications are intended primarily for the student-facing mobile app.
+
+### Enabling
+
+1. Generate a Firebase admin SDK service-account JSON from the Firebase Console.
+2. Save it to a path the server can read.
+3. Set the env var (or property) before starting the server:
+
+   ```
+   FIREBASE_SERVICE_ACCOUNT_JSON=/absolute/path/to/firebase-service-account.json
+   ```
+
+If the variable is unset (or the file is missing), FCM is **cleanly disabled**: every notification call short-circuits, no error is thrown, and the rest of the API works normally. A warning is logged at startup.
+
+### Device token lifecycle
+
+The mobile app registers each device's FCM token via `POST /users/me/push-tokens`. Tokens are stored in the `user_push_tokens` table. The server:
+
+- Treats `POST` as **idempotent** on token: re-registering an existing token updates owner/platform/lastSeenAt.
+- Sends notifications via `sendEachForMulticast` to all of the user's tokens.
+- **Auto-deletes stale tokens** when FCM responds with `UNREGISTERED` or `INVALID_ARGUMENT`.
+
+### Triggers
+
+| Event                                    | Recipients                                                | Pref flag             |
+| ---------------------------------------- | --------------------------------------------------------- | --------------------- |
+| Comment on a task I'm assigned to        | task assignee (if not the comment author)                 | `notifyComments`      |
+| Points-review conversation created       | initiator ∪ participants ∪ course owner − actor           | `notifyPointsReview`  |
+| New message in a points-review conv.     | initiator ∪ participants ∪ course owner − message author  | `notifyPointsReview`  |
+| Participant added to points-review conv. | the newly added user only                                 | `notifyPointsReview`  |
+| Pull request merged on a project task    | all project members − actor                               | `notifyTeamActivity`  |
+| Task transitions to DONE                 | all project members − actor                               | `notifyTeamActivity`  |
+
+The course owner (professor) is implicitly part of every points-review conversation (role-based access) and is included as a recipient even when not in the explicit `participants` set.
+
+The task → DONE notification fires only on the user's explicit transition; the parent USER_STORY's auto-cascade to DONE is intentionally silent to avoid double-pings per click.
+
+### Per-user preferences
+
+Each user has three boolean preference flags on the `users` table, all defaulting to `true`:
+
+- `notify_comments`
+- `notify_points_review`
+- `notify_team_activity`
+
+These are exposed via `GET` / `PATCH /users/me/notification-preferences`. Each notification call gates on the recipient's flag — flipping `notifyTeamActivity` to `false` silences PR-merge and task-DONE pushes for that user without affecting anyone else.
+
+### Payload shape
+
+Every notification carries:
+
+- A user-visible `title` and `body` (HTML stripped, body truncated at ~140 chars).
+- A `data` map with at least `type` and the relevant entity ids (`taskId`, `taskKey`, `projectId`, `conversationId`, `prId`, etc.) so the mobile app can deep-link to the right screen.
+
+### Reliability
+
+Pushes are dispatched **after the originating database transaction commits** (`TransactionSynchronizationManager.afterCommit`), so a rolled-back action never produces a phantom notification.
+
 ## 🔗 API Endpoints
 
 ### Authentication
@@ -221,6 +292,16 @@ curl -X POST http://localhost:8080/auth/login \
 | POST   | `/auth/logout`  | Logout user        | Yes           |
 | GET    | `/auth/self`    | Get current user   | Yes           |
 | POST   | `/auth/refresh` | Refresh JWT token  | Yes           |
+
+### Push Notifications
+
+| Method | Endpoint                              | Description                          | Auth Required |
+| ------ | ------------------------------------- | ------------------------------------ | ------------- |
+| POST   | `/users/me/push-tokens`               | Register a device push token         | Yes           |
+| GET    | `/users/me/push-tokens`               | List own registered tokens           | Yes           |
+| DELETE | `/users/me/push-tokens/{token}`       | Unregister a token                   | Yes           |
+| GET    | `/users/me/notification-preferences`  | Get notification preference flags    | Yes           |
+| PATCH  | `/users/me/notification-preferences`  | Update notification preference flags | Yes           |
 
 ### Projects
 
