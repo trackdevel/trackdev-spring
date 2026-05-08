@@ -67,6 +67,9 @@ dependencies {
 
     implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.14.1'
 
+    // Firebase Admin SDK for Cloud Messaging (FCM)
+    implementation 'com.google.firebase:firebase-admin:9.5.0'
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
