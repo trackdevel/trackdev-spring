@@ -64,6 +64,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
     @Autowired
     SseEmitterService sseEmitterService;
 
+    @Autowired
+    FcmNotificationService fcmNotificationService;
+
     @Transactional
     public Task createTask(Long projectId, String name, String description, TaskType type, String assigneeId, String userId) {
         Project project = projectService.get(projectId);
@@ -527,6 +530,10 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 task.setStatus(status);
             }
             changes.add(new TaskStatusChange(user, task, oldStatus.toString(), status.toString()));
+
+            if (oldStatus != TaskStatus.DONE && status == TaskStatus.DONE) {
+                fcmNotificationService.notifyTaskDone(task, user);
+            }
 
             // If this is a subtask being set to DONE, check if parent USER_STORY should auto-complete
             if (status == TaskStatus.DONE && task.getParentTask() != null) {
