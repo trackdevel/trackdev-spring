@@ -473,4 +473,22 @@ public class UserService extends BaseServiceUUID<User, UserRepository> {
         repo().delete(user);
     }
 
+    @Transactional
+    public User updateNotificationPreferences(String userId,
+                                              Boolean notifyComments,
+                                              Boolean notifyPointsReview,
+                                              Boolean notifyTeamActivity) {
+        User user = get(userId);
+        if (notifyComments != null) {
+            user.setNotifyComments(notifyComments);
+        }
+        if (notifyPointsReview != null) {
+            user.setNotifyPointsReview(notifyPointsReview);
+        }
+        if (notifyTeamActivity != null) {
+            user.setNotifyTeamActivity(notifyTeamActivity);
+        }
+        return repo().save(user);
+    }
+
 }
