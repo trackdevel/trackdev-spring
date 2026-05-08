@@ -97,6 +97,10 @@ trackdev:
     user-count: ${STRESS_TEST_USERS:80}
     project-count: ${STRESS_TEST_PROJECTS:15}
     password: ${STRESS_TEST_PASSWORD:stress}
+  # Firebase Cloud Messaging configuration. FIREBASE_SERVICE_ACCOUNT_JSON must be the
+  # filesystem path to the admin SDK service-account JSON file. Empty = FCM disabled.
+  firebase:
+    service-account-path: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
 
 management:
   server:
