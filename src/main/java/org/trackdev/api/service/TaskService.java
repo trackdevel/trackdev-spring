@@ -488,6 +488,26 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             TaskStatus currentStatus = task.getStatus();
             boolean isProfessor = accessChecker.isProfessorForTask(task, userId);
 
+            // USER_STORY status is normally cascade-driven from subtasks. Allow only
+            // the two manual professor transitions that mirror the cascade:
+            //   TODO → DONE  (only if every subtask is already DONE)
+            //   DONE → TODO  (revert)
+            // Anything else (including any student attempt) is rejected here so that
+            // the generic forceSetStatus below cannot bypass the rule.
+            if (task.getTaskType() == TaskType.USER_STORY && currentStatus != status) {
+                if (!isProfessor) {
+                    throw new ServiceException(ErrorConstants.USER_STORY_STATUS_NOT_EDITABLE);
+                }
+                boolean validProfessorTransition =
+                        (currentStatus == TaskStatus.DONE && status == TaskStatus.TODO)
+                        || (currentStatus == TaskStatus.TODO && status == TaskStatus.DONE
+                            && task.getChildTasks() != null && !task.getChildTasks().isEmpty()
+                            && task.areAllSubtasksDone());
+                if (!validProfessorTransition) {
+                    throw new ServiceException(ErrorConstants.USER_STORY_STATUS_NOT_EDITABLE);
+                }
+            }
+
             // Students only: cannot change status from TODO if task is in a future sprint
             if (!isProfessor && currentStatus == TaskStatus.TODO && status != TaskStatus.TODO) {
                 Collection<Sprint> activeSprints = task.getActiveSprints();
@@ -535,30 +555,11 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 fcmNotificationService.notifyTaskDone(task, user);
             }
 
-            // If this is a subtask being set to DONE, check if parent USER_STORY should auto-complete
-            if (status == TaskStatus.DONE && task.getParentTask() != null) {
-                Task parentTask = task.getParentTask();
-                if (parentTask.getTaskType() == TaskType.USER_STORY && parentTask.areAllSubtasksDone()) {
-                    TaskStatus parentOldStatus = parentTask.getStatus();
-                    if (parentOldStatus != TaskStatus.DONE) {
-                        parentTask.setStatus(TaskStatus.DONE);
-                        changes.add(new TaskStatusChange(user, parentTask,
-                                parentOldStatus.toString(), TaskStatus.DONE.toString()));
-                        repo.save(parentTask);
-                    }
-                }
-            }
-
-            // If this is a subtask moving AWAY from DONE, revert parent USER_STORY from DONE to TODO
-            if (oldStatus == TaskStatus.DONE && status != TaskStatus.DONE && task.getParentTask() != null) {
-                Task parentTask = task.getParentTask();
-                if (parentTask.getTaskType() == TaskType.USER_STORY && parentTask.getStatus() == TaskStatus.DONE) {
-                    parentTask.setStatus(TaskStatus.TODO);
-                    changes.add(new TaskStatusChange(user, parentTask,
-                            TaskStatus.DONE.toString(), TaskStatus.TODO.toString()));
-                    repo.save(parentTask);
-                }
-            }
+            // Single reconciliation entry point: covers both auto-promotion to DONE
+            // (when this subtask was the last non-DONE) and auto-revert from DONE
+            // (when this subtask leaves DONE). Replaces two separate inline blocks
+            // that diverged in subtle ways and could silently drop the cascade.
+            reconcileUserStoryStatus(task.getParentTask(), user, changes);
         }
         if(editTask.rank != null) {
             Integer newRank = editTask.rank.orElseThrow(
@@ -922,19 +923,77 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
             repo.deleteAll(removeTask);
         }
 
+        // Detach from parent's in-memory collection BEFORE the reconcile check.
+        // Otherwise areAllSubtasksDone could still see this (non-DONE) task in the
+        // parent's already-initialized childTasks list and skip the promotion.
+        if (parentTask != null && parentTask.getChildTasks() != null) {
+            parentTask.getChildTasks().remove(task);
+        }
+
         // Finally, delete the task itself
         repo.delete(task);
 
-        // If deleting a subtask, check if parent USER_STORY should auto-complete
-        if (parentTask != null && parentTask.getTaskType() == TaskType.USER_STORY
-                && parentTask.getStatus() != TaskStatus.DONE && parentTask.areAllSubtasksDone()) {
-            TaskStatus parentOldStatus = parentTask.getStatus();
-            parentTask.setStatus(TaskStatus.DONE);
-            repo.save(parentTask);
-            TaskChange change = new TaskStatusChange(actor, parentTask,
-                    parentOldStatus.toString(), TaskStatus.DONE.toString());
+        // Removing a subtask can flip whether the parent's invariant is met
+        // (e.g. last non-DONE child gone → promote, or all children gone → leave alone).
+        reconcileUserStoryStatus(parentTask, actor, null);
+    }
+
+    /**
+     * Reconcile a USER_STORY parent's status against its current children.
+     *
+     * Domain invariants enforced here:
+     *   - All children DONE  → parent must be DONE
+     *   - Any child not DONE → parent must NOT be DONE (revert to TODO)
+     *
+     * This is the single source of truth for the auto-cascade between subtasks
+     * and their parent USER_STORY. Callers MUST invoke it after any change that
+     * could affect a USER_STORY's children: subtask status change, subtask
+     * sprint change, subtask creation, subtask deletion, and PR-driven
+     * subtask demotions. Using it everywhere prevents the parent from drifting
+     * into states like "all subtasks DONE but parent still TODO".
+     *
+     * Uses {@link Task#forceSetStatus} on purpose: this is a system-driven
+     * reconciliation, not a user-issued transition, so the validation graph
+     * (which forbids e.g. BACKLOG → DONE for USER_STORY) must NOT short-circuit
+     * the cascade — that earlier behaviour was the source of the silently
+     * dropped promotion in edge cases.
+     *
+     * @param parent the candidate parent task; no-op if null or not USER_STORY
+     * @param actor  user attributed to any recorded TaskStatusChange (may be null)
+     * @param changes optional list to append a TaskStatusChange to (may be null)
+     * @return true if the parent's status was actually changed
+     */
+    boolean reconcileUserStoryStatus(Task parent, User actor, List<TaskChange> changes) {
+        if (parent == null || parent.getTaskType() != TaskType.USER_STORY) {
+            return false;
+        }
+        Collection<Task> children = parent.getChildTasks();
+        boolean hasChildren = children != null && !children.isEmpty();
+        TaskStatus oldStatus = parent.getStatus();
+        TaskStatus newStatus = oldStatus;
+
+        if (hasChildren && parent.areAllSubtasksDone()) {
+            if (oldStatus != TaskStatus.DONE) {
+                newStatus = TaskStatus.DONE;
+            }
+        } else if (oldStatus == TaskStatus.DONE) {
+            // Parent is DONE but at least one child is not — revert.
+            newStatus = TaskStatus.TODO;
+        }
+
+        if (newStatus == oldStatus) {
+            return false;
+        }
+        parent.forceSetStatus(newStatus);
+        repo.save(parent);
+        TaskStatusChange change = new TaskStatusChange(actor, parent,
+                oldStatus.toString(), newStatus.toString());
+        if (changes != null) {
+            changes.add(change);
+        } else {
             taskChangeService.store(change);
         }
+        return true;
     }
 
     /**

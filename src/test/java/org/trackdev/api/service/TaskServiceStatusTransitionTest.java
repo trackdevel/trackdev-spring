@@ -197,5 +197,130 @@ class TaskServiceStatusTransitionTest {
             assertEquals(TaskStatus.INPROGRESS, task.getStatus(), "task should be INPROGRESS");
             assertEquals(TaskStatus.TODO, story.getStatus(), "parent USER_STORY should revert to TODO");
         }
+
+        @Test
+        @DisplayName("Cascade promotes parent in BACKLOG once last subtask reaches DONE")
+        void cascade_promotesParentEvenIfBacklog() {
+            // Reproduces the silent-cascade bug: parent in BACKLOG with all children
+            // DONE used to throw INVALID_STATUS_TRANSITION (BACKLOG → DONE not in
+            // the USER_STORY graph) and roll back the whole transaction. The
+            // centralized reconcile now uses forceSetStatus, so the cascade lands.
+            Task task = makeTask(10L, TaskType.TASK, TaskStatus.VERIFY);
+            Task story = makeTask(20L, TaskType.USER_STORY, TaskStatus.BACKLOG);
+            ReflectionTestUtils.setField(story, "childTasks", new ArrayList<>(List.of(task)));
+            task.setParentTask(story);
+
+            when(taskRepository.findById(10L)).thenReturn(Optional.of(task));
+
+            MergePatchTask patch = new MergePatchTask();
+            patch.status = Optional.of(TaskStatus.DONE);
+
+            taskService.editTask(10L, patch, "professor-id");
+
+            assertEquals(TaskStatus.DONE, task.getStatus(), "subtask should reach DONE");
+            assertEquals(TaskStatus.DONE, story.getStatus(),
+                    "parent USER_STORY should be promoted regardless of starting state");
+        }
+
+        @Test
+        @DisplayName("Re-saving a DONE subtask reconciles a stale parent stuck in TODO")
+        void cascade_reconcilesStaleParentOnDoneNoOp() {
+            // Defensive scenario: the parent somehow drifted out of sync (e.g. a
+            // historical bug or partial rollback) so it sits in TODO while every
+            // child is already DONE. The cascade has to fire even when this
+            // subtask's status is unchanged, so re-submitting DONE on a child
+            // brings the user story back into compliance.
+            Task done1 = makeTask(11L, TaskType.TASK, TaskStatus.DONE);
+            Task done2 = makeTask(10L, TaskType.TASK, TaskStatus.DONE);
+            Task story = makeTask(20L, TaskType.USER_STORY, TaskStatus.TODO);
+            ReflectionTestUtils.setField(story, "childTasks", new ArrayList<>(List.of(done1, done2)));
+            done1.setParentTask(story);
+            done2.setParentTask(story);
+
+            when(taskRepository.findById(10L)).thenReturn(Optional.of(done2));
+
+            MergePatchTask patch = new MergePatchTask();
+            patch.status = Optional.of(TaskStatus.DONE);  // no-op for the child
+
+            taskService.editTask(10L, patch, "professor-id");
+
+            assertEquals(TaskStatus.DONE, story.getStatus(),
+                    "stale parent in TODO should be reconciled to DONE on re-save");
+        }
+    }
+
+    // =========================================================================
+    // Professor manual USER_STORY transitions
+    // =========================================================================
+
+    @Nested
+    @DisplayName("Professor manual USER_STORY status transitions")
+    class UserStoryManualTransitionTests {
+
+        @Test
+        @DisplayName("Professor can set USER_STORY TODO → DONE when all subtasks are DONE")
+        void professor_canFlipUserStoryToDoneWhenChildrenDone() {
+            Task done1 = makeTask(11L, TaskType.TASK, TaskStatus.DONE);
+            Task done2 = makeTask(12L, TaskType.TASK, TaskStatus.DONE);
+            Task story = makeTask(20L, TaskType.USER_STORY, TaskStatus.TODO);
+            ReflectionTestUtils.setField(story, "childTasks", new ArrayList<>(List.of(done1, done2)));
+
+            when(taskRepository.findById(20L)).thenReturn(Optional.of(story));
+
+            MergePatchTask patch = new MergePatchTask();
+            patch.status = Optional.of(TaskStatus.DONE);
+
+            assertDoesNotThrow(() -> taskService.editTask(20L, patch, "professor-id"));
+            assertEquals(TaskStatus.DONE, story.getStatus());
+        }
+
+        @Test
+        @DisplayName("Professor cannot flip USER_STORY to DONE while children are still pending")
+        void professor_cannotFlipUserStoryToDoneWithPendingChildren() {
+            Task done = makeTask(11L, TaskType.TASK, TaskStatus.DONE);
+            Task pending = makeTask(12L, TaskType.TASK, TaskStatus.INPROGRESS);
+            Task story = makeTask(20L, TaskType.USER_STORY, TaskStatus.TODO);
+            ReflectionTestUtils.setField(story, "childTasks", new ArrayList<>(List.of(done, pending)));
+
+            when(taskRepository.findById(20L)).thenReturn(Optional.of(story));
+
+            MergePatchTask patch = new MergePatchTask();
+            patch.status = Optional.of(TaskStatus.DONE);
+
+            assertThrows(Exception.class, () -> taskService.editTask(20L, patch, "professor-id"));
+            assertEquals(TaskStatus.TODO, story.getStatus(), "story status must not change");
+        }
+
+        @Test
+        @DisplayName("Professor can revert USER_STORY DONE → TODO")
+        void professor_canRevertUserStoryFromDone() {
+            Task done = makeTask(11L, TaskType.TASK, TaskStatus.DONE);
+            Task story = makeTask(20L, TaskType.USER_STORY, TaskStatus.DONE);
+            ReflectionTestUtils.setField(story, "childTasks", new ArrayList<>(List.of(done)));
+
+            when(taskRepository.findById(20L)).thenReturn(Optional.of(story));
+
+            MergePatchTask patch = new MergePatchTask();
+            patch.status = Optional.of(TaskStatus.TODO);
+
+            assertDoesNotThrow(() -> taskService.editTask(20L, patch, "professor-id"));
+            assertEquals(TaskStatus.TODO, story.getStatus());
+        }
+
+        @Test
+        @DisplayName("Professor cannot flip USER_STORY directly from BACKLOG (must add a sprint first)")
+        void professor_cannotFlipUserStoryFromBacklog() {
+            Task done = makeTask(11L, TaskType.TASK, TaskStatus.DONE);
+            Task story = makeTask(20L, TaskType.USER_STORY, TaskStatus.BACKLOG);
+            ReflectionTestUtils.setField(story, "childTasks", new ArrayList<>(List.of(done)));
+
+            when(taskRepository.findById(20L)).thenReturn(Optional.of(story));
+
+            MergePatchTask patch = new MergePatchTask();
+            patch.status = Optional.of(TaskStatus.DONE);
+
+            assertThrows(Exception.class, () -> taskService.editTask(20L, patch, "professor-id"));
+            assertEquals(TaskStatus.BACKLOG, story.getStatus());
+        }
     }
 }

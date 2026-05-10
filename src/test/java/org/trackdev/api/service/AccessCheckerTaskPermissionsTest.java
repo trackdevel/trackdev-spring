@@ -247,11 +247,51 @@ class AccessCheckerTaskPermissionsTest {
     class CanEditStatusTests {
 
         @Test
-        @DisplayName("USER_STORY status should NOT be editable by anyone")
+        @DisplayName("USER_STORY in TODO with no children: status NOT editable")
         void userStory_statusShouldNotBeEditable() {
             assertFalse(accessChecker.canEditStatus(userStoryTask, "student-id"));
             assertFalse(accessChecker.canEditStatus(userStoryTask, "professor-id"));
             assertFalse(accessChecker.canEditStatus(userStoryTask, "admin-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY in TODO with all subtasks DONE: editable by professor only (TODO → DONE)")
+        void userStoryAllSubtasksDone_statusEditableByProfessorOnly() {
+            Task done1 = createTask(101L, "done-1", TaskType.TASK, TaskStatus.DONE);
+            Task done2 = createTask(102L, "done-2", TaskType.TASK, TaskStatus.DONE);
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(done1, done2));
+
+            assertFalse(accessChecker.canEditStatus(userStoryTask, "student-id"));
+            assertTrue(accessChecker.canEditStatus(userStoryTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY in TODO with mixed subtasks: NOT editable even by professor")
+        void userStoryMixedSubtasks_statusNotEditableByProfessor() {
+            Task done = createTask(101L, "done", TaskType.TASK, TaskStatus.DONE);
+            Task pending = createTask(102L, "pending", TaskType.TASK, TaskStatus.INPROGRESS);
+            ReflectionTestUtils.setField(userStoryTask, "childTasks", List.of(done, pending));
+
+            assertFalse(accessChecker.canEditStatus(userStoryTask, "professor-id"));
+            assertFalse(accessChecker.canEditStatus(userStoryTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY in DONE: editable by professor only (DONE → TODO revert)")
+        void userStoryInDone_statusEditableByProfessorOnly() {
+            ReflectionTestUtils.setField(userStoryTask, "status", TaskStatus.DONE);
+
+            assertTrue(accessChecker.canEditStatus(userStoryTask, "professor-id"));
+            assertFalse(accessChecker.canEditStatus(userStoryTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("USER_STORY in BACKLOG: NOT editable even by professor")
+        void userStoryInBacklog_statusNotEditable() {
+            ReflectionTestUtils.setField(userStoryTask, "status", TaskStatus.BACKLOG);
+
+            assertFalse(accessChecker.canEditStatus(userStoryTask, "professor-id"));
+            assertFalse(accessChecker.canEditStatus(userStoryTask, "student-id"));
         }
 
         @Test
@@ -1033,7 +1073,7 @@ class AccessCheckerTaskPermissionsTest {
         @Test
         @DisplayName("USER_STORY constraints cannot be bypassed")
         void userStoryConstraints_cannotBeBypassed() {
-            // Status never editable
+            // Status not editable in TODO with no children (cascade preconditions not met)
             assertFalse(accessChecker.canEditStatus(userStoryTask, "admin-id"));
             
             // Type never editable

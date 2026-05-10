@@ -875,15 +875,34 @@ public class AccessChecker {
 
     /**
      * Compute canEditStatus permission.
-     * USER_STORY cannot have status changed manually.
+     * USER_STORY status is normally computed from subtasks, but a PROFESSOR can
+     * manually flip it when the cascade is unambiguous (TODO → DONE if all
+     * subtasks are DONE, or DONE → TODO to revert).
      * TASK/BUG in past sprint only cannot change status (unless professor).
      */
     public boolean canEditStatus(org.trackdev.api.entity.Task task, String userId) {
-        // USER_STORY status is computed from children, cannot be changed manually
+        boolean isProfessor = isProfessorForTask(task, userId);
         if (task.getTaskType() == TaskType.USER_STORY) {
+            // Students/non-professors never edit USER_STORY status — it cascades from subtasks
+            if (!isProfessor) {
+                return false;
+            }
+            // Professor can flip USER_STORY status only when the cascade is unambiguous:
+            //   TODO → DONE   (only if all subtasks are DONE — otherwise the cascade would just revert it)
+            //   DONE → TODO   (manual revert)
+            TaskStatus current = task.getStatus();
+            if (current == TaskStatus.DONE) {
+                return canEditTask(task, userId);
+            }
+            if (current == TaskStatus.TODO) {
+                Collection<org.trackdev.api.entity.Task> children = task.getChildTasks();
+                boolean hasChildren = children != null && !children.isEmpty();
+                if (hasChildren && task.areAllSubtasksDone()) {
+                    return canEditTask(task, userId);
+                }
+            }
             return false;
         }
-        boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can edit
         if (task.isFrozen() && !isProfessor) {
             return false;

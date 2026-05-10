@@ -47,6 +47,7 @@ public final class ErrorConstants {
     public static final String ONLY_PROFESSOR_CAN_CHANGE_REPORTER = "error.task.reporter.professor.only";
     public static final String ONLY_USER_STORY_CAN_HAVE_SUBTASKS = "error.task.subtasks.user.story.only";
     public static final String USER_STORY_CANNOT_BE_DONE_WITH_PENDING_SUBTASKS = "error.task.user.story.pending.subtasks";
+    public static final String USER_STORY_STATUS_NOT_EDITABLE = "error.task.user.story.status.not.editable";
     public static final String TASK_CANNOT_BE_DONE_WITHOUT_ESTIMATION = "error.task.done.requires.estimation";
     public static final String TASK_CANNOT_BE_DONE_WITHOUT_MERGED_PR = "error.task.done.requires.merged.pr";
     public static final String TASK_CANNOT_BE_DONE_WITH_OPEN_PRS = "error.task.done.has.open.prs";
