@@ -243,25 +243,20 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
                     task.forceSetStatus(TaskStatus.INPROGRESS);
                     log.info("Task {} reverted from DONE to INPROGRESS (DONE and VERIFY rules no longer met)", task.getTaskKey());
                 }
-                revertParentUserStoryIfNeeded(task);
+                // Centralized cascade — replaces ad-hoc revert logic that only ever
+                // demoted the parent. Routing through TaskService keeps a single
+                // source of truth for the USER_STORY ↔ subtasks invariant.
+                taskService.reconcileUserStoryStatus(task.getParentTask(), null, null);
             }
         } else if (currentStatus == TaskStatus.VERIFY) {
             if (!task.canMoveToVerify()) {
                 task.forceSetStatus(TaskStatus.INPROGRESS);
                 log.info("Task {} reverted from VERIFY to INPROGRESS (VERIFY rules no longer met)", task.getTaskKey());
+                // VERIFY → INPROGRESS doesn't leave DONE, but the subtask was already
+                // out of DONE before this branch ran. Still, run reconcile defensively
+                // in case stale data leaves the parent inconsistent.
+                taskService.reconcileUserStoryStatus(task.getParentTask(), null, null);
             }
-        }
-    }
-
-    /**
-     * If a subtask leaves DONE and its parent USER_STORY was DONE, revert parent to TODO.
-     */
-    private void revertParentUserStoryIfNeeded(Task task) {
-        Task parent = task.getParentTask();
-        if (parent != null && parent.getTaskType() == TaskType.USER_STORY
-                && parent.getStatus() == TaskStatus.DONE) {
-            parent.forceSetStatus(TaskStatus.TODO);
-            log.info("Parent USER_STORY {} reverted from DONE to TODO", parent.getTaskKey());
         }
     }
 
