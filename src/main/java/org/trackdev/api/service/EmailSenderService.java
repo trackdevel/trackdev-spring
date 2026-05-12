@@ -95,17 +95,70 @@ public class EmailSenderService extends BaseServiceUUID<Email, EmailRepository> 
      * Runs asynchronously - caller will not wait for email to be sent.
      */
     @Async
-    public void sendCourseInviteEmail(String email, String token, String courseName, 
+    public void sendCourseInviteEmail(String email, String token, String courseName,
                                        Integer startYear, String inviterName, String language) {
         Locale locale = Locale.forLanguageTag(language != null ? language : "en");
         String inviteLink = frontendUrl + "/invite/" + token;
-        
-        String subject = messageSource.getMessage("email.invite.subject", 
+
+        String subject = messageSource.getMessage("email.invite.subject",
             new Object[]{courseName, startYear, startYear + 1}, locale);
-        String body = messageSource.getMessage("email.invite.body", 
+        String body = messageSource.getMessage("email.invite.body",
             new Object[]{inviterName, courseName, startYear, startYear + 1, inviteLink}, locale);
 
         sendEmail(email, subject, body, "course-invite");
+    }
+
+    /**
+     * Send notification when a new points review conversation has been opened on a task.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     */
+    @Async
+    public void sendPointsReviewCreatedEmail(String to, String taskKey, String taskName,
+                                             String actorName, Long taskId, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String taskUrl = frontendUrl + "/dashboard/tasks/" + taskId;
+        String subject = messageSource.getMessage("email.pointsReview.created.subject",
+            new Object[]{taskKey}, locale);
+        String body = messageSource.getMessage("email.pointsReview.created.body",
+            new Object[]{actorName, taskKey, taskName, taskUrl}, locale);
+
+        sendEmail(to, subject, body, "points-review-created");
+    }
+
+    /**
+     * Send notification when a new message has been added to a points review conversation.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     */
+    @Async
+    public void sendPointsReviewMessageEmail(String to, String taskKey, String taskName,
+                                             String authorName, String messagePreview,
+                                             Long taskId, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String taskUrl = frontendUrl + "/dashboard/tasks/" + taskId;
+        String subject = messageSource.getMessage("email.pointsReview.message.subject",
+            new Object[]{authorName, taskKey}, locale);
+        String body = messageSource.getMessage("email.pointsReview.message.body",
+            new Object[]{authorName, taskKey, taskName, messagePreview, taskUrl}, locale);
+
+        sendEmail(to, subject, body, "points-review-message");
+    }
+
+    /**
+     * Send notification when an existing message in a points review conversation has been edited.
+     * Runs asynchronously - caller will not wait for email to be sent.
+     */
+    @Async
+    public void sendPointsReviewMessageEditedEmail(String to, String taskKey, String taskName,
+                                                   String authorName, String messagePreview,
+                                                   Long taskId, String language) {
+        Locale locale = Locale.forLanguageTag(language != null ? language : "en");
+        String taskUrl = frontendUrl + "/dashboard/tasks/" + taskId;
+        String subject = messageSource.getMessage("email.pointsReview.messageEdited.subject",
+            new Object[]{authorName, taskKey}, locale);
+        String body = messageSource.getMessage("email.pointsReview.messageEdited.body",
+            new Object[]{authorName, taskKey, taskName, messagePreview, taskUrl}, locale);
+
+        sendEmail(to, subject, body, "points-review-message-edited");
     }
 
     /**
