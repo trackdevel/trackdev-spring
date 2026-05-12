@@ -32,6 +32,9 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
     @Autowired
     FcmNotificationService fcmNotificationService;
 
+    @Autowired
+    EmailNotificationService emailNotificationService;
+
     /**
      * Create a new points review conversation on a task.
      */
@@ -68,6 +71,7 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
         messageRepository.save(firstMessage);
 
         fcmNotificationService.notifyPointsReviewCreated(conversation, initiator);
+        emailNotificationService.notifyPointsReviewCreated(conversation, initiator);
 
         return conversation;
     }
@@ -167,6 +171,7 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
         messageRepository.save(message);
 
         fcmNotificationService.notifyPointsReviewMessage(conversation, message);
+        emailNotificationService.notifyPointsReviewMessage(conversation, message);
 
         return message;
     }
@@ -185,7 +190,12 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
 
         HtmlSanitizer.validate(content);
         message.setContent(content);
-        return messageRepository.save(message);
+        PointsReviewMessage saved = messageRepository.save(message);
+
+        User editor = userService.get(userId);
+        emailNotificationService.notifyPointsReviewMessageEdited(saved.getConversation(), saved, editor);
+
+        return saved;
     }
 
     /**
