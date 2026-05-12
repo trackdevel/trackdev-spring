@@ -109,4 +109,49 @@ public class PointsReviewConversationMapper {
             .map(this::toSummaryDTO)
             .collect(Collectors.toList());
     }
+
+    /**
+     * Map a conversation to the cross-project "active reviews" list DTO,
+     * including task / project / course identifiers.
+     */
+    public PointsReviewActiveConversationDTO toActiveDTO(PointsReviewConversation conv) {
+        PointsReviewActiveConversationDTO dto = new PointsReviewActiveConversationDTO();
+        dto.setId(conv.getId());
+        dto.setInitiator(userMapper.toSummaryDTO(conv.getInitiator()));
+        dto.setProposedPoints(conv.getProposedPoints());
+        dto.setMessageCount(conv.getMessageCount());
+        dto.setCreatedAt(conv.getCreatedAt());
+        dto.setLastMessageAt(conv.getLastMessageAt());
+
+        org.trackdev.api.entity.Task task = conv.getTask();
+        if (task != null) {
+            dto.setTaskId(task.getId());
+            dto.setTaskKey(task.getTaskKey());
+            dto.setTaskName(task.getName());
+
+            org.trackdev.api.entity.Project project = task.getProject();
+            if (project != null) {
+                dto.setProjectId(project.getId());
+                dto.setProjectSlug(project.getSlug());
+                dto.setProjectName(project.getName());
+
+                org.trackdev.api.entity.Course course = project.getCourse();
+                if (course != null) {
+                    dto.setCourseId(course.getId());
+                    dto.setCourseStartYear(course.getStartYear());
+                    if (course.getSubject() != null) {
+                        dto.setSubjectName(course.getSubject().getName());
+                        dto.setSubjectAcronym(course.getSubject().getAcronym());
+                    }
+                }
+            }
+        }
+        return dto;
+    }
+
+    public List<PointsReviewActiveConversationDTO> toActiveDTOList(List<PointsReviewConversation> conversations) {
+        return conversations.stream()
+            .map(this::toActiveDTO)
+            .collect(Collectors.toList());
+    }
 }
