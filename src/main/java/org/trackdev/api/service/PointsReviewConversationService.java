@@ -270,6 +270,25 @@ public class PointsReviewConversationService extends BaseServiceLong<PointsRevie
     }
 
     /**
+     * Return all points review conversations the user can view, across every task they
+     * have access to. Used to power the "active reviews" overview.
+     * Admin sees every conversation; everyone else sees conversations they initiated,
+     * participate in, or own (via course / subject).
+     */
+    @Transactional(readOnly = true)
+    public List<PointsReviewConversation> getActiveConversationsForUser(String userId) {
+        User user = userService.get(userId);
+        List<PointsReviewConversation> conversations = accessChecker.isUserAdmin(user)
+            ? repo.findAllOrderByUpdatedAtDesc()
+            : repo.findVisibleToUser(userId);
+
+        for (PointsReviewConversation conv : conversations) {
+            conv.getMessages().size();
+        }
+        return conversations;
+    }
+
+    /**
      * Check if user already has a conversation on this task.
      */
     public boolean hasExistingConversation(Long taskId, String userId) {
