@@ -147,28 +147,6 @@ public class FcmNotificationService {
     }
 
     /**
-     * Notify all members of the task's project (minus the actor) that a new PR
-     * has been opened and linked to the task. Honors recipients' notifyTeamActivity.
-     */
-    public void notifyPrOpened(PullRequest pr, Task task, User actor) {
-        if (!isEnabled() || pr == null || task == null || task.getProject() == null) return;
-        Set<User> recipients = projectMembersExcept(task, actor);
-        if (recipients.isEmpty()) return;
-
-        String actorName = actor != null ? actor.getFullName() : "Someone";
-        String title = actorName + " opened PR #" + pr.getPrNumber() + " on " + task.getTaskKey();
-        String body = pr.getTitle();
-        Map<String, String> data = baseTaskPayload("pr_opened", task);
-        data.put("prId", String.valueOf(pr.getId()));
-        data.put("prNumber", String.valueOf(pr.getPrNumber()));
-
-        for (User r : recipients) {
-            if (!Boolean.TRUE.equals(r.getNotifyTeamActivity())) continue;
-            sendToUserAfterCommit(r.getId(), title, body, data);
-        }
-    }
-
-    /**
      * Notify all members of the task's project (minus the actor) that a PR has been merged.
      * Honors recipients' notifyTeamActivity.
      */
