@@ -113,7 +113,8 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         Optional<PullRequest> existingPR = this.repo.findByUrl(prUrl);
         PullRequest pr;
         boolean isNewPR = existingPR.isEmpty();
-        
+        boolean wasMerged = existingPR.isPresent() && Boolean.TRUE.equals(existingPR.get().getMerged());
+
         if (existingPR.isPresent()) {
             pr = existingPR.get();
             // Update existing PR with latest data
@@ -149,6 +150,16 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         if (!isNewPR) {
             for (Task task : pr.getTasks()) {
                 enforceTaskStatusInvariants(task);
+            }
+        }
+
+        // Notify project members when a PR transitions to merged. linkPullRequestToTask
+        // only fires this for newly-linked tasks; the usual flow is opened-then-merged
+        // (already linked), so without this block the merge push is silently dropped.
+        if (!wasMerged && Boolean.TRUE.equals(merged)) {
+            User actor = userService.findByGithubUsernameOrUsername(senderLogin);
+            for (Task task : pr.getTasks()) {
+                fcmNotificationService.notifyPrMerged(pr, task, actor);
             }
         }
 
@@ -382,6 +393,10 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
 
         if (activityType == ActivityType.PR_MERGED && task != null) {
             fcmNotificationService.notifyPrMerged(pr, task, actor);
+        }
+
+        if (activityType == ActivityType.PR_LINKED && task != null) {
+            fcmNotificationService.notifyPrOpened(pr, task, actor);
         }
     }
 
