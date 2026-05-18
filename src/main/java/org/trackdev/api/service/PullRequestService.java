@@ -394,10 +394,6 @@ public class PullRequestService extends BaseServiceUUID<PullRequest, PullRequest
         if (activityType == ActivityType.PR_MERGED && task != null) {
             fcmNotificationService.notifyPrMerged(pr, task, actor);
         }
-
-        if (activityType == ActivityType.PR_LINKED && task != null) {
-            fcmNotificationService.notifyPrOpened(pr, task, actor);
-        }
     }
 
     /**
