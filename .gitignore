@@ -12,3 +12,5 @@ CLAUDE.md
 .mcp.json
 .gaviero
 test-reports/
+.cursor
+.codex
