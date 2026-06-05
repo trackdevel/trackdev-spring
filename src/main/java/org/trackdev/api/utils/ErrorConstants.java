@@ -77,6 +77,7 @@ public final class ErrorConstants {
     public static final String USER_NOT_PRJ_MEMBER = "error.project.not.member";
     public static final String CANNOT_GENERATE_UNIQUE_SLUG = "error.project.slug.generation.failed";
     public static final String CANNOT_REMOVE_MEMBER_HAS_ASSIGNED_TASKS = "error.project.member.has.tasks";
+    public static final String PROJECT_IS_FROZEN = "error.project.frozen";
     public static final String PROJECT_HAS_TASKS = "error.project.has.tasks";
     
     // Subject errors
