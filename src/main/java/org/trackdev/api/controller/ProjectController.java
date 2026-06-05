@@ -23,6 +23,7 @@ import org.trackdev.api.entity.TaskType;
 import org.trackdev.api.mapper.ProjectMapper;
 import org.trackdev.api.mapper.ReportMapper;
 import org.trackdev.api.mapper.TaskMapper;
+import org.trackdev.api.model.BulkProjectFreezeRequest;
 import org.trackdev.api.model.response.ProjectQualificationResponse;
 import org.trackdev.api.model.response.ProjectPRStatsResponse;
 import org.trackdev.api.model.response.ProjectSprintsResponse;
@@ -87,12 +88,10 @@ public class ProjectController extends BaseController {
     @GetMapping
     public ProjectsResponseDTO getProjects(Principal principal) {
         String userId = super.getUserId(principal);
-        if(accessChecker.checkCanViewAllProjects(userId)){
-            return new ProjectsResponseDTO(projectMapper.toWithMembersDTOList(service.findAll()));
-        }
-        else{
-            return new ProjectsResponseDTO(projectMapper.toWithMembersDTOList(service.getProjectsForUser(userId)));
-        }
+        Collection<Project> projects = accessChecker.checkCanViewAllProjects(userId)
+                ? service.findAll()
+                : service.getProjectsForUser(userId);
+        return new ProjectsResponseDTO(enrichProjectDTOs(projects, userId));
     }
 
     @Operation(summary = "Get projects paginated", description = "Get projects paginated and sorted alphabetically")
@@ -105,7 +104,7 @@ public class ProjectController extends BaseController {
         String userId = super.getUserId(principal);
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         Page<Project> projectPage = service.getProjectsPaginated(userId, courseId, pageable);
-        List<ProjectWithMembersDTO> projectDTOs = new ArrayList<>(projectMapper.toWithMembersDTOList(projectPage.getContent()));
+        List<ProjectWithMembersDTO> projectDTOs = enrichProjectDTOs(projectPage.getContent(), userId);
         return new PagedProjectsResponseDTO(
                 projectDTOs,
                 projectPage.getNumber(),
@@ -121,8 +120,32 @@ public class ProjectController extends BaseController {
     @GetMapping(path = "/{projectId}")
     public ProjectCompleteDTO getProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
         String userId = super.getUserId(principal);
-        // All operations in a single transaction
-        return projectMapper.toCompleteDTO(service.getProjectAndSetCurrent(projectId, userId));
+        Project project = service.getProjectAndSetCurrent(projectId, userId);
+        return enrichProjectDTO(project, projectMapper.toCompleteDTO(project), userId);
+    }
+
+    @Operation(summary = "Freeze a project", description = "Freeze a project so students cannot edit tasks (course manager only)")
+    @PostMapping(path = "/{projectId}/freeze")
+    public ProjectWithMembersDTO freezeProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        return enrichProjectDTO(service.setProjectFrozen(projectId, true, userId), userId);
+    }
+
+    @Operation(summary = "Unfreeze a project", description = "Unfreeze a project (course manager only)")
+    @PostMapping(path = "/{projectId}/unfreeze")
+    public ProjectWithMembersDTO unfreezeProject(Principal principal, @PathVariable(name = "projectId") Long projectId) {
+        String userId = super.getUserId(principal);
+        return enrichProjectDTO(service.setProjectFrozen(projectId, false, userId), userId);
+    }
+
+    @Operation(summary = "Bulk freeze or unfreeze projects", description = "Set frozen state on multiple projects (course manager only)")
+    @PostMapping(path = "/bulk-freeze")
+    public ProjectsResponseDTO bulkSetProjectsFrozen(
+            Principal principal,
+            @Valid @RequestBody BulkProjectFreezeRequest request) {
+        String userId = super.getUserId(principal);
+        List<Project> projects = service.setProjectsFrozen(request.projectIds, request.frozen, userId);
+        return new ProjectsResponseDTO(enrichProjectDTOs(projects, userId));
     }
 
     @Operation(summary = "Edit specific project", description = "Edit specific project")
@@ -138,7 +161,8 @@ public class ProjectController extends BaseController {
             throw new ControllerException(String.join(". ", errors));
         }
         String userId = super.getUserId(principal);
-        return projectMapper.toWithMembersDTO(service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, projectRequest.qualification, userId));
+        Project project = service.editProject(projectId, projectRequest.name, projectRequest.members, projectRequest.courseId, projectRequest.qualification, userId);
+        return enrichProjectDTO(project, userId);
     }
 
     @Operation(summary = "Delete specific project", description = "Delete specific project")
@@ -345,7 +369,24 @@ public class ProjectController extends BaseController {
             @PathVariable(name = "patternId") Long patternId) {
         String userId = super.getUserId(principal);
         Project project = service.applySprintPattern(projectId, patternId, userId);
-        return projectMapper.toCompleteDTO(project);
+        return enrichProjectDTO(project, projectMapper.toCompleteDTO(project), userId);
+    }
+
+    private List<ProjectWithMembersDTO> enrichProjectDTOs(Collection<Project> projects, String userId) {
+        List<ProjectWithMembersDTO> dtos = new ArrayList<>();
+        for (Project project : projects) {
+            dtos.add(enrichProjectDTO(project, userId));
+        }
+        return dtos;
+    }
+
+    private ProjectWithMembersDTO enrichProjectDTO(Project project, String userId) {
+        return enrichProjectDTO(project, projectMapper.toWithMembersDTO(project), userId);
+    }
+
+    private <T extends ProjectBasicDTO> T enrichProjectDTO(Project project, T dto, String userId) {
+        dto.setCanFreeze(accessChecker.canFreezeProject(project, userId));
+        return dto;
     }
 
     static class EditProject {
