@@ -72,6 +72,9 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Project project = projectService.get(projectId);
         User user = userService.get(userId);
         accessChecker.checkCanViewProject(project, userId);
+        if (project.isFrozen() && !accessChecker.isProfessorForProject(project, userId)) {
+            throw new ServiceException(ErrorConstants.PROJECT_IS_FROZEN);
+        }
         // Validate input to prevent XSS attacks
         HtmlSanitizer.validate(name);
         HtmlSanitizer.validate(description);
@@ -117,7 +120,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         User user = userService.get(userId);
 
         // Frozen tasks cannot be self-assigned
-        if (task.isFrozen()) {
+        if (accessChecker.isEffectivelyFrozen(task)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
 
@@ -150,7 +153,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         User user = userService.get(userId);
 
         // Frozen tasks can only be unassigned by professors
-        if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
+        if (accessChecker.isEffectivelyFrozen(task) && !accessChecker.isProfessorForTask(task, userId)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
 
@@ -251,7 +254,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         }
 
         // Frozen parent tasks can only have subtasks added by professors
-        if (parentTask.isFrozen() && !accessChecker.isProfessorForTask(parentTask, userId)) {
+        if (accessChecker.isEffectivelyFrozen(parentTask) && !accessChecker.isProfessorForTask(parentTask, userId)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
 
@@ -372,7 +375,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         User user = userService.get(userId);
 
         // Frozen tasks can only be edited by professors
-        if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
+        if (accessChecker.isEffectivelyFrozen(task) && !accessChecker.isProfessorForTask(task, userId)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
 
@@ -857,7 +860,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
         Task task = get(id);
 
         // Frozen tasks can only be deleted by professors
-        if (task.isFrozen() && !accessChecker.isProfessorForTask(task, userId)) {
+        if (accessChecker.isEffectivelyFrozen(task) && !accessChecker.isProfessorForTask(task, userId)) {
             throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
         }
 
@@ -1377,7 +1380,7 @@ public class TaskService extends BaseServiceLong<Task, TaskRepository> {
                 if (task.getAssignee() == null || !task.getAssignee().getId().equals(user.getId())) {
                     throw new ServiceException(ErrorConstants.UNAUTHORIZED);
                 }
-                if (task.isFrozen()) {
+                if (accessChecker.isEffectivelyFrozen(task)) {
                     throw new ServiceException(ErrorConstants.TASK_IS_FROZEN);
                 }
             } else if (!user.isUserType(UserType.PROFESSOR) && !user.isUserType(UserType.ADMIN)) {
