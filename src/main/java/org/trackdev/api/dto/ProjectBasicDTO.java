@@ -13,4 +13,6 @@ public class ProjectBasicDTO {
     private Double qualification;
     private Long sprintPatternId;
     private CourseBasicDTO course;
+    private Boolean frozen;
+    private boolean canFreeze;
 }

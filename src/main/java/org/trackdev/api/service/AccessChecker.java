@@ -201,6 +201,29 @@ public class AccessChecker {
         checkCanManageCourse(project.getCourse(), userId);
     }
 
+    /**
+     * Whether the current user can freeze/unfreeze a project (course manager or admin).
+     */
+    public boolean canFreezeProject(Project project, String userId) {
+        try {
+            checkCanManageProject(project, userId);
+            return true;
+        } catch (ServiceException e) {
+            return false;
+        }
+    }
+
+    /**
+     * A task is effectively frozen when it is frozen directly or its project is frozen.
+     */
+    public boolean isEffectivelyFrozen(org.trackdev.api.entity.Task task) {
+        if (task.isFrozen()) {
+            return true;
+        }
+        Project project = task.getProject();
+        return project != null && project.isFrozen();
+    }
+
     public void checkCanViewProject(Project project, String userId) {
         // Project members can always view
         if(project.isMember(userId)) {
@@ -904,7 +927,7 @@ public class AccessChecker {
             return false;
         }
         // If frozen, only professor can edit
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // If in past sprint only, only professor can edit
@@ -935,7 +958,7 @@ public class AccessChecker {
         }
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can edit
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // DONE status tasks cannot change sprint (except professor)
@@ -967,7 +990,7 @@ public class AccessChecker {
         }
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can edit
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // If in past sprint only, only professor can edit
@@ -988,7 +1011,7 @@ public class AccessChecker {
         }
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can edit
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // If in past sprint only, only professor can edit
@@ -1007,7 +1030,7 @@ public class AccessChecker {
     public boolean canDeleteTask(org.trackdev.api.entity.Task task, String userId) {
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can delete
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // If in past sprint only, only professor can delete
@@ -1052,7 +1075,7 @@ public class AccessChecker {
             return false;
         }
         // If frozen, cannot self-assign
-        if (task.isFrozen()) {
+        if (isEffectivelyFrozen(task)) {
             return false;
         }
         // If in past sprint only, cannot self-assign unless task is not DONE
@@ -1075,7 +1098,7 @@ public class AccessChecker {
         }
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can unassign
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // If in past sprint only, only professor can unassign
@@ -1098,7 +1121,7 @@ public class AccessChecker {
     public boolean canManageLinks(org.trackdev.api.entity.Task task, String userId) {
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can manage links
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         if (isProfessor) {
@@ -1119,7 +1142,7 @@ public class AccessChecker {
         }
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can add subtasks
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // Check if user can create subtasks
@@ -1141,7 +1164,7 @@ public class AccessChecker {
     public boolean canComment(org.trackdev.api.entity.Task task, String userId) {
         boolean isProfessor = isProfessorForTask(task, userId);
         // If frozen, only professor can comment
-        if (task.isFrozen() && !isProfessor) {
+        if (isEffectivelyFrozen(task) && !isProfessor) {
             return false;
         }
         // Project members can comment

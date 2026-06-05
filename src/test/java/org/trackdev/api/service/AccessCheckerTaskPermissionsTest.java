@@ -960,6 +960,53 @@ class AccessCheckerTaskPermissionsTest {
     }
 
     // =============================================================================
+    // Project frozen Tests
+    // =============================================================================
+
+    @Nested
+    @DisplayName("Project frozen")
+    class ProjectFrozenTests {
+
+        @BeforeEach
+        void setProjectFrozen() {
+            project.setFrozen(true);
+        }
+
+        @Test
+        @DisplayName("Frozen project TASK should NOT be editable by student")
+        void frozenProject_taskShouldNotBeEditableByStudent() {
+            assertFalse(accessChecker.canEditStatus(taskTask, "student-id"));
+            assertFalse(accessChecker.canComment(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("Frozen project TASK SHOULD be editable by professor")
+        void frozenProject_taskShouldBeEditableByProfessor() {
+            assertTrue(accessChecker.canEditStatus(taskTask, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("Frozen project should still allow student to start points review on DONE task")
+        void frozenProject_studentCanStartPointsReview() {
+            ReflectionTestUtils.setField(taskTask, "status", TaskStatus.DONE);
+            taskTask.setAssignee(otherStudentUser);
+            assertTrue(accessChecker.canStartPointsReview(taskTask, "student-id"));
+        }
+
+        @Test
+        @DisplayName("Professor with course manage access can freeze project")
+        void professorCanFreezeProject() {
+            assertTrue(accessChecker.canFreezeProject(project, "professor-id"));
+        }
+
+        @Test
+        @DisplayName("Student cannot freeze project")
+        void studentCannotFreezeProject() {
+            assertFalse(accessChecker.canFreezeProject(project, "student-id"));
+        }
+    }
+
+    // =============================================================================
     // canComment Tests
     // =============================================================================
 

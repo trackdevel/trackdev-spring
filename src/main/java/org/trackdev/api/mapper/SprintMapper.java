@@ -54,5 +54,6 @@ public interface SprintMapper {
      */
     @Named("projectToBasicDTOSimple")
     @Mapping(target = "course", source = "course", qualifiedByName = "courseToBasicDTO")
+    @Mapping(target = "canFreeze", ignore = true)
     ProjectBasicDTO projectToBasicDTO(Project project);
 }
