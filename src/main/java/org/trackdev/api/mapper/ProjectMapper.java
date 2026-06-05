@@ -16,12 +16,14 @@ public interface ProjectMapper {
 
     @Named("projectToBasicDTO")
     @Mapping(target = "course", source = "course", qualifiedByName = "courseToBasicDTO")
+    @Mapping(target = "canFreeze", ignore = true)
     ProjectBasicDTO toBasicDTO(Project project);
 
     @Named("projectToWithMembersDTO")
     @Mapping(target = "course", source = "course", qualifiedByName = "courseToBasicDTO")
     @Mapping(target = "members", source = "members", qualifiedByName = "userToSummaryDTO")
     @Mapping(target = "sprints", source = "sprints", qualifiedByName = "sprintToBasicDTO")
+    @Mapping(target = "canFreeze", ignore = true)
     ProjectWithMembersDTO toWithMembersDTO(Project project);
 
     @Named("projectToCompleteDTO")
@@ -29,6 +31,7 @@ public interface ProjectMapper {
     @Mapping(target = "members", source = "members", qualifiedByName = "userToSummaryDTO")
     @Mapping(target = "tasks", ignore = true)
     @Mapping(target = "sprints", ignore = true)
+    @Mapping(target = "canFreeze", ignore = true)
     ProjectCompleteDTO toCompleteDTO(Project project);
 
     @IterableMapping(qualifiedByName = "projectToBasicDTO")
