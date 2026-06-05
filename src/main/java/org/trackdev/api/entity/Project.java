@@ -70,6 +70,9 @@ public class Project extends BaseEntityLong {
      */
     private Integer nextTaskNumber = 1;
 
+    @Column(nullable = false)
+    private Boolean frozen = false;
+
     //--- CONSTRUCTOR
 
     public Project() {}
@@ -134,6 +137,16 @@ public class Project extends BaseEntityLong {
 
     public Double getQualification() { return this.qualification; }
     public void setQualification(Double qualification) { this.qualification = qualification; }
+
+    public Boolean getFrozen() { return frozen != null && frozen; }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
+    }
+
+    public boolean isFrozen() {
+        return frozen != null && frozen;
+    }
 
     //--- METHODS
 
