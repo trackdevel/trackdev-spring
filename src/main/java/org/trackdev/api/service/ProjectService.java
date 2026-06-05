@@ -460,4 +460,22 @@ public class ProjectService extends BaseServiceLong<Project, GroupRepository> {
                 .toList();
     }
 
+    @Transactional
+    public Project setProjectFrozen(Long projectId, boolean frozen, String userId) {
+        Project project = get(projectId);
+        accessChecker.checkCanManageProject(project, userId);
+        project.setFrozen(frozen);
+        repo.save(project);
+        return project;
+    }
+
+    @Transactional
+    public List<Project> setProjectsFrozen(Collection<Long> projectIds, boolean frozen, String userId) {
+        List<Project> updated = new ArrayList<>();
+        for (Long projectId : projectIds) {
+            updated.add(setProjectFrozen(projectId, frozen, userId));
+        }
+        return updated;
+    }
+
 }
